@@ -1,0 +1,12 @@
+{
+    "previousStatus": null,
+    "activeInputs": [],
+    "instantSoftDropActive": false,
+    "instantDropActive": false,
+    "dasRightCharged": false,
+    "dasLeftCharged": false,
+    "direction": null,
+    "softDropActive": false,
+    "pendingInstructions": []
+}
+  

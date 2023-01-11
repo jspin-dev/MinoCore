@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "useDefineForClassFields": true,
+    "module": "ES6",
+    "moduleResolution": "Node",
+    "isolatedModules": true,
+    "outDir": "build",
+    "declaration": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "include": ["lib/**/*"]
+}
