@@ -1,6 +1,8 @@
 # MinoCore
 
-MinoCore is a state management and utilities library for creating block-stacking games in js and typescript. MinoCore consolidates the mostly commonly used stacking logic and provides a UI-agnostic interface through which to manage the state for your game.
+**Note: This library is still in alpha and will likely have have significant changes until the first beta release**
+
+MinoCore is a state management and utilities library for creating block-stacking games in js and typescript. MinoCore consolidates the mostly commonly used stacking logic (managing the playfield, game statistics, piece rotation and translation, etc) and provides a UI-agnostic interface through which to manage your game's state.
 
 ## MinoCore Lifecycle
 1. An event is triggered, such as a keyboard input or timer callback
