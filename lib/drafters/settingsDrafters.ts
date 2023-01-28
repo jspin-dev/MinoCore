@@ -32,6 +32,30 @@ namespace SettingsDrafters {
             }
         }
 
+        export let setDAS = (das: number): Drafter => {
+            return {
+                draft: draft => {
+                    draft.settings.das = das;
+                }
+            }
+        }
+
+        export let setARR = (arr: number): Drafter => {
+            return {
+                draft: draft => {
+                    draft.settings.arr = arr;
+                }
+            }
+        }
+
+        export let setSDF = (softDropInterval: number): Drafter => {
+            return {
+                draft: draft => {
+                    draft.settings.softDropInterval = softDropInterval;
+                }
+            }
+        }
+
 
     }
 

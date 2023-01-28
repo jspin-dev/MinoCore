@@ -2,7 +2,7 @@ import type { Provider, Operation } from "../definitions/operationalDefinitions"
 import type { State } from "../definitions/stateDefinitions";
 import { Rotation } from "../definitions/rotationDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
-import { ActiveGameInput } from "../definitions/metaDefinitions";
+import { Input } from "../definitions/inputDefinitions";
 
 import { init as initPlayfield } from "./playfield";
 import { draftInstructionsOnStart } from "./meta";
@@ -32,7 +32,7 @@ namespace LifecycleProviders {
             ...holdInit
         ]
 
-        export function startInput(input: ActiveGameInput): Provider {
+        export function startInput(input: Input.ActiveGame): Provider {
             return {
                 provide: ({ meta }: State) => {
                     if (meta.activeInputs.includes(input)) {
@@ -46,25 +46,26 @@ namespace LifecycleProviders {
             }
         }
 
-        function performInputAction(input: ActiveGameInput): Provider {
+        function performInputAction(input: Input.ActiveGame): Provider {
             return {
                 provide: () => {
+                    console.log("Input: "+input)
                     switch (input) {
-                        case ActiveGameInput.ShiftLeft:
+                        case Input.ActiveGame.ShiftLeft:
                             return StartShiftLeftInput.provider;
-                        case ActiveGameInput.ShiftRight:
+                        case Input.ActiveGame.ShiftRight:
                             return StartShiftRightInput.provider;
-                        case ActiveGameInput.SD:
+                        case Input.ActiveGame.SD:
                             return StartSoftDrop.provider;
-                        case ActiveGameInput.HD:
+                        case Input.ActiveGame.HD:
                             return hardDrop;
-                        case ActiveGameInput.Hold:
+                        case Input.ActiveGame.Hold:
                             return hold;
-                        case ActiveGameInput.RotateCW:
+                        case Input.ActiveGame.RotateCW:
                             return Rotate.provider(Rotation.CW);
-                        case ActiveGameInput.RotateCCW:
+                        case Input.ActiveGame.RotateCCW:
                             return Rotate.provider(Rotation.CCW);
-                        case ActiveGameInput.Rotate180:
+                        case Input.ActiveGame.Rotate180:
                             return Rotate.provider(Rotation.Degrees180);
                         default:
                             return { provide: () => [] } // Do nothing
@@ -77,16 +78,16 @@ namespace LifecycleProviders {
 
     export namespace EndInput {
 
-        let provideInputEndAction = (input: ActiveGameInput): Provider => {
+        let provideInputEndAction = (input: Input.ActiveGame): Provider => {
             return {
                 requiresActiveGame: true,
                 provide: () => {
                     switch(input) {
-                        case ActiveGameInput.ShiftRight:
+                        case Input.ActiveGame.ShiftRight:
                             return EndShiftRightInput.provider;
-                        case ActiveGameInput.ShiftLeft:
+                        case Input.ActiveGame.ShiftLeft:
                             return EndShiftLeftInput.provider;
-                        case ActiveGameInput.SD:
+                        case Input.ActiveGame.SD:
                             return CancelSoftDrop.provider;
                         default:
                             return [];
@@ -98,7 +99,7 @@ namespace LifecycleProviders {
         /**
          * Called when a user input ends. Usually this would be the release of a keypress
          */
-        export function provider(input: ActiveGameInput): Provider {
+        export function provider(input: Input.ActiveGame): Provider {
             return {
                 provide: () =>  [ 
                     MetaDrafters.Makers.removeInput(input),

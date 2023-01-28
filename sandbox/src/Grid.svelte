@@ -6,25 +6,24 @@
     export let gridData: Grid = [];
     export let colors: String[] = [];
     export let borderlessHeight = 0;
+    export let concealed = false;
 </script>
 
-<main>
-    <div class='grid' class:dimmed={dimmed}>
-        {#each gridData as row, i}
-        <div class='row'>
-            {#each row as pieceId}
-                <div class='block' 
-                    class:game-block-bordered="{i >= borderlessHeight}"
-                    class:game-block-bottom-bordered="{i == borderlessHeight-1}"
-                    class:blank-border="{i < borderlessHeight}"
-                    class:dimmed="{pieceId < 0}" 
-                    style="--block-color: {colors[Math.abs(pieceId)]}; 
-                           --block-size: {blockSize}px"/>
-            {/each}
-        </div>
+<div class='grid' class:dimmed={dimmed}>
+    {#each gridData as row, i}
+    <div class='row'>
+        {#each row as pieceId}
+            <div class='block' 
+                class:game-block-bordered="{i >= borderlessHeight}"
+                class:game-block-bottom-bordered="{i == borderlessHeight-1}"
+                class:blank-border="{i < borderlessHeight}"
+                class:dimmed="{pieceId < 0}" 
+                style="--block-color: {colors[concealed ? 0 : Math.abs(pieceId)]}; 
+                       --block-size: {blockSize}px"/>
         {/each}
     </div>
-</main>
+    {/each}
+</div>
 
 <style>
     .grid {

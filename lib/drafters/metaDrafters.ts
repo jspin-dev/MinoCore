@@ -1,6 +1,7 @@
 import type { Drafter } from "../definitions/operationalDefinitions";
 import type { TimerName, TimerOperation } from "../definitions/metaDefinitions";
-import { GameStatus, ActiveGameInput } from "../definitions/metaDefinitions";
+import { GameStatus } from "../definitions/metaDefinitions";
+import { Input } from "../definitions/inputDefinitions";
 import { ShiftDirection } from "../definitions/playfieldDefinitions";
 
 namespace CompositeDrafters {
@@ -36,13 +37,13 @@ namespace CompositeDrafters {
 
     export namespace Makers {
     
-        export let addInput = (input: ActiveGameInput): Drafter => {
+        export let addInput = (input: Input.ActiveGame): Drafter => {
             return {
                 draft: draft => { draft.meta.activeInputs.push(input) }
             }
         }
     
-        export let removeInput = (input: ActiveGameInput): Drafter => {
+        export let removeInput = (input: Input.ActiveGame): Drafter => {
             return {
                 draft: draft => {
                     draft.meta.activeInputs = draft.meta.activeInputs.filter(i => i != input)

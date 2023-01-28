@@ -1,79 +1,57 @@
 <script lang="ts">
-	import MinoGame from "../../build/MinoGame";
+    import Game from "./Game.svelte";
+	import Form from "./Form.svelte";
 	import { SettingsPresets } from "../../build/definitions/settingsDefinitions";
-	import Grid from "./Grid.svelte";
-	import uiSettings from "./ui";
-    import { GameStatus } from "../../build/definitions/metaDefinitions";
+	import uiSettings, {  defaultPrefs, AssociatedValue, FormField, UserPreferences } from "./ui";
 
-	let { keybindings } = uiSettings;
+	let userPrefs = defaultPrefs;
 
-	let game = new MinoGame();
-	let state = game.init({
-		...SettingsPresets.Guideline,
-		arr: 0,
-		das: 83,
-		softDropInterval: 0
-	});
+	let mapFieldValue = (userPrefs: UserPreferences, field: FormField): string => {
+		switch (field.associatedValue.classifier) {
+			case AssociatedValue.Classifier.Input:
+				let input = field.associatedValue.value;
+				return Object.entries(userPrefs.keybindings).find(entry => entry[1] === input)[0];
+			case AssociatedValue.Classifier.Handling:
+				let handling = field.associatedValue.value;
+				return userPrefs.handling[handling].toString();
+		}
+	}
 
-	game.onStateChanged = s => { state = s }
+	let onFormDataChanged = (value, previousValue, associatedValue) => {
+		switch (associatedValue.classifier) {
+			case AssociatedValue.Classifier.Input:
+				userPrefs.keybindings[previousValue] = userPrefs.keybindings[value];
+				userPrefs.keybindings[value] = associatedValue.value;
+				break;
+			case AssociatedValue.Classifier.Handling:
+				userPrefs.handling[associatedValue.value] = Number(value);
+		}
+	}
 
-	setTimeout(() => {
-		game.actions.prepareQueue();
-		setTimeout(() => {
-			game.actions.start();
-		}, 1000);
-	}, 2000)
-
-	window.addEventListener('keydown', e => {
-		if (!e.repeat) {
-			if (e.code in keybindings.activeGame) {
-				game.startActiveGameInput(keybindings.activeGame[e.code]);
-			} else if (e.code in keybindings.lifecycle) {
-				game.onLifecycleInput(keybindings.lifecycle[e.code]);
-			}
+	$: settingsForm = uiSettings.settingsForm.map(section => {
+		return {
+			...section,
+			fields: section.fields.map(field => {
+				return { ...field, value: mapFieldValue(userPrefs, field) }
+			})
 		}
 	});
-
-	window.addEventListener('keyup', e => {
-		if (!e.repeat && e.code in keybindings.activeGame) {
-			game.endActiveGameInput(keybindings.activeGame[e.code]);
-		}
-	});
-
-	$: playfieldGrid = state.playfield.grid;
-	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
-	$: previewGrid = state.preview.grid;
-	$: holdGrid = state.hold.grid;
-	$: inactiveGame = state.meta.status != GameStatus.Active;
 </script>
 
-<main>
-	<div class='game-container'>
-		<Grid
-			gridData={holdGrid} 
-			colors={uiSettings.blockColors} 
-			borderlessHeight={holdGrid.length}
-			blockSize={uiSettings.previewBlockSize}
-			dimmed={inactiveGame}/>
-		<Grid 
-			gridData={visiblePlayfieldGrid} 
-			colors={uiSettings.blockColors} 
-			borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
-			blockSize={uiSettings.playfieldBlockSize}
-			dimmed={inactiveGame}/>
-		<Grid
-			gridData={previewGrid} 
-			colors={uiSettings.blockColors} 
-			borderlessHeight={previewGrid.length}
-			blockSize={uiSettings.previewBlockSize}
-			dimmed={inactiveGame}/>
-	</div>
+<main class="main">
+	<Game 
+		settings={SettingsPresets.Guideline} 
+		uiSettings={uiSettings} 
+		userPrefs={userPrefs}/>
+	<Form 
+		data={settingsForm}
+		onChange={onFormDataChanged}/>
 </main>
 
 <style>
-	.game-container {
+	.main {
 		display: flex;
 		justify-content: center;
-		margin-top: 30px;
+		gap: 40px;
 	}
 </style>

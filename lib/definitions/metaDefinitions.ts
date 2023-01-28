@@ -1,16 +1,5 @@
 import type { Immutable } from "immer";
 
-export enum ActiveGameInput {
-    ShiftLeft,
-    ShiftRight,
-    RotateCW,
-    RotateCCW,
-    Rotate180,
-    HD,
-    SD,
-    Hold
-}
-
 export enum TimerOperation {
     Start = "start",
     Pause = "pause",

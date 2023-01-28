@@ -1,5 +1,6 @@
 import { ShiftDirection } from "./playfieldDefinitions";
-import { Instruction, GameStatus, ActiveGameInput } from "./metaDefinitions";
+import { Instruction, GameStatus } from "./metaDefinitions";
+import { Input } from "./inputDefinitions";
 import { Settings } from "./settingsDefinitions";
 import { ActivePiece } from "./playfieldDefinitions";
 import { Grid } from "./sharedDefinitions";
@@ -29,7 +30,7 @@ export type Preview = Immutable<{
 export type Meta = Immutable<{
     status: GameStatus.Any,
     previousStatus: GameStatus.Any,
-    activeInputs: ActiveGameInput[],
+    activeInputs: Input.ActiveGame[],
     instantSoftDropActive: boolean,
     dasRightCharged: boolean,
     dasLeftCharged: boolean,

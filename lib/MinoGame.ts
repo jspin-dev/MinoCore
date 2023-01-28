@@ -1,4 +1,4 @@
-import type { ActiveGameInput } from "./definitions/metaDefinitions";
+import { Input } from "./definitions/inputDefinitions";
 
 import { State } from "./definitions/stateDefinitions";
 import { Operation } from "./definitions/operationalDefinitions";
@@ -27,11 +27,7 @@ import { handleDropLockTimer } from "./providers/lockdown";
 import { StartAutoShift, Shift } from "./providers/shift";
 import { Prepare as PreparePreview } from "./providers/preview";
 import { hardDrop } from "./providers/drop";
-
-export enum LifecycleInput {
-    Pause,
-    Restart
-} 
+import SettingsDrafters from "./drafters/settingsDrafters";
 
 export default class MinoGame {
 
@@ -56,10 +52,25 @@ export default class MinoGame {
             .set(TimerName.DAS, new PausableTimeout(settings.das, this.actions.startAutoShift))
             .set(TimerName.Clock, new PausableInterval(1000, () => { /* TODO */ }))
             .set(TimerName.AutoDrop, new PausableInterval(settings.dropInterval, this.actions.drop))
+
             .set(TimerName.AutoShift,  new PausableInterval(settings.arr, this.actions.shift));
 
         this.run(...LifecycleProviders.Makers.init(settings));
         return this.state;
+    }
+
+    setDAS(delay: number) {
+        this.run(SettingsDrafters.Makers.setDAS(delay));
+        this.timers.get(TimerName.DAS).delayInMillis = delay;
+    }
+
+    setARR(delay: number) {
+        this.run(SettingsDrafters.Makers.setARR(delay));
+        this.timers.get(TimerName.AutoShift).delayInMillis = delay;
+    }
+
+    setSDF(delay: number) {
+        this.run(SettingsDrafters.Makers.setSDF(delay));
     }
 
     run(...operation: Operation[]) {
@@ -96,26 +107,32 @@ export default class MinoGame {
         return !this.isPaused && this.state.meta.status == GameStatus.Active
     }
 
-    startActiveGameInput(input: ActiveGameInput) {
-        if (this.gameIsActive()) {
-            this.run(LifecycleProviders.Makers.startInput(input));
-        }
-
-    }
-
-    endActiveGameInput(input: ActiveGameInput) {
-        if (this.gameIsActive()) {
-            this.run(LifecycleProviders.EndInput.provider(input));
-        }
-    }
-
-    onLifecycleInput(input: LifecycleInput) {
-        switch(input) {
-            case LifecycleInput.Restart:
-                this.restart();
+    startInput(anyInput: Input.Any) {
+        if (anyInput == null) { return }
+        switch (anyInput.classifier) {
+            case Input.Classifier.ActiveGameInput:
+                if (this.gameIsActive()) {
+                    this.run(LifecycleProviders.Makers.startInput(anyInput.input));
+                } 
                 break;
-            case LifecycleInput.Pause:
-                this.togglePause();
+            case Input.Classifier.Lifecycle:
+                switch(anyInput.input) {
+                    case Input.Lifecycle.Restart:
+                        this.restart();
+                        break;
+                    case Input.Lifecycle.Pause:
+                        this.togglePause();
+                }
+                break;
+            default:
+                console.error("Unknown input type");
+        }
+    }
+
+    endInput(anyInput: Input.Any) {
+        if (anyInput == null) { return }
+        if (anyInput.classifier === Input.Classifier.ActiveGameInput && this.gameIsActive()) {
+            this.run(LifecycleProviders.EndInput.provider(anyInput.input));
         }
     }
 
@@ -129,7 +146,6 @@ export default class MinoGame {
                 this.timers.forEach(timer => timer.resume());
                 this.run(MetaDrafters.Makers.updateStatus(GameStatus.Active));
         }
-        
     }
 
     restart() {
@@ -139,4 +155,10 @@ export default class MinoGame {
         this.run(...LifecycleProviders.start);
     }
 
+}
+
+export enum HandlingParam {
+    DAS,
+    ARR,
+    SDF
 }
