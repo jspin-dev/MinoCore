@@ -1,0 +1,5 @@
+{
+    "bannerFocusMessage": "Click here to return focus",
+    "bannerPauseMessage": "Paused (Press %% to resume)",
+    "bannerGameOverMessage": "Game Over (Press %% to restart)"
+}

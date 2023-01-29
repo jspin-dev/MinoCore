@@ -6,9 +6,12 @@
     
 	import Grid from "./Grid.svelte";
     import { GameStatus } from "../../build/definitions/metaDefinitions";
-    import { getKeycodeDisplayValue, UiSettings, UserPreferences } from "./ui";
+    import { getKeycodeDisplayValue, UiSettings } from "./ui";
+    import type { UserPreferences } from "./config/userPrefs";
     import { HandlingParam } from "../../build/MinoGame";
     
+    import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
+
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
     export let settings: Settings;
@@ -19,14 +22,9 @@
     let containerInFocus = true;
 
 	game.onStateChanged = s => { state = s }
+    game.actions.prepareQueue();
+    game.actions.start();
 
-	setTimeout(() => {
-		game.actions.prepareQueue();
-		setTimeout(() => {
-			game.actions.start();
-		}, 1000);
-	}, 2000)
-	
     onMount(() => container.focus());
 
 	let onKeydownEvent = (e: KeyboardEvent) => {
@@ -49,8 +47,6 @@
 
 	$: playfieldGrid = state.playfield.grid;
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
-	$: previewGrid = state.preview.grid;
-	$: holdGrid = state.hold.grid;
 	$: inactiveGame = state.meta.status != GameStatus.Active;
     $: isPaused = state.meta.status === GameStatus.Suspended;
     $: {
@@ -70,9 +66,9 @@
     on:blur={onBlur}>
     <div class='game-container'>
         <Grid
-            gridData={holdGrid} 
+            gridData={state.hold.grid} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={holdGrid.length}
+            borderlessHeight={state.hold.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             concealed={isPaused}/>
@@ -84,20 +80,24 @@
             dimmed={inactiveGame}
             concealed={isPaused}/>
         <Grid
-            gridData={previewGrid} 
+            gridData={state.preview.grid} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={previewGrid.length}
+            borderlessHeight={state.preview.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             concealed={isPaused}/>
     </div>  
     <div class='banner-container'>
         {#if !containerInFocus}
-            <div class='banner'>Click here to return focus</div>  
+            <div class='banner'>{bannerFocusMessage}</div>  
         {:else if isPaused}
-            <div class='banner'>Paused (Press {getDisplayValueForInput(Input.Pause)} to resume)</div>  
+            <div class='banner'>
+                {bannerPauseMessage.replace("%%", getDisplayValueForInput(Input.Pause))}
+            </div>
         {:else if state.meta.status.classifier === GameStatus.Classifier.GameOver}
-            <div class='banner'>Game Over (Press {getDisplayValueForInput(Input.Restart)} to restart)</div>  
+            <div class='banner'>
+                {bannerGameOverMessage.replace("%%", getDisplayValueForInput(Input.Restart))}
+            </div>  
         {/if}
     </div>
 </div>
@@ -125,7 +125,6 @@
 		display: flex;
 		justify-content: center;
 		margin-top: 30px;
-
 	}
     .banner {
         width: 100%;
@@ -136,5 +135,6 @@
         justify-content: center;
         opacity: 0.8;
         color: black;
+        user-select: none;
     }
 </style>

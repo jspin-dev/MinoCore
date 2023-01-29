@@ -49,7 +49,6 @@ namespace LifecycleProviders {
         function performInputAction(input: Input.ActiveGame): Provider {
             return {
                 provide: () => {
-                    console.log("Input: "+input)
                     switch (input) {
                         case Input.ActiveGame.ShiftLeft:
                             return StartShiftLeftInput.provider;

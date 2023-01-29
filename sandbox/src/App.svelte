@@ -2,7 +2,8 @@
     import Game from "./Game.svelte";
 	import Form from "./Form.svelte";
 	import { SettingsPresets } from "../../build/definitions/settingsDefinitions";
-	import uiSettings, {  defaultPrefs, AssociatedValue, FormField, UserPreferences } from "./ui";
+	import { defaultSettings, AssociatedValue, FormField } from "./ui";
+	import { defaultPrefs, UserPreferences } from "./config/userPrefs";
 
 	let userPrefs = defaultPrefs;
 
@@ -17,7 +18,7 @@
 		}
 	}
 
-	let onFormDataChanged = (value, previousValue, associatedValue) => {
+	let onFormDataChanged = (value: string, previousValue: string, associatedValue: AssociatedValue.Any) => {
 		switch (associatedValue.classifier) {
 			case AssociatedValue.Classifier.Input:
 				userPrefs.keybindings[previousValue] = userPrefs.keybindings[value];
@@ -28,7 +29,7 @@
 		}
 	}
 
-	$: settingsForm = uiSettings.settingsForm.map(section => {
+	$: settingsForm = defaultSettings.settingsForm.map(section => {
 		return {
 			...section,
 			fields: section.fields.map(field => {
@@ -41,7 +42,7 @@
 <main class="main">
 	<Game 
 		settings={SettingsPresets.Guideline} 
-		uiSettings={uiSettings} 
+		uiSettings={defaultSettings} 
 		userPrefs={userPrefs}/>
 	<Form 
 		data={settingsForm}
