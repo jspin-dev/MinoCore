@@ -1,12 +1,11 @@
-import type { Provider, Actionable, Operation } from "../definitions/operationalDefinitions";
+import type { Provider, Actionable, Drafter } from "../definitions/operationalDefinitions";
 import type { State } from "../definitions/stateDefinitions";
 import { ShiftDirection } from "../definitions/playfieldDefinitions";
 import { TimerName, TimerOperation } from "../definitions/metaDefinitions";
 import { LockStatusUpdateType } from "../definitions/lockdownDefinitions";
 
-import { refreshGhostPlacement } from "./playfield";
-import { cancelAutoShift } from "./meta";
-import MetaDrafters from "../drafters/metaDrafters";
+import { refreshGhost } from "./ghost";
+import { cancelAutoShift, insertTimerOperation } from "./meta";
 import { MovePiece } from "./movement";
 import { StartSoftDrop } from "./drop";
 import { UpdateLockStatus } from "./lockdown";
@@ -20,7 +19,7 @@ export namespace Shift {
             throw "Dx must be a positive integer. This function already uses meta.direction to decide left/right"
         }
         return {
-            provide: state => MovePiece.move(dx * state.meta.direction, 0)
+            provide: state => MovePiece.provider(dx * state.meta.direction, 0)
         }
     }
     
@@ -33,7 +32,7 @@ export namespace Shift {
             requiresActiveGame: true,
             provide: () => [
                 movementProviderMaker(dx),
-                refreshGhostPlacement,
+                refreshGhost,
                 UpdateLockStatus.provider(LockStatusUpdateType.OnShift),
                 continueInstantSoftDropIfActive
             ]
@@ -70,7 +69,7 @@ export namespace StartDAS {
             if (settings.das === 0) {
                 return StartAutoShift.provider
             } else {
-                return MetaDrafters.Makers.insertTimerOperation(TimerName.DAS, TimerOperation.Start)
+                return insertTimerOperation(TimerName.DAS, TimerOperation.Start)
             }
         }
     }
@@ -95,17 +94,40 @@ export namespace StartShiftRightInput {
     // Why are we just setting DAS left charged to true?
     let chargeProvider = {
         provide: ({ settings }: State) => {
-            return provideIf(!settings.dasInteruptionEnabled, MetaDrafters.Makers.setDASLeftCharged(true));
+            return provideIf(!settings.dasInteruptionEnabled, DasDirection.setLeftCharged(true));
         }
     }
 
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
-            MetaDrafters.Makers.setDirection(ShiftDirection.Right),
+            DasDirection.setDirection(ShiftDirection.Right),
             chargeProvider,
             StartDAS.provider
         ]
+    }
+
+}
+
+namespace DasDirection {
+
+        
+    export let setRightCharged = (isCharged: boolean): Drafter => {
+        return {
+            draft: draft => { draft.meta.dasRightCharged = isCharged }
+        }
+    }
+
+    export let setLeftCharged = (isCharged: boolean): Drafter => {
+        return {
+            draft: draft => { draft.meta.dasLeftCharged = isCharged }
+        }
+    }
+
+    export let setDirection = (direction: ShiftDirection): Drafter => {
+        return {
+            draft: draft => { draft.meta.direction = direction }
+        }
     }
 
 }
@@ -121,7 +143,7 @@ export namespace EndShiftRightInput {
         provide: ({ settings, meta }: State) => {
             let shouldInvertDirection = settings.dasInteruptionEnabled && meta.dasLeftCharged;
             return provideIf(shouldInvertDirection, [
-                MetaDrafters.Makers.setDirection(ShiftDirection.Left),
+                DasDirection.setDirection(ShiftDirection.Left),
                 instantShiftProvider
             ]);
         }
@@ -135,7 +157,7 @@ export namespace EndShiftRightInput {
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
-            MetaDrafters.Makers.setDASRightCharged(false),
+            DasDirection.setRightCharged(false),
             invertDirectionProvider,
             cancelAutoShiftProvider
         ]
@@ -149,14 +171,14 @@ export namespace StartShiftLeftInput {
     let chargeProvider: Provider = {
         provide: ({ settings }: State) => {
             let shouldCharge = !settings.dasInteruptionEnabled
-            return provideIf(shouldCharge, MetaDrafters.Makers.setDASRightCharged(true))
+            return provideIf(shouldCharge, DasDirection.setRightCharged(true))
         }    
     }
 
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
-            MetaDrafters.Makers.setDirection(ShiftDirection.Left),
+            DasDirection.setDirection(ShiftDirection.Left),
             chargeProvider,
             StartDAS.provider
         ]
@@ -175,7 +197,7 @@ export namespace EndShiftLeftInput {
         provide: ({ settings, meta }: State) => {
             let shouldInvertDirection = settings.dasInteruptionEnabled && meta.dasRightCharged;
             return provideIf(shouldInvertDirection, [
-                MetaDrafters.Makers.setDirection(ShiftDirection.Right),
+                DasDirection.setDirection(ShiftDirection.Right),
                 instantShiftProvider
             ])
         }
@@ -189,7 +211,7 @@ export namespace EndShiftLeftInput {
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
-            MetaDrafters.Makers.setDASLeftCharged(false),
+            DasDirection.setLeftCharged(false),
             invertDirectionProvider,
             cancelAutoShiftProvider
         ]
@@ -202,9 +224,9 @@ export namespace StartAutoShift {
     let chargeProvider: Provider = {
         provide: ({ meta }: State) => {
             if (meta.direction == ShiftDirection.Right) {
-                return MetaDrafters.Makers.setDASRightCharged(true);
+                return DasDirection.setRightCharged(true);
             } else if (meta.direction == ShiftDirection.Left) {
-                return MetaDrafters.Makers.setDASLeftCharged(true);
+                return DasDirection.setLeftCharged(true);
             } else {
                 return [];
             }
@@ -214,7 +236,7 @@ export namespace StartAutoShift {
         provide: ({ settings }: State) => {
             return settings.arr == 0 
                 ? instantShift 
-                : MetaDrafters.Makers.insertTimerOperation(TimerName.AutoShift, TimerOperation.Start);
+                : insertTimerOperation(TimerName.AutoShift, TimerOperation.Start);
         }
     }
 

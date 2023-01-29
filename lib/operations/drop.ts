@@ -1,12 +1,12 @@
 import type { State } from "../definitions/stateDefinitions";
-import type { Provider, Actionable, Operation } from "../definitions/operationalDefinitions";
+import type { Provider, Actionable, Drafter } from "../definitions/operationalDefinitions";
 import { TimerName } from "../definitions/metaDefinitions";
 import { LockStatusUpdateType } from "../definitions/lockdownDefinitions";
 
-import MetaDrafters from "../drafters/metaDrafters";
 import { MovePiece } from "./movement";
 import { instantShift } from "./shift";
 import { Lock, UpdateLockStatus } from "./lockdown";
+import { insertTimerDelayInstruction } from "./meta";
 
 import { provideIf } from "../util/providerUtils";
 import { instantAutoShiftActive, findHardDropDistance, } from "../util/stateUtils";
@@ -28,7 +28,7 @@ export namespace Drop {
         return {
             requiresActiveGame: true,
             provide: () => [
-                MovePiece.move(0, dy),
+                MovePiece.provider(0, dy),
                 UpdateLockStatus.provider(LockStatusUpdateType.OnDrop),
                 continueInstantShiftIfActive
             ]
@@ -52,15 +52,19 @@ export let hardDrop: Provider = {
 
 export namespace StartSoftDrop {
 
+    let setInstantSoftDropActive: Drafter =  {
+        draft: draft => { draft.meta.instantSoftDropActive = true }
+    }
+
     let autoOrInstantDrop: Provider = {
         provide: ({ settings }: State) => {
             if (settings.softDropInterval == 0) {
                 return [
-                    MetaDrafters.Makers.setInstantSoftDropActive(true),
+                    setInstantSoftDropActive,
                     instantDrop
                 ];
             } else {
-                return MetaDrafters.Makers.insertTimerDelayChange(TimerName.AutoDrop,settings.softDropInterval);
+                return insertTimerDelayInstruction(TimerName.AutoDrop, settings.softDropInterval);
             }
         }
     }
@@ -76,15 +80,19 @@ export namespace CancelSoftDrop {
 
     let restartNormalDrop: Provider = {
         provide: ({ settings }: State) => {
-            return MetaDrafters.Makers.insertTimerDelayChange(TimerName.AutoDrop, settings.dropInterval)
+            return insertTimerDelayInstruction(TimerName.AutoDrop, settings.dropInterval)
         }
+    }
+
+    let setInstantSoftDropInactive: Drafter =  {
+        draft: draft => { draft.meta.instantSoftDropActive = false }
     }
 
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
             restartNormalDrop,
-            MetaDrafters.Makers.setInstantSoftDropActive(false)
+            setInstantSoftDropInactive
         ]
     }
 

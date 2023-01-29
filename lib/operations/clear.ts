@@ -1,6 +1,5 @@
 import { State, Playfield } from "../definitions/stateDefinitions";
-import { Actionable } from "../definitions/operationalDefinitions";
-import PlayfieldDrafters from "../drafters/playfieldDrafters";
+import { Drafter, Provider } from "../definitions/operationalDefinitions";
 
 let getLinesToClear = (playfield: Playfield): number[] => {
     let { activePiece, grid } = playfield;
@@ -15,8 +14,26 @@ let getLinesToClear = (playfield: Playfield): number[] => {
     }, [] as number[]);
 }   
 
-export let clearLines = {
-    provide: ({ playfield }: State): Actionable =>  {
+let draftLineClear = (
+    linesToClear: number[], 
+    linesToShift: Readonly<number[]>[], 
+    shiftStart: number, 
+    lowestRowToClear: number
+): Drafter => {
+    return {
+        draft: draft => {
+            for (let i = shiftStart; i <= lowestRowToClear; i++) {
+                draft.playfield.grid[i] = [...linesToShift[i-shiftStart]];
+            }
+            for (let i = shiftStart - linesToClear.length; i < shiftStart; i++) {
+                draft.playfield.grid[i] = new Array(draft.settings.columns).fill(0);
+            }
+        }
+    }
+}
+
+export let clearLines: Provider = {
+    provide: ({ playfield }: State) =>  {
         let linesToClear = getLinesToClear(playfield);
         if (linesToClear.length == 0) {
             return [];
@@ -30,6 +47,6 @@ export let clearLines = {
     
         let shiftStart = lowestRowToClear - linesToShift.length + 1;
 
-        return PlayfieldDrafters.Makers.clearLines(linesToClear, linesToShift, shiftStart, lowestRowToClear);
+        return draftLineClear(linesToClear, linesToShift, shiftStart, lowestRowToClear);
     }
 }

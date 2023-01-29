@@ -3,17 +3,14 @@ import type { State } from "../definitions/stateDefinitions";
 import { Rotation } from "../definitions/rotationDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { Input } from "../definitions/inputDefinitions";
-
-import { init as initPlayfield } from "./playfield";
-import { draftInstructionsOnStart } from "./meta";
-import MetaDrafters from "../drafters/metaDrafters";
-import SettingsDrafters from "../drafters/settingsDrafters";
-import { init as previewInit, Next } from "./preview";
-import { init as holdInit } from "./hold";
-import {  StartShiftLeftInput, StartShiftRightInput, EndShiftRightInput, EndShiftLeftInput } from "./shift";
+import { Init as InitPlayfield } from "./playfield";
+import { draftInstructionsOnStart, addInput, removeInput, init as metaInit } from "./meta";
+import { initSettings } from "./settings";
+import { Init as PreviewInit, Next } from "./preview";
+import { init as holdInit, Hold } from "./hold";
+import { StartShiftLeftInput, StartShiftRightInput, EndShiftRightInput, EndShiftLeftInput } from "./shift";
 import { CancelSoftDrop, StartSoftDrop, hardDrop } from "./drop";
 import { Rotate } from "./rotation";
-import { hold } from "./hold";
 
 /**
  * Core providers which are expected to be executed outside of other providers (for example
@@ -25,11 +22,11 @@ namespace LifecycleProviders {
     export namespace Makers {
 
         export let init = (settings: Settings) => [
-            MetaDrafters.init,
-            SettingsDrafters.Makers.init(settings),
-            previewInit,
-            initPlayfield,
-            ...holdInit
+            metaInit,
+            initSettings(settings),
+            PreviewInit.provider,
+            InitPlayfield.provider,
+            holdInit
         ]
 
         export function startInput(input: Input.ActiveGame): Provider {
@@ -39,7 +36,7 @@ namespace LifecycleProviders {
                         return [];
                     }
                     return [
-                        MetaDrafters.Makers.addInput(input),
+                        addInput(input),
                         performInputAction(input)
                     ];
                 }
@@ -59,7 +56,7 @@ namespace LifecycleProviders {
                         case Input.ActiveGame.HD:
                             return hardDrop;
                         case Input.ActiveGame.Hold:
-                            return hold;
+                            return Hold.provider;
                         case Input.ActiveGame.RotateCW:
                             return Rotate.provider(Rotation.CW);
                         case Input.ActiveGame.RotateCCW:
@@ -101,7 +98,7 @@ namespace LifecycleProviders {
         export function provider(input: Input.ActiveGame): Provider {
             return {
                 provide: () =>  [ 
-                    MetaDrafters.Makers.removeInput(input),
+                    removeInput(input),
                     provideInputEndAction(input)
                 ]
             }

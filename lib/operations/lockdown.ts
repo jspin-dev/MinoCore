@@ -1,25 +1,29 @@
-import type { Provider } from "../definitions/operationalDefinitions";
+import type { Provider, Drafter } from "../definitions/operationalDefinitions";
 import { LockdownStatus, LockdownReset, LockStatusUpdateType } from "../definitions/lockdownDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { State, Playfield } from "../definitions/stateDefinitions";
 import { GameStatus, GameOverCondition, TimerName, TimerOperation } from "../definitions/metaDefinitions";
 
 import { Next } from "./preview";
-import PlayfieldDrafters from "../drafters/playfieldDrafters";
-import MetaDrafters from "../drafters/metaDrafters";
-import HoldDrafters from "../drafters/holdDrafters";
+import { updateStatus, insertTimerOperation } from "./meta";
 import { clearLines } from "./clear";
 import { provideIf } from "../util/providerUtils";
 import { findHardDropDistance } from "../util/stateUtils";
-
+import { clearActivePiece } from "./activePiece";
 
 let onFloor = ({ playfield, settings}: State): boolean => {
     return findHardDropDistance(playfield, settings) == 0;
 }
 
+let setLockdownStatus = (status: LockdownStatus.Any): Drafter => {
+    return {
+        draft: draft => { draft.playfield.lockdownInfo.status = status }
+    }
+}
+
 export namespace UpdateLockStatus {
 
-    let resetTimer = MetaDrafters.Makers.insertTimerOperation(TimerName.DropLock, TimerOperation.Start);
+    let resetTimer = insertTimerOperation(TimerName.DropLock, TimerOperation.Start);
 
     let decrementMovesRemainingProvider: Provider = {
         provide: ({ playfield }) => {
@@ -28,7 +32,7 @@ export namespace UpdateLockStatus {
                 let status = lockdownStatus as LockdownStatus.TimerActiveType;
                 if (status.movesRemaining) {
                     let newStatus = LockdownStatus.TimerActive(status.movesRemaining - 1);
-                    return PlayfieldDrafters.Makers.setLockdownStatus(newStatus)
+                    return setLockdownStatus(newStatus)
                 }
             }
             return [];
@@ -100,7 +104,9 @@ export namespace UpdateLockStatus {
         provide: ({ playfield }) => {
             let { activePiece, lockdownInfo } = playfield;
             let y = activePiece.location.y;
-            return y > lockdownInfo.largestY ? PlayfieldDrafters.Makers.setLargestY(y) : [];
+            return y > lockdownInfo.largestY 
+                ? { draft: draft => { draft.playfield.lockdownInfo.largestY = y } }
+                : [];
         }
     }
 
@@ -135,7 +141,7 @@ export let resetLockdownStatus: Provider = {
     requiresActiveGame: true,
     provide: ({ settings }) => {
         let newStatus = LockdownStatus.TimerActive(getMoveLimit(settings));
-        return PlayfieldDrafters.Makers.setLockdownStatus(newStatus);
+        return setLockdownStatus(newStatus);
     }
 }
 
@@ -145,8 +151,8 @@ export namespace Lock {
         provide: ({ playfield, settings }) => {
             if (playfield.activePiece.coordinates.every(c => c.y < settings.ceilingRow)) {
                 return [
-                    MetaDrafters.Makers.updateStatus(GameStatus.GameOver(GameOverCondition.Lockout)),
-                    PlayfieldDrafters.Makers.clearActivePiece(false)
+                    updateStatus(GameStatus.GameOver(GameOverCondition.Lockout)),
+                    clearActivePiece(false)
                 ]
             } else {
                 return Next.provider
@@ -154,10 +160,14 @@ export namespace Lock {
         }
     }
 
+    let enableHold: Drafter = {
+        draft: draft => { draft.hold.enabled = true }
+    }
+
     export let provider: Provider = {
         requiresActiveGame: true,
         provide: () => [
-            HoldDrafters.enable,
+            enableHold,
             clearLines,
             nextProvider
         ]
@@ -171,7 +181,7 @@ export let handleDropLockTimer: Provider = {
         if (onFloor(state)) {
             return Lock.provider;
         } else {
-            return PlayfieldDrafters.Makers.setLockdownStatus(LockdownStatus.Triggered)
+            return setLockdownStatus(LockdownStatus.Triggered)
         }
     }
 }

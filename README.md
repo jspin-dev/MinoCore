@@ -21,4 +21,4 @@ The majority of MinoCore logic is handled through higher order pure functions (i
 
 ## Sandbox
 
-You can test out a demo game called MinoCore Sandbox to get an idea of its capabilities. Just clone the repo, then run the following commands in your CLI from the root directory `cd sandbox` > `npm run dev`
+Explore the MinoCore Sandbox svelte app to get an idea of this library's capabilities. Just clone the repo, then run the following command from the repo's root directory `npm run dev --prefix sandbox`

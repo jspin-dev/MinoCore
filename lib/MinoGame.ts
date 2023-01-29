@@ -19,15 +19,14 @@ import PausableInterval from "./async/PausableInterval";
 import PausableTimeout from "./async/PausableTimeout";
 import { execute } from "./exec";
 
-import LifecycleProviders from "./providers/lifecycle";
-import MetaDrafters from "./drafters/metaDrafters";
-import CompositeDrafters from "./drafters/compositeDrafters";
-import { Drop } from "./providers/drop";
-import { handleDropLockTimer } from "./providers/lockdown";
-import { StartAutoShift, Shift } from "./providers/shift";
-import { Prepare as PreparePreview } from "./providers/preview";
-import { hardDrop } from "./providers/drop";
-import SettingsDrafters from "./drafters/settingsDrafters";
+import LifecycleProviders from "./operations/lifecycle";
+import { fulfillTimerInstruction, updateStatus } from "./operations/meta";
+import { Drop } from "./operations/drop";
+import { handleDropLockTimer } from "./operations/lockdown";
+import { StartAutoShift, Shift } from "./operations/shift";
+import { Prepare as PreparePreview, RandomNumbers } from "./operations/preview";
+import { hardDrop } from "./operations/drop";
+import { Handling as HandlingSettings } from "./operations/settings";
 
 export default class MinoGame {
 
@@ -37,7 +36,7 @@ export default class MinoGame {
     onStateChanged: (state: State) => void;
 
     actions: { [key: string]: () => void } = {
-        prepareQueue: () => this.run(...PreparePreview.operations),
+        prepareQueue: () => this.run(PreparePreview.provider),
         lock: () => this.run(handleDropLockTimer),
         start: () => this.run(...LifecycleProviders.start),
         hardDrop: () => this.run(hardDrop),
@@ -60,17 +59,17 @@ export default class MinoGame {
     }
 
     setDAS(delay: number) {
-        this.run(SettingsDrafters.Makers.setDAS(delay));
+        this.run(HandlingSettings.setDAS(delay));
         this.timers.get(TimerName.DAS).delayInMillis = delay;
     }
 
     setARR(delay: number) {
-        this.run(SettingsDrafters.Makers.setARR(delay));
+        this.run(HandlingSettings.setARR(delay));
         this.timers.get(TimerName.AutoShift).delayInMillis = delay;
     }
 
     setSDF(delay: number) {
-        this.run(SettingsDrafters.Makers.setSDF(delay));
+        this.run(HandlingSettings.setSDF(delay));
     }
 
     run(...operation: Operation[]) {
@@ -89,17 +88,17 @@ export default class MinoGame {
         let info = instruction.info;
         if (isTimerDelayInfo(info)) {
             this.timers.get(info.timerName).setDelay(info.delay);
-            this.run(MetaDrafters.Makers.fulfillTimerInstruction(instruction.id));
+            this.run(fulfillTimerInstruction(instruction.id));
         } else if (isTimerInfo(info)) {
             this.timers.get(info.timerName)[info.operation]();
-            this.run(MetaDrafters.Makers.fulfillTimerInstruction(instruction.id));
+            this.run(fulfillTimerInstruction(instruction.id));
         } else if (isGlobalTimerInfo(info)) {
             let operation = info.operation;
             this.timers.forEach(timer => timer[operation]());
-            this.run(MetaDrafters.Makers.fulfillTimerInstruction(instruction.id));
+            this.run(fulfillTimerInstruction(instruction.id));
         } else if (isAddRandomNumberInfo(info)) {
             let randomNumbers = Array.from(Array(info.quantity)).map(() => Math.random());
-            this.run(CompositeDrafters.Makers.fulfillAddRandomNumberInstruction(instruction.id, randomNumbers));
+            this.run(RandomNumbers.fulfill(instruction.id, randomNumbers));
         }
     }
 
@@ -140,18 +139,18 @@ export default class MinoGame {
         switch (this.state.meta.status) {
             case GameStatus.Active:
                 this.timers.forEach(timer => timer.pause());
-                this.run(MetaDrafters.Makers.updateStatus(GameStatus.Suspended));
+                this.run(updateStatus(GameStatus.Suspended));
                 break;
             case GameStatus.Suspended:
                 this.timers.forEach(timer => timer.resume());
-                this.run(MetaDrafters.Makers.updateStatus(GameStatus.Active));
+                this.run(updateStatus(GameStatus.Active));
         }
     }
 
     restart() {
         this.isPaused = false;
         this.run(...LifecycleProviders.Makers.init(this.state.settings))
-        this.run(...PreparePreview.operations);
+        this.run(PreparePreview.provider);
         this.run(...LifecycleProviders.start);
     }
 

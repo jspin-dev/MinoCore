@@ -1,8 +1,6 @@
 import type { Provider } from "../definitions/operationalDefinitions";
 import type { Grid } from "../definitions/sharedDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
-
-import SettingsDrafters from "../drafters/settingsDrafters";
 import { RotationSettings } from "./settings";
 
 import { cropGrid, createEmptyGrid, } from "../util/sharedUtils";
@@ -17,13 +15,16 @@ export namespace PreviewGridSettings {
             }
             let shapes = getInitialOrientationGrids(settings.rotationSystem[0]);
             let grids = createPreviewGridSettings(shapes, 1);
-            return SettingsDrafters.Makers.setPreviewGrids(grids);
+            return {
+                draft: draft => {
+                    draft.settings.rotationSystem[0].previewGrids = grids;
+                }
+            }
         }
     }
 
     export let validate: Provider = {
         provide: () => {
-
             return [
                 RotationSettings.validate,
                 createPreviewGridsProvider

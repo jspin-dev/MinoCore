@@ -3,9 +3,9 @@
 	import Form from "./Form.svelte";
 	import { SettingsPresets } from "../../build/definitions/settingsDefinitions";
 	import { defaultSettings, AssociatedValue, FormField } from "./ui";
-	import { defaultPrefs, UserPreferences } from "./config/userPrefs";
+	import { alternatePrefs, UserPreferences } from "./config/userPrefs";
 
-	let userPrefs = defaultPrefs;
+	let userPrefs = alternatePrefs;
 
 	let mapFieldValue = (userPrefs: UserPreferences, field: FormField): string => {
 		switch (field.associatedValue.classifier) {

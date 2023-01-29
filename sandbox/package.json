@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run build --prefix .. && rollup -c",
-    "dev": "npm run build --prefix .. && rollup -c -w",
-    "start": "npm run build --prefix .. && sirv public --no-clear",
+    "prebuild": "npm run build --prefix ..",
+    "predev": "npm run build --prefix ..",
+    "prestart": "npm run build --prefix ..",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "sirv public --no-clear",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {

@@ -1,10 +1,8 @@
-import type { Provider } from "../definitions/operationalDefinitions";
+import type { Provider, Drafter } from "../definitions/operationalDefinitions";
 import type { Grid } from "../definitions/sharedDefinitions";
 import type { State } from "../definitions/stateDefinitions";
+import type { Settings } from "../definitions/settingsDefinitions";
 import { RotationGridSet, Offset, Orientation } from "../definitions/rotationDefinitions";
-
-import SettingsDrafters from "../drafters/settingsDrafters";
-
 import { createEmptyGrid, rotateGrid, gridToList } from "../util/sharedUtils";
 
 export namespace RotationSettings {
@@ -50,16 +48,64 @@ export namespace RotationSettings {
                 let westRotationState = stateInfo.states[Orientation.West];
     
                 return {
-                    [Orientation.North]: translate(pureRotations[northRotationState.pureRotationIndex], northRotationState.offset || [0, 0]),
-                    [Orientation.East]: translate(pureRotations[eastRotationState.pureRotationIndex],  eastRotationState.offset || [0, 0]),
-                    [Orientation.South]: translate(pureRotations[southRotationState.pureRotationIndex],  southRotationState.offset || [0, 0]),
-                    [Orientation.West]: translate(pureRotations[westRotationState.pureRotationIndex],  westRotationState.offset || [0, 0])
+                    [Orientation.North]: translate(
+                        pureRotations[northRotationState.pureRotationIndex], 
+                        northRotationState.offset || [0, 0]
+                    ),
+                    [Orientation.East]: translate(
+                        pureRotations[eastRotationState.pureRotationIndex],  
+                        eastRotationState.offset || [0, 0]
+                    ),
+                    [Orientation.South]: translate(
+                        pureRotations[southRotationState.pureRotationIndex],  
+                        southRotationState.offset || [0, 0]
+                        ),
+                    [Orientation.West]: translate(
+                        pureRotations[westRotationState.pureRotationIndex],  
+                        westRotationState.offset || [0, 0]
+                    )
                 }
             });
             
-            return SettingsDrafters.Makers.setRotationGrids(updatedGrids);
+            return {
+                draft: draft => {
+                    draft.settings.rotationSystem[0].rotationGrids = updatedGrids;
+                }
+            }
         }
     }
-    
 
 }
+
+export let initSettings = (settings: Settings): Drafter => {
+    return {
+        draft: draft => { draft.settings = settings }
+    }
+}
+
+export namespace Handling {
+
+    export let setDAS = (das: number): Drafter => {
+        return {
+            draft: draft => { draft.settings.das = das }
+        }
+    }
+
+    export let setARR = (arr: number): Drafter => {
+        return {
+            draft: draft => { draft.settings.arr = arr }
+        }
+    }
+
+    export let setSDF = (softDropInterval: number): Drafter => {
+        return {
+            draft: draft => { draft.settings.softDropInterval = softDropInterval }
+        }
+    }
+
+}
+
+
+
+
+
