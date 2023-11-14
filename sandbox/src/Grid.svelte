@@ -1,12 +1,13 @@
 <script lang="ts">
-    import type { Grid } from "../../build/definitions/sharedDefinitions";
+    import type { Grid } from "../../build/types/sharedTypes";
 
     export let blockSize = 30;
     export let dimmed = false;
     export let gridData: Grid = [];
     export let colors: String[] = [];
     export let borderlessHeight = 0;
-    export let concealed = false;
+    export let showBorders = true;
+    export let concealBlocks = false;
 </script>
 
 <div class='grid' class:dimmed={dimmed}>
@@ -14,11 +15,11 @@
     <div class='row'>
         {#each row as pieceId}
             <div class='block' 
-                class:game-block-bordered="{i >= borderlessHeight}"
-                class:game-block-bottom-bordered="{i == borderlessHeight-1}"
-                class:blank-border="{i < borderlessHeight}"
+                class:game-block-bordered="{showBorders && i >= borderlessHeight}"
+                class:game-block-bottom-bordered="{showBorders && i == borderlessHeight-1}"
+                class:blank-border="{showBorders && i < borderlessHeight}"
                 class:dimmed="{pieceId < 0}" 
-                style="--block-color: {colors[concealed ? 0 : Math.abs(pieceId)]}; 
+                style="--block-color: {colors[concealBlocks ? 0 : Math.abs(pieceId)]}; 
                        --block-size: {blockSize}px"/>
         {/each}
     </div>
@@ -55,6 +56,6 @@
     }
 
 	.dimmed {
-		filter: brightness(50%)
+		filter: brightness(40%)
 	}
 </style>

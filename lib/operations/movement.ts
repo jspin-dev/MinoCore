@@ -1,7 +1,5 @@
-import type { State } from "../definitions/stateDefinitions";
-import type { Provider, Actionable, Drafter } from "../definitions/operationalDefinitions";
-
 import { checkCollision } from "../util/stateUtils";
+import { State } from "../types/stateTypes";
 
 export namespace MovePiece {
 

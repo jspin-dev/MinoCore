@@ -1,12 +1,13 @@
-import type {  Provider, Operation, Drafter, Actionable } from "../definitions/operationalDefinitions";
-import type { Grid } from "../definitions/sharedDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 
 import { PreviewGridSettings, copyPreviewGridSettings } from "./previewGrid";
 import { spawn } from "./spawn";
 import { Next } from "./preview";
 import { clearActivePiece } from "./activePiece";
+// import { logSteps } from "./scoring";
+import { Step } from "../types/steps";
+import { State } from "../types/stateTypes";
+import { Grid } from "../types/sharedTypes";
 
 namespace PerformHoldChange {
 
@@ -83,7 +84,8 @@ export namespace Hold {
             return [
                 draftHold,
                 clearActivePiece(true),
-                next(hold.pieceId) 
+                next(hold.pieceId),
+                // logSteps(Step.Hold)
             ]
         }
     }

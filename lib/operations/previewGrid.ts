@@ -1,10 +1,9 @@
-import type { Provider } from "../definitions/operationalDefinitions";
-import type { Grid } from "../definitions/sharedDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { RotationSettings } from "./settings";
 
 import { cropGrid, createEmptyGrid, } from "../util/sharedUtils";
 import { getInitialOrientationGrids } from "../util/stateUtils"
+import { Grid } from "../types/sharedTypes";
 
 export namespace PreviewGridSettings {
 

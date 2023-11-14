@@ -54,3 +54,11 @@ export namespace Input {
     export let Restart = makeLifecycleType(Lifecycle.Restart)
 
 }
+
+export enum MovementType {
+
+    Shift = "shift",
+    Drop = "drop",
+    Rotate = "rotate"
+
+}

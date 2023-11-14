@@ -1,8 +1,7 @@
-import type { Provider, Actionable, Drafter } from "../definitions/operationalDefinitions";
 import type { Coordinate } from "../definitions/playfieldDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 
 import { findHardDropDistance } from "../util/stateUtils";
+import { State } from "../types/stateTypes";
 
 let setGhost = (coordinates: Coordinate[]): Drafter => {
     return {
@@ -29,6 +28,7 @@ let setGhost = (coordinates: Coordinate[]): Drafter => {
 }
 
 export let clearGhost: Drafter = {
+    log: "Clearing ghost",
     requiresActiveGame: true,
     draft: draft => {
         let { activePiece, grid } = draft.playfield;

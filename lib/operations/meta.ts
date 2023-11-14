@@ -1,9 +1,8 @@
-import type { Provider, Operation, Drafter } from "../definitions/operationalDefinitions";
 import type { Input } from "../definitions/inputDefinitions";
 import {  GameStatus } from "../definitions/metaDefinitions";
 import { TimerOperation, TimerName } from "../definitions/metaDefinitions";
 
-export let updateStatus = (status: GameStatus.Any): Drafter => {
+export let updateStatus = (status: GameStatus): Drafter => {
     return {
         draft: draft => {
             Object.assign(draft.meta, { status, previousStatus: draft.meta.status });
@@ -58,7 +57,7 @@ export let init: Drafter = {
             status: GameStatus.Initialized,
             previousStatus: null,
             activeInputs: [],
-            instantSoftDropActive: false,
+            softDropActive: false,
             dasRightCharged: false,
             dasLeftCharged: false,
             direction: null,

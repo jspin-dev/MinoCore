@@ -1,7 +1,7 @@
 import { Coordinate } from "./playfieldDefinitions";
-import { Grid } from "./sharedDefinitions";
 
 import type { Immutable } from "immer";
+import { Grid } from "../types/sharedTypes";
 
 export enum Orientation {
     North = 0,

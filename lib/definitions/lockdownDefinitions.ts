@@ -1,11 +1,3 @@
-export enum LockStatusUpdateType {
-
-    OnShift,
-    OnDrop,
-    OnRotate
-
-}
-
 export type LockdownConfig = {
     resetMethod: LockdownReset.Method,
     delay: number
@@ -33,13 +25,15 @@ export namespace LockdownReset {
 
 
 export type LockdownInfo = {
-    status: LockdownStatus.Any,
+    status: LockdownStatus,
     largestY: number
 }
 
-export namespace LockdownStatus {
+export type LockdownStatus = typeof LockdownStatus.NoLockdown | 
+    typeof LockdownStatus.Triggered | 
+    LockdownStatus.TimerActiveType
 
-    export type Any = typeof NoLockdown | typeof Triggered | TimerActiveType
+export namespace LockdownStatus {
 
     export type TimerActiveType = {
         classifier: Classifier.TimerActive,
@@ -71,7 +65,7 @@ export namespace LockdownStatus {
 
 export namespace LockdownPresets {
 
-    export const defaultDelay = 500;
+    export const defaultDelay = 10000;
     export const defaultMoveLimit = 15;
 
     export const ExtendedPlacement: LockdownConfig = {
@@ -93,4 +87,3 @@ export namespace LockdownPresets {
     }
 
 }
-

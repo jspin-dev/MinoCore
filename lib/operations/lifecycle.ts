@@ -1,5 +1,3 @@
-import type { Provider, Operation } from "../definitions/operationalDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { Rotation } from "../definitions/rotationDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { Input } from "../definitions/inputDefinitions";
@@ -9,8 +7,10 @@ import { initSettings } from "./settings";
 import { Init as PreviewInit, Next } from "./preview";
 import { init as holdInit, Hold } from "./hold";
 import { StartShiftLeftInput, StartShiftRightInput, EndShiftRightInput, EndShiftLeftInput } from "./shift";
-import { CancelSoftDrop, StartSoftDrop, hardDrop } from "./drop";
-import { Rotate } from "./rotation";
+import { cancelSoftDrop, StartSoftDrop, hardDrop } from "./drop";
+import { rotate } from "./rotation";
+import { updateStatsOnInput } from "./statistics";
+import { State } from "../types/stateTypes";
 
 /**
  * Core providers which are expected to be executed outside of other providers (for example
@@ -26,8 +26,36 @@ namespace LifecycleProviders {
             initSettings(settings),
             PreviewInit.provider,
             InitPlayfield.provider,
-            holdInit
+            holdInit,
+            initStats
         ]
+
+        let initStats: Drafter = {
+            draft: draft => {
+                draft.statistics = {
+                    level: 1,
+                    lines: 0,
+                    keysPressed: 0,
+                    piecesLocked: 0,
+                    time: 0,
+                    kpp: 0,
+                    pps: 0,
+                    steps: {
+                        drop: 0,
+                        rotate: 0,
+                        shift: 0,
+                        hold: 0
+                    },
+                    finesse: 0,
+                    scoreState: {
+                        lastLockScoreAction: null,
+                        score: 0,
+                        combo: -1
+                    },
+                    actionTally: {}
+                }
+            }
+        }
 
         export function startInput(input: Input.ActiveGame): Provider {
             return {
@@ -37,7 +65,8 @@ namespace LifecycleProviders {
                     }
                     return [
                         addInput(input),
-                        performInputAction(input)
+                        performInputAction(input),
+                        updateStatsOnInput
                     ];
                 }
             }
@@ -58,11 +87,11 @@ namespace LifecycleProviders {
                         case Input.ActiveGame.Hold:
                             return Hold.provider;
                         case Input.ActiveGame.RotateCW:
-                            return Rotate.provider(Rotation.CW);
+                            return rotate(Rotation.CW);
                         case Input.ActiveGame.RotateCCW:
-                            return Rotate.provider(Rotation.CCW);
+                            return rotate(Rotation.CCW);
                         case Input.ActiveGame.Rotate180:
-                            return Rotate.provider(Rotation.Degrees180);
+                            return rotate(Rotation.Degrees180);
                         default:
                             return { provide: () => [] } // Do nothing
                     }
@@ -84,7 +113,7 @@ namespace LifecycleProviders {
                         case Input.ActiveGame.ShiftLeft:
                             return EndShiftLeftInput.provider;
                         case Input.ActiveGame.SD:
-                            return CancelSoftDrop.provider;
+                            return cancelSoftDrop;
                         default:
                             return [];
                     }

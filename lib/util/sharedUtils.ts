@@ -1,5 +1,5 @@
-import type { Grid } from "../definitions/sharedDefinitions";
 import type { Coordinate } from "../definitions/playfieldDefinitions";
+import type { Grid } from "../types/sharedTypes";
 
 export function gridToList(grid: Grid, dx: number, dy: number, n: number): Coordinate[] {
     var blockArray = <Coordinate[]>[];
@@ -37,7 +37,7 @@ export function getGridDiff(oldGrid: Grid, newGrid: Grid) {
     return diff;
 }
 
-export function gridContainsOnly(grid: Grid, targetValue: number) {
+export function gridContainsOnly(grid: Readonly<Grid>, targetValue: number) {
     return grid.every(row => {
         return row.every(element => element === targetValue);
     });

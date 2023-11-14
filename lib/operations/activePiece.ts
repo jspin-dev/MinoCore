@@ -1,4 +1,3 @@
-import type { Drafter } from "../definitions/operationalDefinitions";
 import type { Coordinate } from "../definitions/playfieldDefinitions";
 
 /*

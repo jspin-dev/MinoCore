@@ -1,5 +1,3 @@
-import type { Grid } from "../definitions/sharedDefinitions";
-import type { Meta, Playfield } from "../definitions/stateDefinitions";
 import type { Coordinate } from "../definitions/playfieldDefinitions";
 import type { RotationSystem } from "../definitions/rotationDefinitions";
 
@@ -7,6 +5,8 @@ import { ShiftDirection } from "../definitions/playfieldDefinitions";
 import { Orientation } from "../definitions/rotationDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { GameStatus } from "../definitions/metaDefinitions";
+import { Meta, Playfield } from "../types/stateTypes";
+import { Grid } from "../types/sharedTypes";
 
 export let hasGameEnded = (meta: Meta): boolean => {
     return meta.status == GameStatus.GoalComplete || 
@@ -17,6 +17,10 @@ export function instantAutoShiftActive(meta: Meta, settings: Settings): boolean 
     let shouldAutoShiftRight = meta.dasRightCharged && meta.direction == ShiftDirection.Right;
     let shouldAutoShiftLeft = meta.dasLeftCharged && meta.direction == ShiftDirection.Left;
     return settings.arr === 0 && (shouldAutoShiftRight || shouldAutoShiftLeft);
+}
+
+export function instantSoftDropActive(meta: Meta, settings: Settings): boolean {
+    return settings.softDropInterval === 0 && meta.softDropActive;
 }
 
 export function checkCollision(
@@ -52,7 +56,7 @@ export function findHardDropDistance(playfield: Playfield, settings: Settings): 
     return dy - 1;
 }
 
-export function getInitialOrientationGrids( rotationSystem: Readonly<RotationSystem>): Grid[] {
+export function getInitialOrientationGrids(rotationSystem: Readonly<RotationSystem>): Grid[] {
     return rotationSystem.rotationGrids.map(info => {
         return [...info[Orientation.North].map(it => [...it])] // copying each grid
     });

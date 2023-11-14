@@ -1,6 +1,3 @@
-import type { Provider, Actionable, Operation, Drafter } from "../definitions/operationalDefinitions";
-import type { Grid } from "../definitions/sharedDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { Settings, Randomization } from "../definitions/settingsDefinitions";
 import { GameStatus } from "../definitions/metaDefinitions";
 
@@ -9,6 +6,8 @@ import { updateStatus } from "./meta";
 
 import { shuffle } from "../util/sharedUtils";
 import { PreviewGridSettings, copyPreviewGridSettings } from "./previewGrid";
+import { State } from "../types/stateTypes";
+import { Grid } from "../types/sharedTypes";
 
 export namespace Prepare {
 
@@ -33,7 +32,7 @@ export namespace Prepare {
         provide: ({ settings }: State): Actionable => {
             let previewSize = settings.nextPreviewSize;
             let n = settings.rotationSystem[0].shapes.length;
-            let queue: number[] = [];
+            let queue = [];
             for (let i = 0; i < previewSize; i++) {
                 queue.push(Math.floor(Math.random() *  n) + 1);
             }
@@ -213,7 +212,7 @@ let insertBag: Provider = {
 let generatePreviewGrid = (queue: readonly number[], settings: Settings): Grid => {
     let previewGridSettings = copyPreviewGridSettings(settings);
 
-    let adjustedQueue: number[] = [ ...queue ];
+    let adjustedQueue = [ ...queue ];
     let delta = settings.nextPreviewSize - queue.length;
     if (delta > 0) {
         adjustedQueue = queue.concat(new Array(delta).fill(0));
@@ -224,9 +223,7 @@ let generatePreviewGrid = (queue: readonly number[], settings: Settings): Grid =
     let grid: Grid = adjustedQueue
         .map(pieceId => previewGridSettings[pieceId])
         .reduce((accum, piecePreview) => {
-            piecePreview.forEach(row => {
-                accum.push(row)
-            });
+            piecePreview.forEach(row => accum.push(row));
             return accum
         }, []);
     let bufferSpace = new Array(grid[0].length).fill(0);

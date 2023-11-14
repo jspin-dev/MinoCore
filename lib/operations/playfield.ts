@@ -1,9 +1,8 @@
-import type { Provider, Drafter } from "../definitions/operationalDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { LockdownStatus } from "../definitions/lockdownDefinitions";
-import type { Grid } from "../definitions/sharedDefinitions";
-
 import { createEmptyGrid } from "../util/sharedUtils";
+import { State } from "../types/stateTypes";
+import { Grid } from "../types/sharedTypes";
+import { Coordinate } from "../definitions/playfieldDefinitions";
 
 export namespace Init {
 
@@ -12,6 +11,7 @@ export namespace Init {
             draft: draft => {
                 draft.playfield = {
                     grid,
+                    spinSnapshot: null,
                     activePiece: {
                         id: null,
                         location: null,
@@ -28,7 +28,7 @@ export namespace Init {
             }
         }
     }
-
+    
     export let provider: Provider = {
         provide: ({ settings }: State): Drafter => {
             let grid = createEmptyGrid(settings.rows, settings.columns, 0);
@@ -38,3 +38,10 @@ export namespace Init {
     
 }
 
+export let setGridValue = (coordinate: Coordinate, value: number): Drafter => {
+    return {
+        draft: draft => {
+            draft.playfield.grid[coordinate.y][coordinate.x] = value;
+        }
+    }
+}

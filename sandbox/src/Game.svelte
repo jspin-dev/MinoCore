@@ -6,22 +6,30 @@
     
 	import Grid from "./Grid.svelte";
     import { GameStatus } from "../../build/definitions/metaDefinitions";
-    import { getKeycodeDisplayValue, UiSettings } from "./ui";
-    import type { UserPreferences } from "./config/userPrefs";
-    import { HandlingParam } from "../../build/MinoGame";
-    
-    import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
+    import { getKeycodeDisplayValue } from "./form/forms";
 
+    import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
+    import { 
+        setGhostEnabled, 
+        setDasPreservationEnabled, 
+        setDasInteruptionEnabled 
+    } from "../../build/operations/settings";
+	import type { State } from "../../build/types/stateTypes";
+    
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
-    export let settings: Settings;
+    export let gameSettings: Settings;
+    export let reportState: (state: State) => void;
 
     let container: HTMLElement;
 	let game = new MinoGame();
-	let state = game.init(settings);
+	let state = game.init(gameSettings);
     let containerInFocus = true;
 
-	game.onStateChanged = s => { state = s }
+	game.onStateChanged = s => { 
+        state = s;
+        reportState(state);
+    }
     game.actions.prepareQueue();
     game.actions.start();
 
@@ -50,9 +58,14 @@
 	$: inactiveGame = state.meta.status != GameStatus.Active;
     $: isPaused = state.meta.status === GameStatus.Suspended;
     $: {
-        game.setSDF(userPrefs.handling[HandlingParam.SDF])
-        game.setDAS(userPrefs.handling[HandlingParam.DAS]);
-        game.setARR(userPrefs.handling[HandlingParam.ARR]);
+        game.setSDF(userPrefs.sdf)
+        game.setDAS(userPrefs.das);
+        game.setARR(userPrefs.arr);
+        game.run(setGhostEnabled(userPrefs.ghostEnabled));
+        game.run(setDasInteruptionEnabled(userPrefs.dasInteruptionEnabled));
+        game.run(setDasPreservationEnabled(userPrefs.dasPreservationEnabled));
+        // Unfortunate hack to force svelte to refresh computed properties
+        state = state;
     }
 </script>
 
@@ -71,24 +84,27 @@
             borderlessHeight={state.hold.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
-            concealed={isPaused}/>
+            showBorders={userPrefs.showGrid}
+            concealBlocks={isPaused}/>
         <Grid 
             gridData={visiblePlayfieldGrid} 
             colors={uiSettings.blockColors} 
             borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
             blockSize={uiSettings.playfieldBlockSize}
             dimmed={inactiveGame}
-            concealed={isPaused}/>
+            showBorders={userPrefs.showGrid}
+            concealBlocks={isPaused}/>
         <Grid
             gridData={state.preview.grid} 
             colors={uiSettings.blockColors} 
             borderlessHeight={state.preview.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
-            concealed={isPaused}/>
+            showBorders={userPrefs.showGrid}
+            concealBlocks={isPaused}/>
     </div>  
     <div class='banner-container'>
-        {#if !containerInFocus}
+        {#if !containerInFocus && userPrefs.showFocusBanner}
             <div class='banner'>{bannerFocusMessage}</div>  
         {:else if isPaused}
             <div class='banner'>

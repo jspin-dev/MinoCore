@@ -1,7 +1,5 @@
-import type { Provider, Drafter } from "../definitions/operationalDefinitions";
-import { LockdownStatus, LockdownReset, LockStatusUpdateType } from "../definitions/lockdownDefinitions";
+import { LockdownStatus, LockdownReset } from "../definitions/lockdownDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
-import { State, Playfield } from "../definitions/stateDefinitions";
 import { GameStatus, GameOverCondition, TimerName, TimerOperation } from "../definitions/metaDefinitions";
 
 import { Next } from "./preview";
@@ -10,12 +8,15 @@ import { clearLines } from "./clear";
 import { provideIf } from "../util/providerUtils";
 import { findHardDropDistance } from "../util/stateUtils";
 import { clearActivePiece } from "./activePiece";
+import { UpdateStatsOnLock } from "./statistics";
+import { MovementType } from "../definitions/inputDefinitions";
+import { State, Playfield } from "../types/stateTypes";
 
 let onFloor = ({ playfield, settings}: State): boolean => {
     return findHardDropDistance(playfield, settings) == 0;
 }
 
-let setLockdownStatus = (status: LockdownStatus.Any): Drafter => {
+let setLockdownStatus = (status: LockdownStatus): Drafter => {
     return {
         draft: draft => { draft.playfield.lockdownInfo.status = status }
     }
@@ -80,17 +81,17 @@ export namespace UpdateLockStatus {
         }
     } 
     
-    let resetOnMoveProvider = (updateType: LockStatusUpdateType): Provider => {
+    let resetOnMoveProvider = (movementType: MovementType): Provider => {
         return {
             provide: ({ playfield, settings }) => {
-                switch (updateType) {
-                    case LockStatusUpdateType.OnShift:
-                    case LockStatusUpdateType.OnRotate:
+                switch (movementType) {
+                    case MovementType.Shift:
+                    case MovementType.Rotate:
                         if (shouldResetTimerOnMove(playfield, settings)) {
                             return resetTimer;
                         }
                         break;
-                    case LockStatusUpdateType.OnDrop:
+                    case MovementType.Drop:
                         if (shouldResetTimerAndStatusOnDrop(playfield)) {
                             return [resetTimer, resetLockdownStatus];
                         }
@@ -110,14 +111,14 @@ export namespace UpdateLockStatus {
         }
     }
 
-    export let provider = (updateType: LockStatusUpdateType): Provider => {
+    export let provider = (movementType: MovementType): Provider => {
         return {
             requiresActiveGame: true,
             provide: () => [
-                resetOnMoveProvider(updateType),
+                resetOnMoveProvider(movementType),
                 onFloorProvider,
                 ...provideIf(
-                    updateType == LockStatusUpdateType.OnShift || updateType == LockStatusUpdateType.OnRotate, 
+                    movementType == MovementType.Shift || movementType == MovementType.Rotate, 
                     decrementMovesRemainingProvider
                 ),
                 setLargestY
@@ -164,13 +165,31 @@ export namespace Lock {
         draft: draft => { draft.hold.enabled = true }
     }
 
+    let getLinesToClear = (playfield: Playfield): number[] => {
+        let { activePiece, grid } = playfield;
+        return activePiece.coordinates.reduce((accum, c) => {
+            if (!accum.includes(c.y)) {
+                let rowFull = grid[c.y].every(block => block > 0);
+                if (rowFull) {
+                    return [...accum, c.y];
+                }
+            }
+            return accum;
+        }, [] as number[]);
+    }   
+
     export let provider: Provider = {
         requiresActiveGame: true,
-        provide: () => [
-            enableHold,
-            clearLines,
-            nextProvider
-        ]
+        provide: ({ playfield }) => {
+            let linesToClear = getLinesToClear(playfield);
+            let previousGrid = playfield.spinSnapshot ? playfield.spinSnapshot.map(row => [...row]) : null;
+            return [
+                clearLines(linesToClear),
+                UpdateStatsOnLock.provider(linesToClear.length, previousGrid),
+                enableHold,
+                nextProvider
+            ]
+        }
     } 
 
 }

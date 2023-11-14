@@ -9,6 +9,11 @@ export enum Randomization {
     Bag = "SevenBag"
 }
 
+export type ScoreConfig = {
+    comboBonusEnabled: boolean,
+    pcBonusEnabled: boolean
+}
+
 export type Settings = Immutable<{
     columns: number,
     rows: number,
@@ -24,7 +29,8 @@ export type Settings = Immutable<{
     dasPreIntervalShift: boolean,
     arr: number,
     das: number,
-    lockdownConfig: LockdownConfig
+    lockdownConfig: LockdownConfig,
+    scoreConfig: ScoreConfig,
 }>
 
 export namespace SettingsPresets {
@@ -39,12 +45,16 @@ export namespace SettingsPresets {
         nextPreviewSize: 5,
         randomization: Randomization.Bag,
         softDropInterval: 10,
-        dropInterval: 1000,
+        dropInterval: 500000,
         dasInteruptionEnabled: true,
         dasPreIntervalShift: true,
         arr: 10,
         das: 130,
-        lockdownConfig: LockdownPresets.ExtendedPlacement
+        lockdownConfig: LockdownPresets.ExtendedPlacement,
+        scoreConfig: {
+            comboBonusEnabled: true,
+            pcBonusEnabled: true
+        }
     }  
 
 }

@@ -1,6 +1,4 @@
-import type { Provider, Drafter } from "../definitions/operationalDefinitions";
 import type { Coordinate } from "../definitions/playfieldDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { TimerName, TimerOperation, GameStatus, GameOverCondition } from "../definitions/metaDefinitions";
 import { LockdownStatus } from "../definitions/lockdownDefinitions";
@@ -12,7 +10,12 @@ import { Drop, instantDrop } from "./drop";
 import { refreshGhost } from "./ghost";
 import { setActivePiece } from "./activePiece";
 import { gridToList } from "../util/sharedUtils";
-import { instantAutoShiftActive, getInitialOrientationGrids } from "../util/stateUtils";
+import { instantAutoShiftActive, instantSoftDropActive, getInitialOrientationGrids } from "../util/stateUtils";
+import { DropScoreType } from "../definitions/scoringDefinitions";
+import { countStep } from "./finesse";
+import { MovementType } from "../definitions/inputDefinitions";
+import { provideIf } from "../util/providerUtils";
+import { State } from "../types/stateTypes";
 
 let getPieceInitializationInfo = (id: number, settings: Settings): { 
     location: Coordinate, 
@@ -30,10 +33,19 @@ let getPieceInitializationInfo = (id: number, settings: Settings): {
 }
 
 let dropProvider: Provider = {
-    provide: (state: State) => {
-        return state.meta.instantSoftDropActive 
-            ? instantDrop 
-            : insertTimerOperation(TimerName.AutoDrop, TimerOperation.Start);
+    provide: ({ meta, settings }) => {
+        if (!meta.softDropActive) {
+            return [];
+        }
+        let timerOperation = insertTimerOperation(TimerName.AutoDrop, TimerOperation.Start)
+        return [
+            instantSoftDropActive(meta, settings) ? instantDrop(DropScoreType.Soft) : timerOperation,
+            /**
+             * Since we are on a new active piece, this counts as an additional move for finesse logging, even 
+             * though user is still in the middle of the soft drop carried over from the previous piece
+             */
+            countStep(MovementType.Drop) 
+        ]
     }
 }
 
@@ -46,21 +58,24 @@ let unchargeDAS: Drafter = {
     }
 }
 
-let instantShiftProvider: Provider = {
+let shiftProvider: Provider = {
     provide: ({ meta, settings }: State) => {
         if (!meta.dasRightCharged && !meta.dasLeftCharged) {
             return [];
         }
         if (settings.dasPreservationEnabled) {
-            /**
-             * Only need to check 0-ARR case, since if ARR is greater than 0 and DAS is charged, 
-             * the auto shift timer is still active 
-             */
-           return instantAutoShiftActive(meta, settings) ? instantShift : [];
+            return [
+                ...provideIf(instantAutoShiftActive(meta, settings), instantShift),
+                /**
+                 * Since we are on a new active piece, this counts as an additional move for finesse logging, even 
+                 * though user still has one or both of left/right shift inputs active from the previous piece
+                 */
+                countStep(MovementType.Shift) 
+            ]
         } else {
             return [
                 cancelAutoShift,
-               unchargeDAS
+                unchargeDAS
             ];
         }
     }
@@ -94,8 +109,8 @@ export let spawn = (pieceId: number): Provider => {
                 resetLockdown,
                 setActivePiece(coordinates, pieceId, location),
                 refreshGhost,
-                Drop.provider(1),
-                instantShiftProvider,
+                Drop.provider(1, DropScoreType.Auto),
+                shiftProvider,
                 dropProvider
             ]
         }

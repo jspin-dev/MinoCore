@@ -1,8 +1,5 @@
-import type { Provider, Actionable, Drafter } from "../definitions/operationalDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import { ShiftDirection } from "../definitions/playfieldDefinitions";
 import { TimerName, TimerOperation } from "../definitions/metaDefinitions";
-import { LockStatusUpdateType } from "../definitions/lockdownDefinitions";
 
 import { refreshGhost } from "./ghost";
 import { cancelAutoShift, insertTimerOperation } from "./meta";
@@ -11,6 +8,10 @@ import { StartSoftDrop } from "./drop";
 import { UpdateLockStatus } from "./lockdown";
 import { provideIf } from "../util/providerUtils";
 import { checkCollision } from "../util/stateUtils";
+import { countStep } from "./finesse";
+import { MovementType } from "../definitions/inputDefinitions";
+import { instantSoftDropActive } from "../util/stateUtils";
+import { State } from "../types/stateTypes";
 
 export namespace Shift {
 
@@ -24,7 +25,7 @@ export namespace Shift {
     }
     
     let continueInstantSoftDropIfActive: Provider = {
-        provide: state => provideIf(state.meta.instantSoftDropActive, StartSoftDrop.provider)
+        provide: ({ meta, settings }) => provideIf(instantSoftDropActive(meta, settings), StartSoftDrop.provider)
     }
     
     export let provider = (dx: number) => {
@@ -33,7 +34,7 @@ export namespace Shift {
             provide: () => [
                 movementProviderMaker(dx),
                 refreshGhost,
-                UpdateLockStatus.provider(LockStatusUpdateType.OnShift),
+                UpdateLockStatus.provider(MovementType.Shift),
                 continueInstantSoftDropIfActive
             ]
         }
@@ -103,7 +104,8 @@ export namespace StartShiftRightInput {
         provide: () => [
             DasDirection.setDirection(ShiftDirection.Right),
             chargeProvider,
-            StartDAS.provider
+            StartDAS.provider,
+            countStep(MovementType.Shift)
         ]
     }
 
@@ -180,7 +182,8 @@ export namespace StartShiftLeftInput {
         provide: () => [
             DasDirection.setDirection(ShiftDirection.Left),
             chargeProvider,
-            StartDAS.provider
+            StartDAS.provider,
+            countStep(MovementType.Shift)
         ]
     }
 

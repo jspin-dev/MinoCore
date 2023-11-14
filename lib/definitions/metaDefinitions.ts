@@ -68,15 +68,14 @@ export enum GameOverCondition {
     Topout
 }
 
-export namespace GameStatus {
+export type GameStatus = GameStatus.GameOverType |
+    typeof GameStatus.Initialized | 
+    typeof GameStatus.Ready | 
+    typeof GameStatus.Active | 
+    typeof GameStatus.Suspended | 
+    typeof GameStatus.GoalComplete
 
-    export type Any = GameOverType |
-        typeof Initialized | 
-        typeof Ready | 
-        typeof Active | 
-        typeof Suspended | 
-        typeof GoalComplete
-        
+export namespace GameStatus {
 
     export type GameOverType =  { 
         classifier: Classifier.GameOver,

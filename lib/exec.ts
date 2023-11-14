@@ -1,16 +1,8 @@
-import { 
-    Provider, 
-    Operation, 
-    isProvider, 
-    isDrafter, 
-    isOperation, 
-    isOperationList,
-    Drafter 
-} from "./definitions/operationalDefinitions";
-import { State, Meta } from "./definitions/stateDefinitions";
+import { isProvider, isDrafter, isOperation, isOperationList } from "./definitions/operationalDefinitions";
 import { produce } from "immer";
 import devSettings from "./devSettings.json";
 import { GameStatus } from "./definitions/metaDefinitions";
+import { State, Meta } from "./types/stateTypes";
 
 export function execute(initialState: State, ...operations: Operation[]): State {
     let checkedInitialState = initialState || {
@@ -18,7 +10,8 @@ export function execute(initialState: State, ...operations: Operation[]): State 
         hold: null,
         preview: null,
         meta: null,
-        settings: null
+        settings: null,
+        statistics: null
     }
     return operations.reduce((state, operation) => {
         if (isProvider(operation)) {

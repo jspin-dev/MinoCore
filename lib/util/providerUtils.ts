@@ -1,4 +1,4 @@
-import { Operation, Actionable, isOperation, isOperationList } from "../definitions/operationalDefinitions";
+import { isOperation, isOperationList } from "../definitions/operationalDefinitions";
 
 
 export function provideIf(condition: boolean, actionable: Actionable): Operation[] {

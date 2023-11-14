@@ -1,7 +1,5 @@
 import { Input } from "./definitions/inputDefinitions";
 
-import { State } from "./definitions/stateDefinitions";
-import { Operation } from "./definitions/operationalDefinitions";
 import { Settings } from "./definitions/settingsDefinitions";
 
 import { 
@@ -27,21 +25,26 @@ import { StartAutoShift, Shift } from "./operations/shift";
 import { Prepare as PreparePreview, RandomNumbers } from "./operations/preview";
 import { hardDrop } from "./operations/drop";
 import { Handling as HandlingSettings } from "./operations/settings";
+import { DropScoreType } from "./definitions/scoringDefinitions";
+import { updateStatsOnClock } from "./operations/statistics";
+import { State } from "./types/stateTypes";
 
 export default class MinoGame {
 
-    timers:  Map<TimerName, BasePausableTimer>
+    timers: Map<TimerName, BasePausableTimer>
     state: State;
     isPaused: boolean;
+    finesse: number;
     onStateChanged: (state: State) => void;
 
     actions: { [key: string]: () => void } = {
+        tick: () => this.run(updateStatsOnClock),
         prepareQueue: () => this.run(PreparePreview.provider),
         lock: () => this.run(handleDropLockTimer),
         start: () => this.run(...LifecycleProviders.start),
         hardDrop: () => this.run(hardDrop),
         startAutoShift: () => this.run(StartAutoShift.provider),
-        drop: () => this.run(Drop.provider(1)),
+        drop: () => this.run(Drop.provider(1, DropScoreType.Auto)),
         shift: () => this.run(Shift.provider(1))
     }
 
@@ -49,9 +52,8 @@ export default class MinoGame {
         this.timers = new Map<TimerName, PausableTimeout>()
             .set(TimerName.DropLock, new PausableTimeout(settings.lockdownConfig.delay, this.actions.lock))
             .set(TimerName.DAS, new PausableTimeout(settings.das, this.actions.startAutoShift))
-            .set(TimerName.Clock, new PausableInterval(1000, () => { /* TODO */ }))
+            .set(TimerName.Clock, new PausableInterval(1000, this.actions.tick))
             .set(TimerName.AutoDrop, new PausableInterval(settings.dropInterval, this.actions.drop))
-
             .set(TimerName.AutoShift,  new PausableInterval(settings.arr, this.actions.shift));
 
         this.run(...LifecycleProviders.Makers.init(settings));
@@ -74,6 +76,11 @@ export default class MinoGame {
 
     run(...operation: Operation[]) {
         this.state = execute(this.state, ...operation);
+        if (this.state.statistics.finesse != this.finesse) {
+            this.finesse = this.state.statistics.finesse 
+            console.log(this.finesse)
+        }
+
         if (this.state.meta.pendingInstructions.length > 0) {
             this.state.meta.pendingInstructions.forEach(instruction =>{
                 this.executeInstruction(instruction)

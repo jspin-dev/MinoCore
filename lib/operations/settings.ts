@@ -1,9 +1,9 @@
-import type { Provider, Drafter } from "../definitions/operationalDefinitions";
-import type { Grid } from "../definitions/sharedDefinitions";
-import type { State } from "../definitions/stateDefinitions";
 import type { Settings } from "../definitions/settingsDefinitions";
 import { RotationGridSet, Offset, Orientation } from "../definitions/rotationDefinitions";
 import { createEmptyGrid, rotateGrid, gridToList } from "../util/sharedUtils";
+import { clearGhost, refreshGhost } from "./ghost";
+import { State } from "../types/stateTypes";
+import { Grid } from "../types/sharedTypes";
 
 export namespace RotationSettings {
 
@@ -83,6 +83,30 @@ export let initSettings = (settings: Settings): Drafter => {
     }
 }
 
+export let setGhostEnabled = (enabled: boolean): Provider => {
+    let changeSetting: Drafter = {
+        draft: draft => { draft.settings.ghostEnabled = enabled }
+    }
+    return {
+        provide: () => [
+            changeSetting,
+            enabled ? refreshGhost : clearGhost
+        ]
+    }
+}
+
+export let setDasPreservationEnabled = (enabled: boolean): Drafter => {
+    return {
+        draft: draft => { draft.settings.dasPreservationEnabled = enabled }
+    }
+}
+
+export let setDasInteruptionEnabled = (enabled: boolean): Drafter => {
+    return {
+        draft: draft => { draft.settings.dasInteruptionEnabled = enabled }
+    }
+}
+
 export namespace Handling {
 
     export let setDAS = (das: number): Drafter => {
@@ -104,8 +128,3 @@ export namespace Handling {
     }
 
 }
-
-
-
-
-

@@ -2,57 +2,102 @@
     import Game from "./Game.svelte";
 	import Form from "./Form.svelte";
 	import { SettingsPresets } from "../../build/definitions/settingsDefinitions";
-	import { defaultSettings, AssociatedValue, FormField } from "./ui";
-	import { defaultPrefs, UserPreferences } from "./config/userPrefs";
+	import { defaultSettings } from "./ui";
+	import { presets as userPrefPresets } from "./config/userPrefs";
+    import { UserPrefsAssociatedKey, userPrefsForm as baseUserPrefsForm } from "./form/userPrefsForm";
+    import { produce } from "immer";
+    import StatsTable from "./stats/StatsTable.svelte";
+    import { buildStatsSection } from "./stats/statsUtil";
+	import type { State } from "../../build/types/stateTypes";
 
-	let userPrefs = defaultPrefs;
+	let userPrefs = userPrefPresets.alternate;
+	let gameState: State;
 
-	let mapFieldValue = (userPrefs: UserPreferences, field: FormField): string => {
-		switch (field.associatedValue.classifier) {
-			case AssociatedValue.Classifier.Input:
-				let input = field.associatedValue.value;
-				return Object.entries(userPrefs.keybindings).find(entry => entry[1] === input)[0];
-			case AssociatedValue.Classifier.Handling:
-				let handling = field.associatedValue.value;
-				return userPrefs.handling[handling].toString();
-		}
-	}
-
-	let onFormDataChanged = (value: string, previousValue: string, associatedValue: AssociatedValue.Any) => {
-		switch (associatedValue.classifier) {
-			case AssociatedValue.Classifier.Input:
-				userPrefs.keybindings[previousValue] = userPrefs.keybindings[value];
-				userPrefs.keybindings[value] = associatedValue.value;
+	let onUserPrefsChanged = (
+		value: string | boolean | number, 
+		previousValue:  string | boolean | number, 
+		associatedKey: UserPrefsAssociatedKey.Any
+	) => {
+		switch (associatedKey.classifier) {
+			case UserPrefsAssociatedKey.Classifier.GameInput:
+				userPrefs.keybindings[previousValue as string] = userPrefs.keybindings[value as string];
+				userPrefs.keybindings[value as string] = associatedKey.value;
 				break;
-			case AssociatedValue.Classifier.Handling:
-				userPrefs.handling[associatedValue.value] = Number(value);
+			case UserPrefsAssociatedKey.Classifier.GameInputPreset:
+				userPrefs.keybindings = userPrefPresets[value as string]
+				break;
+			case UserPrefsAssociatedKey.Classifier.Main:
+				userPrefs[associatedKey.value] = value;
+
 		}
 	}
 
-	$: settingsForm = defaultSettings.settingsForm.map(section => {
+	$: userPrefsForm = baseUserPrefsForm.map(section => {
 		return {
 			...section,
-			fields: section.fields.map(field => {
-				return { ...field, value: mapFieldValue(userPrefs, field) }
+			entries: section.entries.map(entry => {
+				switch (entry.associatedKey.classifier) {
+					case UserPrefsAssociatedKey.Classifier.GameInput:
+						let input = entry.associatedKey.value;
+						return produce(entry, draft => {
+							draft.field.value = Object.entries(userPrefs.keybindings)
+								.find(keybinding => keybinding[1] === input)[0];
+						});
+					case UserPrefsAssociatedKey.Classifier.GameInputPreset:
+						return produce(entry, draft => {
+							let match = Object.entries(userPrefPresets)
+								.find(preset => preset[1].keybindings == userPrefs.keybindings)[0]
+								console.log(match)
+							draft.field.value = match || "custom"
+						});
+					case UserPrefsAssociatedKey.Classifier.Main:
+						return produce(entry, draft => {
+							draft.field.value = userPrefs[entry.associatedKey.value];
+						});
+				}
 			})
 		}
 	});
+
+	$: statistics = gameState ? gameState.statistics : null
+	$: actionTally = statistics ? statistics.actionTally : null
+	$: statsSection = buildStatsSection(statistics)
 </script>
 
 <main class="main">
+	{#if statistics}
+		<div class="stats-container">
+			<h3>{statsSection.sectionName}</h3>
+			<div class="stats-section">
+				{#each statsSection.tables as tableInfo}
+					<StatsTable entries={tableInfo}/>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<Game 
-		settings={SettingsPresets.Guideline} 
+		gameSettings={SettingsPresets.Guideline} 
 		uiSettings={defaultSettings} 
-		userPrefs={userPrefs}/>
+		userPrefs={userPrefs}
+		reportState={state => gameState = state}/>
 	<Form 
-		data={settingsForm}
-		onChange={onFormDataChanged}/>
+		sections={userPrefsForm}
+		onChange={onUserPrefsChanged}/>
 </main>
 
 <style>
 	.main {
 		display: flex;
-		justify-content: center;
+		align-items: flex-start;
 		gap: 40px;
+	}
+	.stats-container {
+		padding: 15px;
+	}
+
+	.stats-section {
+		display: flex;
+		align-items: flex-start;
 	}
 </style>
