@@ -1,5 +1,5 @@
 import { Orientation } from "../definitions/rotationDefinitions";
-import { Step } from "../types/steps";
+import { Step } from "../definitions/steps";
 import { Piece } from "./tetraPieces";
 
 export type FinesseSettings = {

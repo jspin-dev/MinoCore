@@ -4,18 +4,12 @@ import { PreviewGridSettings, copyPreviewGridSettings } from "./previewGrid";
 import { spawn } from "./spawn";
 import { Next } from "./preview";
 import { clearActivePiece } from "./activePiece";
-// import { logSteps } from "./scoring";
-import { Step } from "../types/steps";
-import { State } from "../types/stateTypes";
-import { Grid } from "../types/sharedTypes";
+import { Operation } from "../definitions/operationalDefinitions";
+import { Grid } from "../definitions/shared/Grid";
 
 namespace PerformHoldChange {
 
-    let setGrid = (grid: Grid): Drafter => {
-        return {
-            draft: draft => { draft.hold.grid = grid }
-        } 
-    }
+    let setGrid = (grid: Grid) => Operation.Draft(draft => { draft.hold.grid = grid })
 
     let createHoldGrid = (pieceId: number, settings: Settings): Grid => {
         let grid = copyPreviewGridSettings(settings)[pieceId];
@@ -26,68 +20,56 @@ namespace PerformHoldChange {
         ];
     }
     
-    let syncGrid: Provider = {
-        provide: ({ hold, settings }: State) =>{
-            let grid = createHoldGrid(hold.pieceId || 0, settings);
-            return setGrid(grid);
-        }    
-    }
+    let syncGrid = Operation.Provide(({ hold, settings }) =>{
+        let grid = createHoldGrid(hold.pieceId || 0, settings);
+        return setGrid(grid);
+    })
     
-    export let provider = (drafter: Drafter): Provider => {
-        return {
-            provide: () => [
-                PreviewGridSettings.validate,
-                drafter,
-                syncGrid
-            ]        
-        }
-    }
+    export let provider = (operation: Operation.Any) => Operation.Sequence(
+        PreviewGridSettings.validate,
+        operation,
+        syncGrid
+    )        
 
 }
 
-export let init = PerformHoldChange.provider({
-    draft: draft => {
+export let init = PerformHoldChange.provider(
+    Operation.Draft(draft => {
         draft.hold = { 
             enabled: true, 
             grid: [], 
             pieceId: null 
         };
-    }
-})
+    })
+)
 
 export namespace Hold {
 
-    let draftHold = PerformHoldChange.provider({
-        requiresActiveGame: true,
-        draft: draft => {
+    let draftHold = PerformHoldChange.provider(
+        Operation.DraftStrict(draft => {
             Object.assign(draft.hold, {
                 pieceId: draft.playfield.activePiece.id,
                 enabled: false
             });
-        }
-    });
+        })
+    )
 
     /**
      * Note: Unlike most cases, here we are intentionally referncing the 
      * original hold state rather than using the provider's state
      */
-    let next = (previousHoldPieceId: number): Provider => {
-        return previousHoldPieceId > 0 ? spawn(previousHoldPieceId) : Next.provider
-    }
+    let next = (previousHoldPieceId: number) => previousHoldPieceId > 0 ? spawn(previousHoldPieceId) : Next.provider
 
-    export let provider = {
-        requiresActiveGame: true,
-        provide: ({ hold }: State): Actionable => {
-            if (!hold.enabled) {
-                return [];
-            }
-            return [
+    export let provider = Operation.Provide(({ hold }) => {
+        if (hold.enabled) {
+            return Operation.Sequence(
                 draftHold,
                 clearActivePiece(true),
-                next(hold.pieceId),
-                // logSteps(Step.Hold)
-            ]
+                next(hold.pieceId)
+            )
+        } else {
+            return Operation.None;
         }
-    }
+    })
 
 }

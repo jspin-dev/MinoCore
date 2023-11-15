@@ -1,59 +1,55 @@
-import { isProvider, isDrafter, isOperation, isOperationList } from "./definitions/operationalDefinitions";
+import { Operation } from "./definitions/operationalDefinitions";
 import { produce } from "immer";
 import devSettings from "./devSettings.json";
 import { GameStatus } from "./definitions/metaDefinitions";
-import { State, Meta } from "./types/stateTypes";
+import { State, Meta } from "./definitions/stateTypes";
 
-export function execute(initialState: State, ...operations: Operation[]): State {
-    let checkedInitialState = initialState || {
-        playfield: null,
-        hold: null,
-        preview: null,
-        meta: null,
-        settings: null,
-        statistics: null
-    }
-    return operations.reduce((state, operation) => {
-        if (isProvider(operation)) {
+export let execute = (state: State | null, operation: Operation.Any) => executeOperation(state || State.initial, operation)
+
+let executeOperation = (state: State, operation: Operation.Any): State => {
+    switch (operation.classifier) {
+        case Operation.Classifier.Provider:
             return executeProvider(state, operation);
-        } else if (isDrafter(operation)) {
+        case Operation.Classifier.Drafter:
             return executeDrafter(state, operation);
-        } else {
-            throw "Unexpected operation type";
-        }
-    }, checkedInitialState);  
+        case Operation.Classifier.Sequence:
+            return executeSequencer(state, operation);
+    }
 }
 
-export function executeDrafter(state: State, drafter: Drafter): State {
-    if (!performOperationPrechecks(state.meta, drafter)) {
+let executeSequencer = (state: State, sequence: Operation.Sequencer): State => {
+    return sequence.operations.reduce((current, operation) => executeOperation(current, operation), state);  
+}
+
+let executeDrafter = (state: State, drafter: Operation.Drafter): State => {
+    if (!prechecksPass(state.meta, drafter)) {
         return state;
     }
     return produce(state, drafter.draft);
 }
 
-export function executeProvider(state: State, provider: Provider): State {
-    if (!performOperationPrechecks(state.meta, provider)) {
+let executeProvider = (state: State, provider: Operation.Provider): State => {
+    if (!prechecksPass(state.meta, provider)) {
         return state;
     }
-    let actionable = provider.provide(state);
-    if (isOperationList(actionable)) {
-        return execute(state, ...actionable);
-    } else if (isOperation(actionable)) {
-        return execute(state, actionable);
-    } else {
-        throw "Unexpected actionable type";
-    }
+    let operation = provider.provide(state);
+    return executeOperation(state, operation);
 }
 
 // Returns false if this operation is not allowed
-let performOperationPrechecks = (meta: Meta, operation: Operation): boolean => {
+let prechecksPass = (meta: Meta, operation: Operation.Any): boolean => {
     if (operation == null) {
-        throw "Unable to execute a null operation";
+        throw "Undefined operation, ignoring";
     }
-    if (devSettings.verboseLog && operation.log) {
-        console.log(operation.log);
+    switch (operation.classifier) {
+        case Operation.Classifier.Provider:
+        case Operation.Classifier.Drafter:
+            if (devSettings.verboseLog && operation.args?.description) {
+                console.log(operation.args.description);
+            }
+            let gameInactive = meta && meta.status != GameStatus.Active;
+            return !gameInactive || !operation.args?.strict;
+        case Operation.Classifier.Sequence:
+            return operation.operations.every(op => prechecksPass(meta, op));
     }
-    let gameInactive = meta && meta.status != GameStatus.Active;
-    return !gameInactive || !operation.requiresActiveGame;
 }
-

@@ -6,208 +6,189 @@ import { updateStatus } from "./meta";
 
 import { shuffle } from "../util/sharedUtils";
 import { PreviewGridSettings, copyPreviewGridSettings } from "./previewGrid";
-import { State } from "../types/stateTypes";
-import { Grid } from "../types/sharedTypes";
+import { State } from "../definitions/stateTypes";
+import { Operation } from "../definitions/operationalDefinitions";
+import { Grid } from "../definitions/shared/Grid";
+
+let syncGrid = Operation.Provide(({ preview, settings }: State) => {
+    let grid = generatePreviewGrid(preview.queue, settings);
+    return Operation.Draft(draft => { draft.preview.grid = grid });    
+}, {
+    description: "Syncing preview grid with the piece ids in the queue"
+})
 
 export namespace Prepare {
 
-    let clearQueue: Drafter = {
-        draft: draft => { draft.preview.queue = [] }
-    }
+    let clearQueue = Operation.Draft(draft => { draft.preview.queue = [] })
     
-    let enqueueFull: Provider = {
-        log: "Providing a queue based on randomization settings",
-        provide: ({ settings }: State): Actionable => {
-            switch(settings.randomization) {
-                case Randomization.Classic:
-                    return enqueueFullClassic;
-                case Randomization.Bag:
-                    return enqueueFullBag;
-            }
-        } 
-    }
-
-    let enqueueFullClassic: Provider = {
-        log: "Preparing classic-randomization queue",
-        provide: ({ settings }: State): Actionable => {
-            let previewSize = settings.nextPreviewSize;
-            let n = settings.rotationSystem[0].shapes.length;
-            let queue = [];
-            for (let i = 0; i < previewSize; i++) {
-                queue.push(Math.floor(Math.random() *  n) + 1);
-            }
-            return [
-                clearQueue,
-                enqueue(...queue),
-                syncGrid
-            ];
+    let enqueueFull = Operation.Provide(({ settings }): Operation.Any => {
+        switch(settings.randomization) {
+            case Randomization.Classic:
+                return enqueueFullClassic;
+            case Randomization.Bag:
+                return enqueueFullBag;
         }
-    }
+    }, {
+        description: "Providing a queue based on randomization settings"
+    })
 
-    let enqueueFullBag: Provider = {
-        log: "Preparing n-bag randomization queue",
-        provide: ({ settings }: State): Actionable => {
+    let enqueueFullClassic = Operation.Provide(({ settings }) => {
+        let previewSize = settings.nextPreviewSize;
+        let n = settings.rotationSystem[0].shapes.length;
+        let queue = [];
+        for (let i = 0; i < previewSize; i++) {
+            queue.push(Math.floor(Math.random() *  n) + 1);
+        }
+        return Operation.Sequence(
+            clearQueue,
+            enqueue(...queue),
+            syncGrid
+        );
+    }, {
+        description: "Preparing classic-randomization queue",
+    })
+
+    let enqueueFullBag = Operation.Provide(({ settings }) => {
             let previewSize = settings.nextPreviewSize;
             let n = settings.rotationSystem[0].shapes.length;
             let bagCount = Math.ceil(previewSize / n);
-            return [
+            return Operation.Sequence(
                 clearQueue,
                 ...[...Array(bagCount)].map(() => insertBag),
                 syncGrid
-            ];
-        }
-    }
+            );
+    }, { 
+        description: "Preparing n-bag randomization queue" 
+    })
 
-    export let provider: Provider = {
-        provide: () => [    
-            clearQueue,
-            enqueueFull,
-            syncGrid  
-        ]
-    }
+    export let provider = Operation.Sequence(    
+        clearQueue,
+        enqueueFull,
+        syncGrid  
+    )
 
 }
 
 export namespace Init {
 
-    let draftInit: Drafter = {
-        draft: draft => { 
-            draft.preview = {
-                grid: [],
-                dequeuedPiece: null,
-                queue: [],
-                randomNumbers: []
-            }
+    let draftInit = Operation.Draft(draft => {
+        draft.preview = {
+            grid: [],
+            dequeuedPiece: null,
+            queue: [],
+            randomNumbers: []
         }
-    }
+    })
 
-    export let provider: Provider = {
-        provide: ({ settings }) => {
-
-            return performPreviewChange(
-                draftInit,
-                insertAddRandomNumbersInstruction(settings.rotationSystem[0].shapes.length - 1)
-            );
-        }
-    }
+    export let provider = Operation.Provide(({ settings }) => performPreviewChange(
+        Operation.Sequence(
+            draftInit,
+            insertAddRandomNumbersInstruction(settings.rotationSystem[0].shapes.length - 1)
+        )
+    ));
 
 }
 
 export namespace Next {
 
-    let dequeue: Drafter = {
-        draft: draft => {
-            draft.preview.dequeuedPiece = draft.preview.queue.shift();
+    let dequeue = Operation.Draft(draft => { 
+        draft.preview.dequeuedPiece = draft.preview.queue.shift(); 
+    })
+
+    let insertClassic = Operation.Provide(({ preview, settings }) => {
+        if (preview.randomNumbers.length == 0) {
+            throw "Insufficient random numbers to queue a new piece";
         }
-    }
+        let randomNumber = preview.randomNumbers[0];
+        let numberOfPieces = settings.rotationSystem[0].shapes.length;
+        let randomPiece = Math.floor(randomNumber * numberOfPieces) + 1;
+        return enqueue(randomPiece);
+    }, {
+        description: "Enqueing a random piece"
+    })
 
-    let insertClassic = {
-        log: "Enqueing a random piece",
-        provide: ({ preview, settings }: State): Actionable => {
-            if (preview.randomNumbers.length == 0) {
-                throw "Insufficient random numbers to queue a new piece";
-            }
-            let randomNumber = preview.randomNumbers[0];
-            let numberOfPieces = settings.rotationSystem[0].shapes.length;
-            let randomPiece = Math.floor(randomNumber * numberOfPieces) + 1;
-            return enqueue(randomPiece);
+    let enqueueRandomBag = Operation.Provide(({ settings }) => {
+        switch(settings.randomization) {
+            case Randomization.Classic:
+                return insertClassic;
+            case Randomization.Bag:
+                return insertBag;
         }
-    }
+    }, {
+        description: "Enqueing a random bag"
+    })
 
-    let enqueueRandomBag = {
-        log: "Enqueing a random bag",
-        provide: ({ settings }: State): Actionable => {
-            switch(settings.randomization) {
-                case Randomization.Classic:
-                    return insertClassic;
-                case Randomization.Bag:
-                    return insertBag;
-            }
-        }
-    }
+    let provideSpawn = Operation.Provide(state => spawn(state.preview.dequeuedPiece))
 
-    let provideSpawn: Provider = { 
-        provide: state => spawn(state.preview.dequeuedPiece) 
-    }
-
-    export let provider: Provider = {
-        provide: () => [          
-            dequeue,
-            enqueueRandomBag,
-            syncGrid,
-            provideSpawn
-        ]
-    }
+    export let provider = Operation.Sequence(            
+        dequeue,
+        enqueueRandomBag,
+        syncGrid,
+        provideSpawn
+    )
 
 }
 
 export namespace RandomNumbers {
 
-    export let remove = (n: number): Drafter => {
+    export let remove = (n: number): Operation.Any => {
         if (!Number.isInteger(n) || n <= 0) {
             throw "Number of items to remove from the list must be an integer greater than 0"
         }
-        return {
-            draft: draft => { 
-                let randomNumbers = draft.preview.randomNumbers;
-                randomNumbers.splice(randomNumbers.length - n, n);
-            }
-        }
+        return Operation.Draft(draft => { 
+            let randomNumbers = draft.preview.randomNumbers;
+            randomNumbers.splice(randomNumbers.length - n, n);
+        })
     }   
 
-    export let fulfill = (instructionId: number, numbers: number[]): Drafter => {
+    export let fulfill = (instructionId: number, numbers: number[]): Operation.Any => {
         if (numbers.some(i => i < 0 || i >= 1)) {
             throw "All random numbers must be between 0 (inclusively) and 1 (exclusively)"
         }
-        return {
-            draft: draft => {
-                draft.preview.randomNumbers.push(...numbers);
-                draft.meta.pendingInstructions = draft.meta.pendingInstructions.filter(instruction => {
-                    instruction.id == instructionId;
-                });
-            }
-        }
+        return Operation.Draft(draft => {
+            draft.preview.randomNumbers.push(...numbers);
+            draft.meta.pendingInstructions = draft.meta.pendingInstructions.filter(instruction => {
+                instruction.id == instructionId;
+            });
+        })
     }
 
 }
 
-let insertAddRandomNumbersInstruction = (quantity: number): Drafter => {
-    return {
-        draft: draft => { 
-            draft.meta.pendingInstructions.push(
-                {
-                    id: ++draft.meta.lastInstructionId,
-                    info:  { quantity }
-                }
-            ) 
+let insertAddRandomNumbersInstruction = (quantity: number) => Operation.Draft(draft => {
+    draft.meta.pendingInstructions.push(
+        {
+            id: ++draft.meta.lastInstructionId,
+            info:  { quantity }
         }
+    ) 
+})
+
+
+
+let insertBag = Operation.Provide(({ preview, settings }) => {
+    if (preview.queue.length >= settings.nextPreviewSize) {
+        return Operation.None;
     }
-}
-
-let insertBag: Provider = {
-    log: "Inserting a random bag of n pieces",
-    provide: ({ preview, settings }: State): Actionable => {
-        if (preview.queue.length >= settings.nextPreviewSize) {
-            return [];
-        }
-        let n = settings.rotationSystem[0].shapes.length;  
-        if (preview.randomNumbers.length < n-1) {
-            throw "Insufficient random numbers to queue a new bag";
-        }
-
-        let randomNumbers = preview.randomNumbers.slice(1-n); // Takes the last n-1 numbers
-
-        // [1, 2, 3, ...n]
-        let unshuffled = Array.from(Array(n).keys()).map(i => i + 1);
-        let shuffled = shuffle(unshuffled, randomNumbers);
-        
-        return [
-            enqueue(...shuffled),
-            RandomNumbers.remove(randomNumbers.length),
-            insertAddRandomNumbersInstruction(randomNumbers.length)
-        ];
+    let n = settings.rotationSystem[0].shapes.length;  
+    if (preview.randomNumbers.length < n-1) {
+        throw "Insufficient random numbers to queue a new bag";
     }
-}
+
+    let randomNumbers = preview.randomNumbers.slice(1-n); // Takes the last n-1 numbers
+
+    // [1, 2, 3, ...n]
+    let unshuffled = Array.from(Array(n).keys()).map(i => i + 1);
+    let shuffled = shuffle(unshuffled, randomNumbers);
+    
+    return Operation.Sequence(
+        enqueue(...shuffled),
+        RandomNumbers.remove(randomNumbers.length),
+        insertAddRandomNumbersInstruction(randomNumbers.length)
+    )
+}, {
+    description: "Inserting a random bag of n pieces"
+})
 
 let generatePreviewGrid = (queue: readonly number[], settings: Settings): Grid => {
     let previewGridSettings = copyPreviewGridSettings(settings);
@@ -232,23 +213,13 @@ let generatePreviewGrid = (queue: readonly number[], settings: Settings): Grid =
     return grid;
 }
 
-let syncGrid: Provider = {
-    log: "Syncing preview grid with the piece ids in the queue",
-    provide: ({ preview, settings }: State): Actionable => {
-        let grid = generatePreviewGrid(preview.queue, settings);
-        return { draft: draft => { draft.preview.grid = grid } };
-    }    
-}
+let enqueue = (...pieceIds: number[]) => Operation.Draft(draft => { 
+    draft.preview.queue.push(...pieceIds) 
+})
 
-let enqueue = (...pieceIds: number[]): Drafter => {
-    return {
-        draft: draft => { draft.preview.queue.push(...pieceIds) }
-    }
-}
-
-let performPreviewChange = (...operations: Operation[]): Operation[] => [
+let performPreviewChange = (operation: Operation.Any) => Operation.Sequence(
     PreviewGridSettings.validate,
-    ...operations,
+    operation,
     syncGrid,
     updateStatus(GameStatus.Ready)
-]
+)

@@ -4,14 +4,8 @@ import type { RotationSystem } from "../definitions/rotationDefinitions";
 import { ShiftDirection } from "../definitions/playfieldDefinitions";
 import { Orientation } from "../definitions/rotationDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
-import { GameStatus } from "../definitions/metaDefinitions";
-import { Meta, Playfield } from "../types/stateTypes";
-import { Grid } from "../types/sharedTypes";
-
-export let hasGameEnded = (meta: Meta): boolean => {
-    return meta.status == GameStatus.GoalComplete || 
-        meta.status.classifier == GameStatus.Classifier.GameOver;
-}
+import { Meta, Playfield } from "../definitions/stateTypes";
+import { Grid } from "../definitions/shared/Grid";
 
 export function instantAutoShiftActive(meta: Meta, settings: Settings): boolean {
     let shouldAutoShiftRight = meta.dasRightCharged && meta.direction == ShiftDirection.Right;

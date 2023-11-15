@@ -12,9 +12,9 @@ import {
     GameStatus
 } from "./definitions/metaDefinitions";
 
-import BasePausableTimer from "./async/BasePausableTimer";
-import PausableInterval from "./async/PausableInterval";
-import PausableTimeout from "./async/PausableTimeout";
+import BasePausableTimer from "./util/async/BasePausableTimer";
+import PausableInterval from "./util/async/PausableInterval";
+import PausableTimeout from "./util/async/PausableTimeout";
 import { execute } from "./exec";
 
 import LifecycleProviders from "./operations/lifecycle";
@@ -25,23 +25,23 @@ import { StartAutoShift, Shift } from "./operations/shift";
 import { Prepare as PreparePreview, RandomNumbers } from "./operations/preview";
 import { hardDrop } from "./operations/drop";
 import { Handling as HandlingSettings } from "./operations/settings";
-import { DropScoreType } from "./definitions/scoringDefinitions";
+import { DropScoreType } from "./definitions/scoring/scoringDefinitions";
 import { updateStatsOnClock } from "./operations/statistics";
-import { State } from "./types/stateTypes";
+import { State } from "./definitions/stateTypes";
+import { Operation } from "./definitions/operationalDefinitions";
 
 export default class MinoGame {
 
     timers: Map<TimerName, BasePausableTimer>
     state: State;
     isPaused: boolean;
-    finesse: number;
     onStateChanged: (state: State) => void;
 
     actions: { [key: string]: () => void } = {
         tick: () => this.run(updateStatsOnClock),
         prepareQueue: () => this.run(PreparePreview.provider),
         lock: () => this.run(handleDropLockTimer),
-        start: () => this.run(...LifecycleProviders.start),
+        start: () => this.run(LifecycleProviders.start),
         hardDrop: () => this.run(hardDrop),
         startAutoShift: () => this.run(StartAutoShift.provider),
         drop: () => this.run(Drop.provider(1, DropScoreType.Auto)),
@@ -56,7 +56,7 @@ export default class MinoGame {
             .set(TimerName.AutoDrop, new PausableInterval(settings.dropInterval, this.actions.drop))
             .set(TimerName.AutoShift,  new PausableInterval(settings.arr, this.actions.shift));
 
-        this.run(...LifecycleProviders.Makers.init(settings));
+        this.run(LifecycleProviders.Makers.init(settings));
         return this.state;
     }
 
@@ -74,13 +74,8 @@ export default class MinoGame {
         this.run(HandlingSettings.setSDF(delay));
     }
 
-    run(...operation: Operation[]) {
-        this.state = execute(this.state, ...operation);
-        if (this.state.statistics.finesse != this.finesse) {
-            this.finesse = this.state.statistics.finesse 
-            console.log(this.finesse)
-        }
-
+    run(operation: Operation.Any) {
+        this.state = execute(this.state, operation);
         if (this.state.meta.pendingInstructions.length > 0) {
             this.state.meta.pendingInstructions.forEach(instruction =>{
                 this.executeInstruction(instruction)
@@ -117,9 +112,7 @@ export default class MinoGame {
         if (anyInput == null) { return }
         switch (anyInput.classifier) {
             case Input.Classifier.ActiveGameInput:
-                if (this.gameIsActive()) {
-                    this.run(LifecycleProviders.Makers.startInput(anyInput.input));
-                } 
+                this.run(LifecycleProviders.Makers.startInput(anyInput.input));
                 break;
             case Input.Classifier.Lifecycle:
                 switch(anyInput.input) {
@@ -156,9 +149,9 @@ export default class MinoGame {
 
     restart() {
         this.isPaused = false;
-        this.run(...LifecycleProviders.Makers.init(this.state.settings))
+        this.run(LifecycleProviders.Makers.init(this.state.settings))
         this.run(PreparePreview.provider);
-        this.run(...LifecycleProviders.start);
+        this.run(LifecycleProviders.start);
     }
 
 }

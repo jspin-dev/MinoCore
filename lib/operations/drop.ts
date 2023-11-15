@@ -6,12 +6,12 @@ import { Lock, UpdateLockStatus } from "./lockdown";
 import { insertTimerDelayInstruction } from "./meta";
 import { updateStatsOnDrop } from "./statistics";
 
-import { provideIf } from "../util/providerUtils";
 import { instantAutoShiftActive, findHardDropDistance } from "../util/stateUtils";
-import { DropScoreType } from "../definitions/scoringDefinitions";
+import { DropScoreType } from "../definitions/scoring/scoringDefinitions";
 import { countStep } from "./finesse";
 import { MovementType } from "../definitions/inputDefinitions";
-import { State } from "../types/stateTypes";
+import { State } from "../definitions/stateTypes";
+import { Operation } from "../definitions/operationalDefinitions";
 
 /**
  * Note that ghost coordinates NEVER depend on y coordinate position. If the ghost and active piece 
@@ -20,76 +20,48 @@ import { State } from "../types/stateTypes";
  */
 export namespace Drop {
 
-    let continueInstantShiftIfActive = {
-        provide: ({ meta, settings }: State) => {
-            return provideIf(instantAutoShiftActive(meta, settings), instantShift);
-        }
-    }
+    let continueInstantShiftIfActive = Operation.Provide(({ meta, settings }) => {
+        return Operation.applyIf(instantAutoShiftActive(meta, settings), instantShift);
+    })
 
-    export let provider = (dy: number, dropScoreType: DropScoreType) => {
-        return {
-            requiresActiveGame: true,
-            provide: () => [
-                MovePiece.provider(0, dy),
-                UpdateLockStatus.provider(MovementType.Drop),
-                updateStatsOnDrop(dropScoreType, dy),
-                continueInstantShiftIfActive
-            ]
-        }
-    }
+    export let provider = (dy: number, dropScoreType: DropScoreType) => Operation.SequenceStrict(
+        MovePiece.provider(0, dy),
+        UpdateLockStatus.provider(MovementType.Drop),
+        updateStatsOnDrop(dropScoreType, dy),
+        continueInstantShiftIfActive
+    )
 
 }
 
-export let instantDrop = (dropScoreType: DropScoreType): Provider => {
-    return {
-        requiresActiveGame: true,
-        provide: ({ playfield, settings }: State): Actionable => {
-            let n = findHardDropDistance(playfield, settings);
-            return Drop.provider(n, dropScoreType);
-        }
-    }
-}
+export let instantDrop = (dropScoreType: DropScoreType) => Operation.ProvideStrict(({ playfield, settings }) => {
+    let n = findHardDropDistance(playfield, settings);
+    return Drop.provider(n, dropScoreType);
+})
 
-export let hardDrop: Provider = {
-    requiresActiveGame: true,
-    provide: () => [instantDrop(DropScoreType.Hard), Lock.provider]
-}
+export let hardDrop = Operation.Sequence(instantDrop(DropScoreType.Hard), Lock.provider)
 
-let setSoftDropActive = (active: boolean): Drafter => {
-    return {
-        draft: draft => { draft.meta.softDropActive = active }
-    }
-}
+let setSoftDropActive = (active: boolean) => Operation.Draft(draft => { draft.meta.softDropActive = active })
 
 export namespace StartSoftDrop {
 
-    let autoOrInstantDrop: Provider = {
-        provide: ({ settings }: State) => {
-            if (settings.softDropInterval == 0) {
-                return instantDrop(DropScoreType.Soft);
-            } else {
-                return insertTimerDelayInstruction(TimerName.AutoDrop, settings.softDropInterval);
-            }
+    let autoOrInstantDrop = Operation.Provide(({ settings }) => {
+        if (settings.softDropInterval == 0) {
+            return instantDrop(DropScoreType.Soft);
+        } else {
+            return insertTimerDelayInstruction(TimerName.AutoDrop, settings.softDropInterval);
         }
-    }
+    })
 
-    export let provider: Provider = {
-        requiresActiveGame: true,
-        provide: () => [
-            Drop.provider(1, DropScoreType.Soft), 
-            countStep(MovementType.Drop),
-            setSoftDropActive(true),
-            autoOrInstantDrop
-        ]
-    }
+    export let provider = Operation.SequenceStrict(
+        Drop.provider(1, DropScoreType.Soft), 
+        countStep(MovementType.Drop),
+        setSoftDropActive(true),
+        autoOrInstantDrop
+    )
 
 }
 
-export let cancelSoftDrop: Provider = {
-    provide: ({ settings }) => {
-        return [
-            insertTimerDelayInstruction(TimerName.AutoDrop, settings.dropInterval),
-            setSoftDropActive(false)
-        ]
-    }
-}
+export let cancelSoftDrop = Operation.Provide(({ settings }) => Operation.Sequence(
+    insertTimerDelayInstruction(TimerName.AutoDrop, settings.dropInterval),
+    setSoftDropActive(false)
+))

@@ -1,11 +1,12 @@
-import { ShiftDirection } from "../definitions/playfieldDefinitions";
-import { Instruction, GameStatus } from "../definitions/metaDefinitions";
-import { Input } from "../definitions/inputDefinitions";
-import { Settings } from "../definitions/settingsDefinitions";
-import { ActivePiece } from "../definitions/playfieldDefinitions";
-import type { LockdownInfo } from "../definitions/lockdownDefinitions";
-import type { Grid } from "./sharedTypes";
+import { ShiftDirection } from "./playfieldDefinitions";
+import { Instruction, GameStatus } from "./metaDefinitions";
+import { Input } from "./inputDefinitions";
+import { Settings } from "./settingsDefinitions";
+import { ActivePiece } from "./playfieldDefinitions";
+import type { LockdownInfo } from "./lockdownDefinitions";
 import type { Immutable } from "immer";
+import { Grid } from "./shared/Grid";
+import { Score } from "./scoring/Score";
 
 export type Playfield = Immutable<{
     activePiece: ActivePiece,
@@ -68,3 +69,17 @@ export type State = Immutable<{
     settings: Settings,
     statistics: Statistics
 }> 
+
+
+export namespace State {
+
+    export let initial: State = {
+        playfield: null,
+        hold: null,
+        preview: null,
+        meta: null,
+        settings: null,
+        statistics: null
+    }
+
+}

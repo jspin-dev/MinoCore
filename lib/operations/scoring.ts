@@ -1,9 +1,10 @@
 import { gridContainsOnly } from "../util/sharedUtils";
 import { Piece } from "../rotationSystems/tetraPieces";
 import { ActivePiece } from "../definitions/playfieldDefinitions";
-import { LockScoreAction, ScoreCalculationInfo } from "../definitions/scoringDefinitions";
-import { Playfield } from "../types/stateTypes";
-import { Grid } from "../types/sharedTypes";
+import { LockScoreAction, ScoreCalculationInfo } from "../definitions/scoring/scoringDefinitions";
+import { Playfield } from "../definitions/stateTypes";
+import { Grid } from "../definitions/shared/Grid";
+import { Score } from "../definitions/scoring/Score";
 
 export let getScoreAction = (lines: number, playfield: Playfield, spinSnapshot: Readonly<Grid>): LockScoreAction => {
     if (detectPC(playfield)) {

@@ -1,8 +1,9 @@
 import { Rotation } from "../definitions/rotationDefinitions";
 import { MovementType } from "../definitions/inputDefinitions";
 import finesseSettings from "../rotationSystems/finesseSettings";
-import { Step, StepType } from "../types/steps";
-import { Playfield, Statistics, StepCounts } from "../types/stateTypes";
+import { Step, StepType } from "../definitions/steps";
+import { Playfield, Statistics, StepCounts } from "../definitions/stateTypes";
+import { Operation } from "../definitions/operationalDefinitions";
 
 export let calculateFinesseOnLock = (playfield: Playfield, statistics: Statistics): number => {
     let coordinates = playfield.activePiece.coordinates;
@@ -21,20 +22,14 @@ export let calculateFinesseOnLock = (playfield: Playfield, statistics: Statistic
     return rotationFinesse + shiftFinesse;
 }
 
-export let countRotation = (rotation: Rotation): Provider => {
-    return {
-        provide: () => {
-            let count = rotation == Rotation.Degrees180 ? 2 : 1;
-            return countStep(MovementType.Rotate, count);
-        }
-    }
-}
+export let countRotation = (rotation: Rotation) => Operation.Provide(() => {
+    let count = rotation == Rotation.Degrees180 ? 2 : 1;
+    return countStep(MovementType.Rotate, count);
+})
 
-export let countStep = (type: MovementType, n: number = 1): Drafter => {
-    return {
-        draft: draft => { draft.statistics.steps[type] += n }
-    }
-}
+export let countStep = (type: MovementType, n: number = 1) => Operation.Draft(draft => { 
+    draft.statistics.steps[type] += n 
+})
 
 let getStepCountBreakdown = (steps: Step[]): StepCounts => {
     let initialValues = {

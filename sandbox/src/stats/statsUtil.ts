@@ -1,7 +1,7 @@
 import { getFormattedTime } from "../../../build/util/statUtil";
 import { BasicStat } from "../types";
 import statsTableConfig from "../config/statsConfig";
-import type { Statistics } from "../../../build/types/stateTypes";
+import type { Statistics } from "../../../build/definitions/stateTypes";
 
 export let buildStatsSection = (statistics: Statistics) => {
     return {

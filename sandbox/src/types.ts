@@ -1,3 +1,4 @@
+import type { Input } from "../../build/definitions/inputDefinitions";
 import type { InputField, FormEntry } from "./form/forms";
 
 declare global {

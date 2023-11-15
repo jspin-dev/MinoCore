@@ -1,5 +1,5 @@
 import type { Coordinate } from "../definitions/playfieldDefinitions";
-import type { Grid } from "../types/sharedTypes";
+import { Grid } from "../definitions/shared/Grid";
 
 export function gridToList(grid: Grid, dx: number, dy: number, n: number): Coordinate[] {
     var blockArray = <Coordinate[]>[];

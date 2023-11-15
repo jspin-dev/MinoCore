@@ -72,8 +72,7 @@ export type GameStatus = GameStatus.GameOverType |
     typeof GameStatus.Initialized | 
     typeof GameStatus.Ready | 
     typeof GameStatus.Active | 
-    typeof GameStatus.Suspended | 
-    typeof GameStatus.GoalComplete
+    typeof GameStatus.Suspended
 
 export namespace GameStatus {
 
@@ -83,12 +82,11 @@ export namespace GameStatus {
     }
 
     export enum Classifier {
-        Initialized,
-        Ready,
-        Active,
-        Suspended,
+        Initialized, // Game has been initialized but is not ready to play (ie no next queue)
+        Ready, // Game is ready to be played
+        Active, // Game is accepting inputs and the main timer is active
+        Suspended, // Example uses: game is paused, game has "ended" but not by gameover, etc.
         GameOver, // topout, lockout, or blockout
-        GoalComplete
     }
 
     export let Initialized = { classifier: Classifier.Initialized }
@@ -98,8 +96,6 @@ export namespace GameStatus {
     export let Active = { classifier: Classifier.Active }
 
     export let Suspended = { classifier: Classifier.Suspended }
-
-    export let GoalComplete = { classifier: Classifier.GoalComplete }
 
     export let GameOver = (condition: GameOverCondition): GameOverType => {
         return { 

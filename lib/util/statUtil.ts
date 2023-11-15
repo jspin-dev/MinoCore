@@ -1,4 +1,4 @@
-import { Statistics } from "../types/stateTypes";
+import { Statistics } from "../definitions/stateTypes";
 
 export let getFormattedTime = (statistics: Statistics): string => {
     return formatTime(statistics.time);

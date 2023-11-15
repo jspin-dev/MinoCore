@@ -1,4 +1,4 @@
-import { LockScoreAction, Lines } from "../../../build/definitions/scoringDefinitions";
+import { LockScoreAction, Lines } from "../../../build/definitions/scoring/scoringDefinitions";
 import { BasicStat } from "../types";
 
 export default {

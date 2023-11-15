@@ -3,33 +3,23 @@ import { RotationSettings } from "./settings";
 
 import { cropGrid, createEmptyGrid, } from "../util/sharedUtils";
 import { getInitialOrientationGrids } from "../util/stateUtils"
-import { Grid } from "../types/sharedTypes";
+import { Operation } from "../definitions/operationalDefinitions";
+import { Grid } from "../definitions/shared/Grid";
 
 export namespace PreviewGridSettings {
 
-    let createPreviewGridsProvider: Provider = {
-        provide: ({ settings }) => {
-            if (settings.rotationSystem[0].previewGrids != null) {
-                return [];
-            }
-            let shapes = getInitialOrientationGrids(settings.rotationSystem[0]);
-            let grids = createPreviewGridSettings(shapes, 1);
-            return {
-                draft: draft => {
-                    draft.settings.rotationSystem[0].previewGrids = grids;
-                }
-            }
+    let createPreviewGridsProvider = Operation.Provide(({ settings }) => {
+        if (settings.rotationSystem[0].previewGrids != null) {
+            return Operation.None;
         }
-    }
+        let shapes = getInitialOrientationGrids(settings.rotationSystem[0]);
+        let grids = createPreviewGridSettings(shapes, 1);
+        return Operation.Draft(draft => {
+            draft.settings.rotationSystem[0].previewGrids = grids;
+        })
+    })
 
-    export let validate: Provider = {
-        provide: () => {
-            return [
-                RotationSettings.validate,
-                createPreviewGridsProvider
-            ]
-        }    
-    }
+    export let validate = Operation.Sequence(RotationSettings.validate, createPreviewGridsProvider)
 
 }
 

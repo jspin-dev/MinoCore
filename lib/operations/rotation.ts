@@ -8,12 +8,12 @@ import { instantShift } from "./shift";
 import { UpdateLockStatus } from "./lockdown";
 import { RotationSettings } from "./settings";
 
-import { provideIf } from "../util/providerUtils";
 import { gridToList } from "../util/sharedUtils";
 import { checkCollision, instantAutoShiftActive, instantSoftDropActive } from "../util/stateUtils";
 import { countRotation } from "./finesse";
 import { MovementType } from "../definitions/inputDefinitions";
-import { State, Playfield } from "../types/stateTypes";
+import { State, Playfield } from "../definitions/stateTypes";
+import { Operation } from "../definitions/operationalDefinitions";
 
 type KickInfo = {
     newOrientation: Orientation,
@@ -21,74 +21,60 @@ type KickInfo = {
     unadjustedCoordinates?: Coordinate[]
 }
 
-export let rotate = (rotation: Rotation): Provider => {
-    return {
-        requiresActiveGame: true,
-        provide: () => [
-            RotationSettings.validate,
-            performRotation(rotation),
-            continueIntantSoftDropIfActive,
-            continueInstantShiftIfActive,
-            countRotation(rotation)
-        ]
-    }
-}
+export let rotate = (rotation: Rotation) => Operation.SequenceStrict(
+    RotationSettings.validate,
+    performRotation(rotation),
+    continueIntantSoftDropIfActive,
+    continueInstantShiftIfActive,
+    countRotation(rotation)
+)
 
-let draftRotation = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo): Drafter => {
-    return {
-        requiresActiveGame: true,
-        draft: draft => {
-            let playfield = draft.playfield;
-            let { coordinates, location, id } = playfield.activePiece;
-
-            if (newOrientation != undefined) {
-                playfield.activePiece.orientation = newOrientation;
-            }
-            if (matchingOffset && unadjustedCoordinates) {
-                playfield.activePiece.activeRotation = true;
-                playfield.spinSnapshot = playfield.grid.map(row => [...row]);
-                coordinates.forEach(c => playfield.grid[c.y][c.x] = 0);
-                coordinates.forEach((c, i) => {
-                    coordinates[i].x = unadjustedCoordinates[i].x + matchingOffset[0];
-                    coordinates[i].y = unadjustedCoordinates[i].y + matchingOffset[1];
-                    playfield.grid[c.y][c.x] = id;
-                });
-            
-                location.x += matchingOffset[0];
-                location.y += matchingOffset[1];
-            }
+let draftRotation = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo): Operation.Any => {
+    return Operation.DraftStrict(draft => {
+        let playfield = draft.playfield;
+        let { coordinates, location, id } = playfield.activePiece;
+    
+        if (newOrientation != undefined) {
+            playfield.activePiece.orientation = newOrientation;
         }
-    }
-}
-
-let performRotation = (rotation: Rotation): Provider => {
-    return {
-        provide: ({ playfield, settings }) => {
-            let kickInfo = getKickInfo(rotation, playfield, settings);
-            if (kickInfo == null) {
-                return [];
-            } else {
-                return [
-                    draftRotation(kickInfo),
-                    ...provideIf(kickInfo.unadjustedCoordinates != null, refreshGhost),
-                    UpdateLockStatus.provider(MovementType.Rotate)
-                ]
-            }
+        if (matchingOffset && unadjustedCoordinates) {
+            playfield.activePiece.activeRotation = true;
+            playfield.spinSnapshot = playfield.grid.map(row => [...row]);
+            coordinates.forEach(c => playfield.grid[c.y][c.x] = 0);
+            coordinates.forEach((c, i) => {
+                coordinates[i].x = unadjustedCoordinates[i].x + matchingOffset[0];
+                coordinates[i].y = unadjustedCoordinates[i].y + matchingOffset[1];
+                playfield.grid[c.y][c.x] = id;
+            });
+        
+            location.x += matchingOffset[0];
+            location.y += matchingOffset[1];
         }
+    })
+}
+
+let performRotation = (rotation: Rotation) => Operation.Provide(({ playfield, settings }) => {
+    let kickInfo = getKickInfo(rotation, playfield, settings);
+    if (kickInfo == null) {
+        return Operation.None;
+    } else {
+        return Operation.Sequence(
+            draftRotation(kickInfo),
+            Operation.applyIf(kickInfo.unadjustedCoordinates != null, refreshGhost),
+            UpdateLockStatus.provider(MovementType.Rotate)
+        )
     }
-}
+})
 
-let continueIntantSoftDropIfActive: Provider = {
-    provide: ({ meta, settings }) => provideIf(instantSoftDropActive(meta, settings), StartSoftDrop.provider)
-}
-let continueInstantShiftIfActive = {
-    provide: ({ meta, settings }: State) => {
-        return provideIf(instantAutoShiftActive(meta, settings), instantShift);
-    }
-}
+let continueIntantSoftDropIfActive = Operation.Provide(({ meta, settings }) => {
+    return Operation.applyIf(instantSoftDropActive(meta, settings), StartSoftDrop.provider)
+})
 
+let continueInstantShiftIfActive = Operation.Provide(({ meta, settings }) => {
+    return Operation.applyIf(instantAutoShiftActive(meta, settings), instantShift);
+})
 
-let getKickInfo = (n: Rotation, playfield: Playfield, settings: Settings):KickInfo => {
+let getKickInfo = (n: Rotation, playfield: Playfield, settings: Settings): KickInfo => {
     let { activePiece } = playfield;
     let { kickTables, rotationGrids } = settings.rotationSystem[0];
 
