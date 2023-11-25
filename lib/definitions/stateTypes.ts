@@ -1,5 +1,5 @@
-import { ShiftDirection } from "./playfieldDefinitions";
-import { Instruction, GameStatus } from "./metaDefinitions";
+import { Coordinate, ShiftDirection } from "./playfieldDefinitions";
+import { GameStatus } from "./metaDefinitions";
 import { Input } from "./inputDefinitions";
 import { Settings } from "./settingsDefinitions";
 import { ActivePiece } from "./playfieldDefinitions";
@@ -7,6 +7,38 @@ import type { LockdownInfo } from "./lockdownDefinitions";
 import type { Immutable } from "immer";
 import { Grid } from "./shared/Grid";
 import { Score } from "./scoring/Score";
+import Operation from "./Operation";
+import { Offset, Orientation } from "./rotationDefinitions";
+
+/**
+ * Implementation Providers:
+ * - Queuing Strategy: n-bag, Classic
+ * 
+ * State Plugins:
+ * - CoreStatistics - tracks basic stats that should apply to all block-stacking games
+ * - SRStatistics - tracks basic stats (ie finesse, scoring, and leveling) for SRS quad games 
+ * - PreviewGridBuilder - utility that builds grids for the next/hold queues similar to that of the playfield, ready to be rendered
+ * - 
+ */
+
+export type KickInfo = {
+    newOrientation: Orientation,
+    matchingOffset?: Offset,
+    unadjustedCoordinates?: Coordinate[]
+}
+
+export type Dependencies = {
+    queueRandomizer: Dependencies.QueueRandomizer
+}
+
+export namespace Dependencies {
+
+    export type QueueRandomizer = {
+        enqueueFull: Operation.Any,
+        enqueueNext: Operation.Any
+    }
+
+}
 
 export type Playfield = Immutable<{
     activePiece: ActivePiece,
@@ -35,9 +67,7 @@ export type Meta = Immutable<{
     softDropActive: boolean,
     dasRightCharged: boolean,
     dasLeftCharged: boolean,
-    direction: ShiftDirection,
-    pendingInstructions: Instruction[],
-    lastInstructionId: number
+    direction: ShiftDirection
 }>
 
 export type StepCounts = {
@@ -61,14 +91,14 @@ export type Statistics = Immutable<{
     finesse: number
 }>
 
-export type State = Immutable<{
+export type State = {
     playfield: Playfield,
     hold: Hold,
     preview: Preview,
     meta: Meta,
     settings: Settings,
     statistics: Statistics
-}> 
+}
 
 
 export namespace State {

@@ -16,14 +16,14 @@ export enum Rotation {
     Degrees180 = 2
 }
 
-export type RotationSystem = Immutable<{
+export type RotationSystem = {
     startLocations: StartLocationInfo[],
     shapes: Grid[],
     rotationStateInfo: RotationStateInfo[],
     kickTables: KickTableGroup[],
-    previewGrids?: Grid[], // Optional, generated in runtime
-    rotationGrids?: RotationGridSet[] // Optional, generated in runtime
-}>
+    previewGrids?: Grid[], // Optional, generated at runtime
+    rotationGrids?: RotationGridSet[] // Optional, generated at runtime
+}
 
 export type StartLocationInfo = Immutable<{
     pieces: number[],

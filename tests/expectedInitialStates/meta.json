@@ -6,7 +6,6 @@
     "dasRightCharged": false,
     "dasLeftCharged": false,
     "direction": null,
-    "softDropActive": false,
-    "pendingInstructions": []
+    "softDropActive": false
 }
   

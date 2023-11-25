@@ -1,39 +1,82 @@
-import { Operation } from "./definitions/operationalDefinitions";
+import Operation from "./definitions/Operation";
 import { produce } from "immer";
 import devSettings from "./devSettings.json";
-import { GameStatus } from "./definitions/metaDefinitions";
-import { State, Meta } from "./definitions/stateTypes";
+import { GameStatus, SideEffectRequest, } from "./definitions/metaDefinitions";
+import { State, Meta, Dependencies } from "./definitions/stateTypes";
 
-export let execute = (state: State | null, operation: Operation.Any) => executeOperation(state || State.initial, operation)
+type OperationResult = {
+    state: State,
+    sideEffectRequests: SideEffectRequest.Any[]
+}
 
-let executeOperation = (state: State, operation: Operation.Any): State => {
+export let execute = (
+    state: State | null, 
+    depencencies: Dependencies,
+    rootOperation: Operation.Any
+): OperationResult => {
+    let initialResult: OperationResult = {
+        state: state || State.initial,
+        sideEffectRequests: []
+    }
+    return executeOperation(initialResult, depencencies, rootOperation);
+}
+
+let executeOperation = (
+    cumulativeResult: OperationResult, 
+    depencencies: Dependencies,
+    operation: Operation.Any
+): OperationResult => {
     switch (operation.classifier) {
         case Operation.Classifier.Provider:
-            return executeProvider(state, operation);
+            return executeProvider(cumulativeResult, depencencies, operation)
         case Operation.Classifier.Drafter:
-            return executeDrafter(state, operation);
-        case Operation.Classifier.Sequence:
-            return executeSequencer(state, operation);
+            return executeDrafter(cumulativeResult, operation);
+        case Operation.Classifier.Sequencer:
+            return executeSequencer(cumulativeResult, depencencies, operation);
+        case Operation.Classifier.Requester:
+            return executeRequester(cumulativeResult, operation);
     }
 }
 
-let executeSequencer = (state: State, sequence: Operation.Sequencer): State => {
-    return sequence.operations.reduce((current, operation) => executeOperation(current, operation), state);  
+let executeSequencer = (
+    cumulativeResult: OperationResult, 
+    depencencies: Dependencies,
+    sequence: Operation.Sequencer
+): OperationResult => {
+    return sequence.operations.reduce((current, operation) => executeOperation(
+        current, 
+        depencencies,
+        operation
+    ), cumulativeResult);  
 }
 
-let executeDrafter = (state: State, drafter: Operation.Drafter): State => {
-    if (!prechecksPass(state.meta, drafter)) {
-        return state;
+let executeDrafter = (cumulativeResult: OperationResult, drafter: Operation.Drafter): OperationResult => {
+    if (!prechecksPass(cumulativeResult.state.meta, drafter)) {
+        return cumulativeResult;
     }
-    return produce(state, drafter.draft);
+    return {
+        ...cumulativeResult,
+        state: produce(cumulativeResult.state, drafter.draft),
+    }
 }
 
-let executeProvider = (state: State, provider: Operation.Provider): State => {
-    if (!prechecksPass(state.meta, provider)) {
-        return state;
+let executeProvider = (
+    cumulativeResult: OperationResult, 
+    depencencies: Dependencies,
+    provider: Operation.Provider
+): OperationResult => {
+    if (!prechecksPass(cumulativeResult.state.meta, provider)) {
+        return cumulativeResult;
     }
-    let operation = provider.provide(state);
-    return executeOperation(state, operation);
+    let operation = provider.provide(cumulativeResult.state, depencencies);
+    return executeOperation(cumulativeResult, depencencies, operation);
+}
+
+let executeRequester = (cumulativeResult: OperationResult, requester: Operation.Requester): OperationResult => {
+    return {
+        ...cumulativeResult,
+        sideEffectRequests: [...cumulativeResult.sideEffectRequests, requester.request]
+    }
 }
 
 // Returns false if this operation is not allowed
@@ -49,7 +92,7 @@ let prechecksPass = (meta: Meta, operation: Operation.Any): boolean => {
             }
             let gameInactive = meta && meta.status != GameStatus.Active;
             return !gameInactive || !operation.args?.strict;
-        case Operation.Classifier.Sequence:
+        case Operation.Classifier.Sequencer:
             return operation.operations.every(op => prechecksPass(meta, op));
     }
 }

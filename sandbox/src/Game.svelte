@@ -9,29 +9,28 @@
     import { getKeycodeDisplayValue } from "./form/forms";
 
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
-    import { 
-        setGhostEnabled, 
-        setDasPreservationEnabled, 
-        setDasInteruptionEnabled 
-    } from "../../build/operations/settings";
-	import type { State } from "../../build/types/stateTypes";
+    import type { State } from '../../build/definitions/stateTypes';
     
+    import setDAS from "../../build/operations/shift/setDAS";
+    import setARR from "../../build/operations/shift/setARR";
+    import setSDF from "../../build/operations/drop/setSDF";
+    import setGhostEnabled from "../../build/operations/ghost/setGhostEnabled";
+
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
     export let gameSettings: Settings;
+    export let state: State;
     export let reportState: (state: State) => void;
 
-    let container: HTMLElement;
 	let game = new MinoGame();
-	let state = game.init(gameSettings);
-    let containerInFocus = true;
-
-	game.onStateChanged = s => { 
-        state = s;
-        reportState(state);
-    }
+	game.onStateChanged = reportState;
+	state = game.init(gameSettings);
+    reportState(state);
     game.actions.prepareQueue();
     game.actions.start();
+
+    let container: HTMLElement;
+    let containerInFocus = true;
 
     onMount(() => container.focus());
 
@@ -57,19 +56,15 @@
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
 	$: inactiveGame = state.meta.status != GameStatus.Active;
     $: isPaused = state.meta.status === GameStatus.Suspended;
-    $: {
-        game.setSDF(userPrefs.sdf)
-        game.setDAS(userPrefs.das);
-        game.setARR(userPrefs.arr);
-        game.run(setGhostEnabled(userPrefs.ghostEnabled));
-        game.run(setDasInteruptionEnabled(userPrefs.dasInteruptionEnabled));
-        game.run(setDasPreservationEnabled(userPrefs.dasPreservationEnabled));
-        // Unfortunate hack to force svelte to refresh computed properties
-        state = state;
-    }
+    
+    $: game.run(setSDF(userPrefs.sdf));
+    $: game.run(setDAS(userPrefs.das));
+    $: game.run(setARR(userPrefs.arr));
+    $: game.run(setGhostEnabled(userPrefs.ghostEnabled));
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+
 <div class='main-container' 
     tabindex="0" 
     bind:this={container}
@@ -86,14 +81,16 @@
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
             concealBlocks={isPaused}/>
-        <Grid 
-            gridData={visiblePlayfieldGrid} 
-            colors={uiSettings.blockColors} 
-            borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
-            blockSize={uiSettings.playfieldBlockSize}
-            dimmed={inactiveGame}
-            showBorders={userPrefs.showGrid}
-            concealBlocks={isPaused}/>
+        {#key state.playfield}
+            <Grid 
+                gridData={visiblePlayfieldGrid} 
+                colors={uiSettings.blockColors} 
+                borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
+                blockSize={uiSettings.playfieldBlockSize}
+                dimmed={inactiveGame}
+                showBorders={userPrefs.showGrid}
+                concealBlocks={isPaused}/>
+        {/key}
         <Grid
             gridData={state.preview.grid} 
             colors={uiSettings.blockColors} 

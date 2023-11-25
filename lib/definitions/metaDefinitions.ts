@@ -1,5 +1,48 @@
-import type { Immutable } from "immer";
+export namespace SideEffectRequest {
 
+    export type Any = TimerIntervalType | TimerOperationType | RngType
+
+    export enum Classifier {
+        TimerInterval,
+        TimerOperation,
+        Rng
+    }
+
+    export type TimerIntervalType = {
+        classifier: Classifier.TimerInterval,
+        timerName: TimerName,
+        delay: number
+    }
+
+    export type TimerOperationType = {
+        classifier: Classifier.TimerOperation,
+        timerName: TimerName,
+        operation: TimerOperation
+    }
+
+    export type RngType = { classifier: Classifier.Rng, quantity: number }
+
+    export let TimerInterval = (timerName: TimerName, delay: number): TimerIntervalType => {
+        return {
+            classifier: Classifier.TimerInterval,
+            timerName,
+            delay
+        }
+    }
+
+    export let TimerOperation = (timerName: TimerName, operation: TimerOperation): TimerOperationType => {
+        return { 
+            classifier: Classifier.TimerOperation, 
+            timerName, 
+            operation
+        }
+    }
+
+    export let Rng = (quantity: number): RngType => {
+        return { classifier: Classifier.Rng, quantity }
+    }
+
+}
 export enum TimerOperation {
     Start = "start",
     Pause = "pause",
@@ -14,53 +57,6 @@ export enum TimerName {
     DAS = "das",
     DropLock = "dropLock"
 }
-
-export type Instruction = {
-    id: number,
-    info: InstructionInfo
-}
-export type InstructionInfo = TimerInstructionInfo | AddRandomNumbersInfo
-
-export type TimerInstructionInfo = TimerDelayInfo | TimerInfo | GlobalTimerInfo
-
-export type AddRandomNumbersInfo = Immutable<{
-    quantity: number
-}>
-
-export type TimerDelayInfo = Immutable<{
-    timerName: TimerName,
-    delay: number
-}>
-
-export type TimerInfo = Immutable<{
-    timerName: TimerName,
-    operation: TimerOperation
-}>
-
-export type GlobalTimerInfo = Immutable<{
-    operation: TimerOperation
-}>
-
-export function isTimerDelayInfo(instructionInfo: InstructionInfo): instructionInfo is TimerDelayInfo {
-    let timerDelayInfo = instructionInfo as TimerDelayInfo
-    return "timerName" in timerDelayInfo && "delay" in timerDelayInfo;
-}
-export function isTimerInfo(instructionInfo: InstructionInfo): instructionInfo is TimerInfo {
-    let timerInfo = instructionInfo as TimerInfo
-    return "timerName" in timerInfo && "operation" in timerInfo;
-}
-
-export function isGlobalTimerInfo(instructionInfo: InstructionInfo): instructionInfo is GlobalTimerInfo {
-    let globalTimerInfo = instructionInfo as GlobalTimerInfo
-    return !("timerName" in globalTimerInfo) && "operation" in globalTimerInfo;
-}
-
-export function isAddRandomNumberInfo(
-    instructionInfo: InstructionInfo
-): instructionInfo is AddRandomNumbersInfo {
-    return "quantity" in (instructionInfo as AddRandomNumbersInfo);
-}
-
 
 export enum GameOverCondition {
     Blockout,

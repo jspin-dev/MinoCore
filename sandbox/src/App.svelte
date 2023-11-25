@@ -8,7 +8,7 @@
     import { produce } from "immer";
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
-	import type { State } from "../../build/types/stateTypes";
+    import type { State } from "../../build/definitions/stateTypes";
 
 	let userPrefs = userPrefPresets.alternate;
 	let gameState: State;
@@ -47,7 +47,6 @@
 						return produce(entry, draft => {
 							let match = Object.entries(userPrefPresets)
 								.find(preset => preset[1].keybindings == userPrefs.keybindings)[0]
-								console.log(match)
 							draft.field.value = match || "custom"
 						});
 					case UserPrefsAssociatedKey.Classifier.Main:
@@ -80,7 +79,8 @@
 		gameSettings={SettingsPresets.Guideline} 
 		uiSettings={defaultSettings} 
 		userPrefs={userPrefs}
-		reportState={state => gameState = state}/>
+		reportState={state => gameState = state}
+		state={gameState}/>
 	<Form 
 		sections={userPrefsForm}
 		onChange={onUserPrefsChanged}/>

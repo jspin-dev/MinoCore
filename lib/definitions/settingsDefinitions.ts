@@ -1,7 +1,6 @@
 import { LockdownConfig, LockdownPresets } from "./lockdownDefinitions";
 import { RotationSystem } from "./rotationDefinitions";
 
-import type { Immutable } from "immer";
 import srs from "../rotationSystems/srs";
 
 export enum Randomization {
@@ -14,12 +13,12 @@ export type ScoreConfig = {
     pcBonusEnabled: boolean
 }
 
-export type Settings = Immutable<{
+export type Settings = {
     columns: number,
     rows: number,
     ceilingRow: number,
     ghostEnabled: boolean,
-    rotationSystem: { [key: number]: RotationSystem }, // TODO fix this temp fix that uses an object with one rotation system
+    rotationSystem: RotationSystem,
     dasPreservationEnabled: boolean,
     nextPreviewSize: number,
     randomization: Randomization,
@@ -31,7 +30,7 @@ export type Settings = Immutable<{
     das: number,
     lockdownConfig: LockdownConfig,
     scoreConfig: ScoreConfig,
-}>
+}
 
 export namespace SettingsPresets {
 
@@ -40,7 +39,7 @@ export namespace SettingsPresets {
         rows: 40,
         ceilingRow: 20,
         ghostEnabled: true,
-        rotationSystem: { 0: srs },
+        rotationSystem: srs,
         dasPreservationEnabled: true,
         nextPreviewSize: 5,
         randomization: Randomization.Bag,

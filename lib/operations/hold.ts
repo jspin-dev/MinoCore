@@ -1,75 +1,70 @@
 import { Settings } from "../definitions/settingsDefinitions";
 
-import { PreviewGridSettings, copyPreviewGridSettings } from "./previewGrid";
 import { spawn } from "./spawn";
-import { Next } from "./preview";
-import { clearActivePiece } from "./activePiece";
-import { Operation } from "../definitions/operationalDefinitions";
+import Operation from "../definitions/Operation";
 import { Grid } from "../definitions/shared/Grid";
+import { copyPreviewGridSettings } from "../util/stateUtils";
+import validatePreviewGrids from "./next/validatePreviewGrids";
+import next from "./next/next";
 
-namespace PerformHoldChange {
-
-    let setGrid = (grid: Grid) => Operation.Draft(draft => { draft.hold.grid = grid })
-
-    let createHoldGrid = (pieceId: number, settings: Settings): Grid => {
-        let grid = copyPreviewGridSettings(settings)[pieceId];
-        let bufferSpace = new Array(grid[0].length).fill(0);
-        return [
-            ...grid,
-            bufferSpace,
-        ];
+export default Operation.Provide(({ hold }) => {
+    if (hold.enabled) {
+        return Operation.Sequence(
+            validatePreviewGrids,
+            holdActivePiece,
+            syncGrid,
+            clearActivePiece,
+            /**
+             * Note: Unlike most cases, here we are intentionally referncing the 
+             * original hold state rather than using the provider's state
+             */
+            replaceActivePiece(hold.pieceId)
+        )
+    } else {
+        return Operation.None;
     }
-    
-    let syncGrid = Operation.Provide(({ hold, settings }) =>{
-        let grid = createHoldGrid(hold.pieceId || 0, settings);
-        return setGrid(grid);
-    })
-    
-    export let provider = (operation: Operation.Any) => Operation.Sequence(
-        PreviewGridSettings.validate,
-        operation,
-        syncGrid
-    )        
+})
 
+let holdActivePiece = Operation.DraftStrict(draft => {
+    Object.assign(draft.hold, {
+        pieceId: draft.playfield.activePiece.id,
+        enabled: false
+    });
+})
+
+let createHoldGrid = (pieceId: number, settings: Settings): Grid => {
+    let grid = copyPreviewGridSettings(settings)[pieceId];
+    let bufferSpace = new Array(grid[0].length).fill(0);
+    return [
+        ...grid,
+        bufferSpace,
+    ];
 }
 
-export let init = PerformHoldChange.provider(
-    Operation.Draft(draft => {
-        draft.hold = { 
-            enabled: true, 
-            grid: [], 
-            pieceId: null 
-        };
-    })
-)
+let syncGrid = Operation.Provide(({ hold, settings }) =>{
+    let grid = createHoldGrid(hold.pieceId || 0, settings);
+    return Operation.Draft(draft => { draft.hold.grid = grid })
+})
 
-export namespace Hold {
+let replaceActivePiece = (previousHoldPieceId: number) => previousHoldPieceId > 0 ? spawn(previousHoldPieceId) : next
 
-    let draftHold = PerformHoldChange.provider(
-        Operation.DraftStrict(draft => {
-            Object.assign(draft.hold, {
-                pieceId: draft.playfield.activePiece.id,
-                enabled: false
-            });
-        })
-    )
-
-    /**
-     * Note: Unlike most cases, here we are intentionally referncing the 
-     * original hold state rather than using the provider's state
-     */
-    let next = (previousHoldPieceId: number) => previousHoldPieceId > 0 ? spawn(previousHoldPieceId) : Next.provider
-
-    export let provider = Operation.Provide(({ hold }) => {
-        if (hold.enabled) {
-            return Operation.Sequence(
-                draftHold,
-                clearActivePiece(true),
-                next(hold.pieceId)
-            )
-        } else {
-            return Operation.None;
+let clearActivePiece = Operation.DraftStrict(draft => {
+    let playfield = draft.playfield;
+    // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
+    playfield.activePiece.ghostCoordinates.forEach(c => {
+        if (playfield.grid[c.y][c.x] < 0) {
+            playfield.grid[c.y][c.x] = 0;
         }
-    })
-
-}
+    });
+    playfield.activePiece.coordinates.forEach(c => {
+        playfield.grid[c.y][c.x] = 0;
+    });
+    playfield.activePiece = {
+        id: null,
+        location: null,
+        coordinates: [],
+        ghostCoordinates: [],
+        orientation: null,
+        activeRotation: false
+    };
+})

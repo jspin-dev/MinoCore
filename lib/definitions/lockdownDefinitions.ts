@@ -23,7 +23,6 @@ export namespace LockdownReset {
 
 }
 
-
 export type LockdownInfo = {
     status: LockdownStatus,
     largestY: number
