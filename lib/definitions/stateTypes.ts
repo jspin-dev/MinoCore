@@ -7,8 +7,8 @@ import type { LockdownInfo } from "./lockdownDefinitions";
 import type { Immutable } from "immer";
 import { Grid } from "./shared/Grid";
 import { Score } from "./scoring/Score";
-import Operation from "./Operation";
 import { Offset, Orientation } from "./rotationDefinitions";
+import PendingMovement from "./PendingMovement";
 
 /**
  * Implementation Providers:
@@ -27,19 +27,6 @@ export type KickInfo = {
     unadjustedCoordinates?: Coordinate[]
 }
 
-export type Dependencies = {
-    queueRandomizer: Dependencies.QueueRandomizer
-}
-
-export namespace Dependencies {
-
-    export type QueueRandomizer = {
-        enqueueFull: Operation.Any,
-        enqueueNext: Operation.Any
-    }
-
-}
-
 export type Playfield = Immutable<{
     activePiece: ActivePiece,
     grid: Grid,
@@ -56,14 +43,15 @@ export type Hold = Immutable<{
 export type Preview = Immutable<{
     queue: number[],
     grid: Grid,
-    dequeuedPiece: number,
     randomNumbers: number[]
 }>
 
 export type Meta = Immutable<{
     status: GameStatus,
-    previousStatus: GameStatus,
     activeInputs: Input.ActiveGame[],
+    activeLeftShiftDistance: number,
+    activeRightShiftDistance: number,
+    activeDropDistance: number,
     softDropActive: boolean,
     dasRightCharged: boolean,
     dasLeftCharged: boolean,
@@ -99,7 +87,6 @@ export type State = {
     settings: Settings,
     statistics: Statistics
 }
-
 
 export namespace State {
 

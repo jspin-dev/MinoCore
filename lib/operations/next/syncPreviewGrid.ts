@@ -4,13 +4,12 @@ import { Grid } from "../../definitions/shared/Grid";
 import { State } from "../../definitions/stateTypes";
 import { copyPreviewGridSettings } from "../../util/stateUtils";
 
-export default Operation.Provide(({ preview, settings }: State) => {
-    let grid = generatePreviewGrid(preview.queue, settings);
-    return Operation.Draft(draft => { draft.preview.grid = grid });    
+export default Operation.Provide(({ state }) => {
+    let grid = generatePreviewGrid(state.preview.queue, state.settings);
+    return Operation.Draft(({ state }) => { state.preview.grid = grid });    
 }, {
     description: "Syncing preview grid with the piece ids in the queue"
 })
-
 
 let generatePreviewGrid = (queue: readonly number[], settings: Settings): Grid => {
     let previewGridSettings = copyPreviewGridSettings(settings);

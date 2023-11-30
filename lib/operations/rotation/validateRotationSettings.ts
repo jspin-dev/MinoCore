@@ -3,8 +3,8 @@ import { Offset, Orientation, RotationGridSet } from "../../definitions/rotation
 import { Grid } from "../../definitions/shared/Grid";
 import { createEmptyGrid, gridToList, rotateGrid } from "../../util/sharedUtils";
 
-export default Operation.Provide(({ settings }) => {
-    let { rotationGrids, shapes, rotationStateInfo } = settings.rotationSystem;
+export default Operation.Provide(({ state }) => {
+    let { rotationGrids, shapes, rotationStateInfo } = state.settings.rotationSystem;
 
     if (rotationGrids != null) {
         return Operation.None;
@@ -55,8 +55,8 @@ export default Operation.Provide(({ settings }) => {
         }
     });
     
-    return Operation.Draft(draft => {
-        draft.settings.rotationSystem.rotationGrids = updatedGrids;
+    return Operation.Draft(({ state }) => {
+        state.settings.rotationSystem.rotationGrids = updatedGrids;
     })
 })
 

@@ -7,10 +7,8 @@ import { Step, StepType } from "../../definitions/steps";
 import finesseSettings from "../../rotationSystems/finesseSettings";
 import { calculatePPS, detectPC, detectTspin } from "../../util/stateUtils";
 
-export default (
-    lines: number, 
-    spinSnapshot: Readonly<Grid>
-) => Operation.Provide(({ playfield, statistics, settings }) => {
+export default (lines: number, spinSnapshot: Readonly<Grid>) => Operation.Provide(({ state }) => {
+    let { playfield, statistics, settings } = state;
     let action = getScoreAction(lines, playfield, spinSnapshot);
     let scoreCalculationInfo = { 
         comboBonusEnabled: settings.scoreConfig.comboBonusEnabled, 
@@ -19,15 +17,16 @@ export default (
     }
     let scoreState = createNewScoreStateOnLock(action, statistics.scoreState, scoreCalculationInfo);
     let finesse = calculateFinesseOnLock(playfield, statistics);
-    return draftStats(action, scoreState, lines, finesse);
+    return updateStats(action, scoreState, lines, finesse);
 })
 
-let draftStats = (
+let updateStats = (
     action: LockScoreAction, 
     scoreState: Score.State,
     lines: number,
     finesse: number
-) => Operation.Draft(({ statistics }) => {
+) => Operation.Draft(({ state }) => {
+    let statistics = state.statistics;
     if (action) {
         if (action.key in statistics.actionTally) {
             statistics.actionTally[action.key]++;

@@ -1,22 +1,33 @@
+import GameEvent from "../../definitions/GameEvent";
+import InputResult from "../../definitions/InputResult";
 import Operation from "../../definitions/Operation";
 import { ShiftDirection } from "../../definitions/playfieldDefinitions";
-import cancelAutoShift from "./cancelAutoShift";
-import instantShift from "./instantShift";
 
-let invertDirection = Operation.Provide(({ settings, meta }) => {
-    let shouldInvertDirection = settings.dasInteruptionEnabled && meta.dasLeftCharged;
-    let provideInstantShift = Operation.Provide(({ settings }) => Operation.applyIf(settings.arr === 0, instantShift));
-    let setShiftDirectionLeft = Operation.Draft(draft => { draft.meta.direction = ShiftDirection.Left });
-    let operation = Operation.Sequence(setShiftDirectionLeft, provideInstantShift);
-    return Operation.applyIf(shouldInvertDirection, operation);
+let invertDirection = Operation.Provide(({ state }) => {
+    if (!state.settings.dasInteruptionEnabled || !state.meta.dasLeftCharged) {
+        return Operation.None;
+    }
+    let provideInstantShift = Operation.Provide(({ state }, { operations }) => {
+        return Operation.applyIf(state.settings.arr === 0, operations.instantShift)
+    })
+    let setShiftDirectionLeft = Operation.Draft(({ state }) => { state.meta.direction = ShiftDirection.Left });
+    return Operation.Sequence(setShiftDirectionLeft, provideInstantShift);
 })
 
-let conditionalCancelAutoShift = Operation.Provide(({ meta }) => {
-    return Operation.applyIf(meta.direction == ShiftDirection.Right, cancelAutoShift)
+let conditionalCancelAutoShift = Operation.Provide(({ state }, { operations }) => {
+    return Operation.applyIf(state.meta.direction == ShiftDirection.Right, operations.cancelAutoShift)
+})
+
+let draftChanges = Operation.Draft(({ state, events }) => { 
+    state.meta.dasRightCharged = false 
+    state.meta.activeRightShiftDistance = 0
+
+    let inputResult = InputResult.Shift(ShiftDirection.Right, state.meta.activeRightShiftDistance, true)
+    events.push(GameEvent.InputResult(inputResult))
 })
 
 export default Operation.SequenceStrict(
-    Operation.Draft(draft => { draft.meta.dasRightCharged = false }),
+    draftChanges,
     invertDirection, 
     conditionalCancelAutoShift
 )

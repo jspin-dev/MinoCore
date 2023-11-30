@@ -3,17 +3,22 @@ import { MovementType } from "../../definitions/inputDefinitions";
 import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions";
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import recordStep from "../statistics/recordStep";
-import drop from "./drop";
-import instantDrop from "./instantDrop";
 
-let autoOrInstantDrop = Operation.Provide(({ settings }) => {
-    let autoDrop = Operation.Request(SideEffectRequest.TimerInterval(TimerName.AutoDrop, settings.softDropInterval))
-    return settings.softDropInterval == 0 ? instantDrop(DropScoreType.Soft) : autoDrop;
+let autoOrInstantDrop = Operation.Provide(({ state }, { operations }) => {
+    let autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
+        sideEffectRequests.push(SideEffectRequest.TimerInterval(TimerName.AutoDrop, state.settings.softDropInterval))
+    })
+    return state.settings.softDropInterval == 0 ? operations.instantDrop(DropScoreType.Soft) : autoDrop;
 })
 
-export default Operation.SequenceStrict(
-    drop(1, DropScoreType.Soft), 
+let draftChanges = Operation.Draft(({ state }) => { 
+    state.meta.softDropActive = true
+    state.meta.activeRightShiftDistance = 0 
+})
+
+export default Operation.ProvideStrict((_, { operations }) => Operation.Sequence(
+    operations.drop(1, DropScoreType.Soft), 
     recordStep(MovementType.Drop),
-    Operation.Draft(draft => { draft.meta.softDropActive = true }),
+    draftChanges,
     autoOrInstantDrop
-)
+))

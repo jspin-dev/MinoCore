@@ -1,7 +1,7 @@
 import Operation from "../../definitions/Operation";
 import { calculatePPS } from "../../util/stateUtils";
 
-export default Operation.Draft(draft => {
-    draft.statistics.time++;
-    draft.statistics.pps = calculatePPS(draft.statistics);
+export default Operation.Draft(({ state }) => {
+    state.statistics.time++;
+    state.statistics.pps = calculatePPS(state.statistics);
 })

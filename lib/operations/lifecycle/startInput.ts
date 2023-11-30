@@ -1,44 +1,40 @@
+import Dependencies from "../../definitions/Dependencies";
 import Operation from "../../definitions/Operation";
 import { Input } from "../../definitions/inputDefinitions";
 import { Rotation } from "../../definitions/rotationDefinitions";
-import hardDrop from "../drop/hardDrop";
-import startSoftDrop from "../drop/startSoftDrop";
-import hold from "../hold";
-import rotate from "../rotation/rotate";
-import startShiftLeftInput from "../shift/startShiftLeftInput";
-import startShiftRightInput from "../shift/startShiftRightInput";
+import { State } from "../../definitions/stateTypes";
 import recordInput from "../statistics/recordInput";
 
-export default (input: Input.ActiveGame) => Operation.Provide(({ meta }) => {
-    if (meta.activeInputs.includes(input)) {
+export default (input: Input.ActiveGame) => Operation.Provide(({ state }, depencencies) => {
+    if (state.meta.activeInputs.includes(input)) {
         return Operation.None;
     }
     return Operation.Sequence(
-        Operation.Draft(draft => { draft.meta.activeInputs.push(input) }),
-        performInputAction(input),
+        Operation.Draft(({ state }) => { state.meta.activeInputs.push(input) }),
+        performInputAction(input, depencencies),
         recordInput
     );
 })
 
-let performInputAction = (input: Input.ActiveGame): Operation.Any => {
+let performInputAction = <S extends State>(input: Input.ActiveGame, { operations }: Dependencies<S>): Operation<S> => {
     switch (input) {
         case Input.ActiveGame.ShiftLeft:
-            return startShiftLeftInput
+            return operations.startShiftLeftInput
         case Input.ActiveGame.ShiftRight:
-            return startShiftRightInput;
+            return operations.startShiftRightInput;
         case Input.ActiveGame.SD:
-            return startSoftDrop;
+            return operations.startSoftDrop;
         case Input.ActiveGame.HD:
-            return hardDrop;
+            return operations.hardDrop;
         case Input.ActiveGame.Hold:
-            return hold;
+            return operations.hold;
         case Input.ActiveGame.RotateCW:
-            return rotate(Rotation.CW);
+            return operations.rotate(Rotation.CW);
         case Input.ActiveGame.RotateCCW:
-            return rotate(Rotation.CCW);
+            return operations.rotate(Rotation.CCW);
         case Input.ActiveGame.Rotate180:
-            return rotate(Rotation.Degrees180);
+            return operations.rotate(Rotation.Degrees180);
         default:
-            return Operation.None
+            return Operation.None;
     }
 }

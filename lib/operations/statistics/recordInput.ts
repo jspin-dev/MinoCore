@@ -1,7 +1,8 @@
 import Operation from "../../definitions/Operation";
 import { calculateKPP } from "../../util/stateUtils";
 
-export default Operation.Draft(draft => {
-    draft.statistics.keysPressed++;
-    draft.statistics.kpp = calculateKPP(draft.statistics);
+export default Operation.Draft(({ state }) => {
+    state.statistics.keysPressed++;
+    state.statistics.kpp = calculateKPP(state.statistics);
 })
+

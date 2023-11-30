@@ -1,8 +1,8 @@
-import Operation from "../../definitions/Operation"
+import Operation from "../../definitions/Operation";
 
-export default (numbers: number[]): Operation.Any => {
+export default (numbers: number[]) => {
     if (numbers.some(i => i < 0 || i >= 1)) {
         throw "All random numbers must be between 0 (inclusively) and 1 (exclusively)"
     }
-    return Operation.Draft(draft => { draft.preview.randomNumbers.push(...numbers) })
+    return Operation.Draft(({ state }) => { state.preview.randomNumbers.push(...numbers) })
 }

@@ -1,8 +1,10 @@
 import Operation from "../../definitions/Operation"
-import clearGhost from "./clearGhost"
-import refreshGhost from "./refreshGhost"
 
-export default (enabled: boolean) => Operation.Sequence(
-    Operation.Draft(draft => { draft.settings.ghostEnabled = enabled }),
-    enabled ? refreshGhost : clearGhost
-)
+let exportedOperation = (enabled: boolean) => {
+    return Operation.Provide((_, { operations }) => Operation.Sequence(
+        Operation.Draft(({ state }) => { state.settings.ghostEnabled = enabled }),
+        enabled ? operations.refreshGhost : operations.clearGhost
+    ))
+}
+
+export default exportedOperation;

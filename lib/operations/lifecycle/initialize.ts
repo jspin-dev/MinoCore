@@ -3,11 +3,8 @@ import Operation from "../../definitions/Operation"
 import { GameStatus, SideEffectRequest } from "../../definitions/metaDefinitions"
 import { Settings } from "../../definitions/settingsDefinitions"
 import { createEmptyGrid } from "../../util/sharedUtils"
-import { Hold, Meta, Playfield, Preview, State, Statistics } from "../../definitions/stateTypes"
+import { Hold, Meta, Playfield, Preview, Statistics } from "../../definitions/stateTypes"
 import { LockdownStatus } from "../../definitions/lockdownDefinitions"
-import validatePreviewGrids from "../next/validatePreviewGrids"
-import syncPreviewGrid from "../next/syncPreviewGrid"
-import updateStatus from "./updateStatus"
 
 let initialStats: Statistics = {
     level: 1,
@@ -52,9 +49,11 @@ let initialPlayfield = (settings: Settings): Playfield => {
 }
 
 let initialMeta: Meta = {
-    status: GameStatus.Initialized,
-    previousStatus: null,
+    status: GameStatus.Ready,
     activeInputs: [],
+    activeLeftShiftDistance: 0,
+    activeRightShiftDistance: 0,
+    activeDropDistance: 0,
     softDropActive: false,
     dasRightCharged: false,
     dasLeftCharged: false,
@@ -69,28 +68,28 @@ let initialHold: Hold = {
 
 let initialPreview: Preview = {
     grid: [],
-    dequeuedPiece: null,
     queue: [],
     randomNumbers: []
 }
 
-let initializeState = (settings: Settings) =>  Operation.Draft(draft => {
-    draft.playfield = initialPlayfield(settings) as WritableDraft<Playfield>
-    draft.meta = initialMeta as WritableDraft<Meta>
-    draft.settings = settings as WritableDraft<Settings>
-    draft.hold = initialHold as WritableDraft<Hold>
-    draft.preview = initialPreview as WritableDraft<Preview>
-    draft.statistics = initialStats
+let initializeState = (settings: Settings) =>  Operation.Draft(({ state }) => {
+    Object.assign(state, {
+        playfield: initialPlayfield(settings) as WritableDraft<Playfield>,
+        meta: initialMeta as WritableDraft<Meta>,
+        settings: settings as WritableDraft<Settings>,
+        hold: initialHold as WritableDraft<Hold>,
+        preview: initialPreview as WritableDraft<Preview>,
+        statistics: initialStats
+    })
 })
 
-let requestRns = Operation.Provide(({ settings }) => {
-    return Operation.Request(SideEffectRequest.Rng(settings.rotationSystem.shapes.length - 1))
+let requestRns = Operation.Draft(({ state, sideEffectRequests }) => {
+    sideEffectRequests.push(SideEffectRequest.Rng(state.settings.rotationSystem.shapes.length - 1))
 })
 
-export default (settings: Settings) => Operation.Sequence(
-    initializeState(settings),
-    validatePreviewGrids,
+export default Operation.Provide((_, { defaultSettings, operations }) => Operation.Sequence(
+    initializeState(defaultSettings),
+    operations.validatePreviewGrids,
     requestRns,
-    syncPreviewGrid,
-    updateStatus(GameStatus.Ready)
-)
+    operations.syncPreviewGrid
+))

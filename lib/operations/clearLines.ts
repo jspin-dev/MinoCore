@@ -1,7 +1,9 @@
+import Dependencies from "../definitions/Dependencies";
 import Operation from "../definitions/Operation";
 import { State } from "../definitions/stateTypes";
 
-export default (linesToClear: number[]) => Operation.Provide(({ playfield }: State) => {
+export default (linesToClear: number[]) => Operation.Provide(({ state }) => {
+    let playfield = state.playfield;
     if (linesToClear.length == 0) {
         return Operation.None;
     } 
@@ -14,12 +16,12 @@ export default (linesToClear: number[]) => Operation.Provide(({ playfield }: Sta
 
     let shiftStart = lowestRowToClear - linesToShift.length + 1;
 
-    return Operation.Draft(draft => {
+    return Operation.Draft(({ state }) => {
         for (let i = shiftStart; i <= lowestRowToClear; i++) {
-            draft.playfield.grid[i] = [...linesToShift[i-shiftStart]];
+            state.playfield.grid[i] = [...linesToShift[i-shiftStart]];
         }
         for (let i = shiftStart - linesToClear.length; i < shiftStart; i++) {
-            draft.playfield.grid[i] = new Array(draft.settings.columns).fill(0);
+            state.playfield.grid[i] = new Array(state.settings.columns).fill(0);
         }
     })
 })

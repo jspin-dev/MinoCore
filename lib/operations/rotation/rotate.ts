@@ -1,42 +1,38 @@
 import { Settings } from "../../definitions/settingsDefinitions";
 import { Offset, Rotation } from "../../definitions/rotationDefinitions";
-
 import { gridToList } from "../../util/sharedUtils";
 import { willCollide, instantAutoShiftActive, instantSoftDropActive } from "../../util/stateUtils";
 import { MovementType } from "../../definitions/inputDefinitions";
 import { KickInfo, Playfield } from "../../definitions/stateTypes";
-import Operation from "../../definitions/Operation";
-import instantShift from "../shift/instantShift";
-import startSoftDrop from "../drop/startSoftDrop";
-import refreshGhost from "../ghost/refreshGhost";
-import validateRotationSettings from "./validateRotationSettings";
 import recordRotation from "../statistics/recordRotation";
-import updateLockStatusFor from "../lockdown/updateLockStatus";
+import Operation from "../../definitions/Operation";
 
-export default (rotation: Rotation) => Operation.SequenceStrict(
-    validateRotationSettings,
-    rotate(rotation),
-    continueIntantSoftDropIfActive,
-    continueInstantShiftIfActive,
-    recordRotation(rotation)
-)
+export default (rotation: Rotation) => {
+    return Operation.Provide((_, { operations }) => Operation.SequenceStrict(
+        operations.validateRotationSettings,
+        rotate(rotation),
+        continueIntantSoftDropIfActive,
+        continueInstantShiftIfActive,
+        recordRotation(rotation)
+    ))
+}
 
-let rotate = (rotation: Rotation) => Operation.Provide(({ playfield, settings }) => {
-    let kickInfo = getKickInfo(rotation, playfield, settings);
+let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations }) => {
+    let kickInfo = getKickInfo(rotation, state.playfield, state.settings);
     if (kickInfo == null) {
         return Operation.None;
     } else {
         return Operation.Sequence(
             applyKickInfo(kickInfo),
-            Operation.applyIf(kickInfo.unadjustedCoordinates != null, refreshGhost),
-            updateLockStatusFor(MovementType.Rotate)
+            Operation.applyIf(kickInfo.unadjustedCoordinates != null, operations.refreshGhost),
+            operations.updateLockStatus(MovementType.Rotate)
         )
     }
 })
 
-let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo): Operation.Any => {
-    return Operation.DraftStrict(draft => {
-        let playfield = draft.playfield;
+let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo) => {
+    return Operation.DraftStrict(({ state }) => {
+        let playfield = state.playfield;
         let { coordinates, location, id } = playfield.activePiece;
     
         if (newOrientation != undefined) {
@@ -58,12 +54,12 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
     })
 }
 
-let continueIntantSoftDropIfActive = Operation.Provide(({ meta, settings }) => {
-    return Operation.applyIf(instantSoftDropActive(meta, settings), startSoftDrop)
+let continueIntantSoftDropIfActive = Operation.Provide(({ state }, { operations }) => {
+    return Operation.applyIf(instantSoftDropActive(state.meta, state.settings), operations.startSoftDrop)
 })
 
-let continueInstantShiftIfActive = Operation.Provide(({ meta, settings }) => {
-    return Operation.applyIf(instantAutoShiftActive(meta, settings), instantShift);
+let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
+    return Operation.applyIf(instantAutoShiftActive(state.meta, state.settings), operations.instantShift);
 })
 
 let getKickInfo = (n: Rotation, playfield: Playfield, settings: Settings): KickInfo => {

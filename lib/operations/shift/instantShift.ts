@@ -1,8 +1,9 @@
 import Operation from "../../definitions/Operation";
 import { willCollide } from "../../util/stateUtils";
-import shift from "./shift";
 
-export default Operation.ProvideStrict(({ meta, playfield, settings }) => {
+export default Operation.ProvideStrict(({ state }, { operations }) => {
+    let { meta, playfield, settings } = state;
+    
     let activePieceCoordinates = playfield.activePiece.coordinates;
     let direction = meta.direction;
     if (willCollide(activePieceCoordinates, direction, 0, playfield, settings)) {
@@ -16,5 +17,5 @@ export default Operation.ProvideStrict(({ meta, playfield, settings }) => {
     }
 
     let shiftMagnitude = Math.abs(dx - direction); // Shift function expects a positive integer
-    return shift(shiftMagnitude);
+    return operations.shift(shiftMagnitude);
 }) 

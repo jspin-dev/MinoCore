@@ -1,14 +1,9 @@
 import Operation from "../../definitions/Operation"
 import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions"
 
-export default (softDropInterval: number) => Operation.Sequence(
-    Operation.Draft(draft => { draft.settings.softDropInterval = softDropInterval }),
-    conditionallyRequestTimerChange
-)
-
-let conditionallyRequestTimerChange = Operation.Provide(({ meta, settings }) => {
-    return Operation.applyIf(
-        meta.softDropActive,
-        Operation.Request(SideEffectRequest.TimerInterval(TimerName.AutoDrop, settings.softDropInterval))
-    )
+export default (softDropInterval: number) => Operation.Draft(({ state, sideEffectRequests }) => { 
+    state.settings.softDropInterval = softDropInterval
+    if (state.meta.softDropActive) {
+        sideEffectRequests.push(SideEffectRequest.TimerInterval(TimerName.AutoDrop, softDropInterval))
+    }
 })

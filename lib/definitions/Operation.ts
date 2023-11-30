@@ -1,20 +1,22 @@
 
-import { SideEffectRequest, TimerName, TimerOperation } from "./metaDefinitions";
-import { Dependencies, State } from "./stateTypes";
+import { OperationResult } from "../exec";
+import Dependencies from "./Dependencies";
+import { State } from "./stateTypes";
 import type { Draft } from "immer";
+
+type Operation<S extends State> = Operation.Drafter<S> | Operation.Provider<S> | Operation.Sequencer<S>
 
 namespace Operation {
 
-    export type Any = Drafter | Provider | Sequencer | Requester
-    export type DrafterFunc = (draft: Draft<State>) => void
-    export type ProviderFunc = (state: State, dependencies: Dependencies) => Operation.Any
+
+    export type DrafterFunc<S extends State> = (draft: Draft<OperationResult<S>>) => void
+    export type ProviderFunc<S extends State> = (result: OperationResult<S>, dependencies: Dependencies<S>) => Operation<S>
 
     export enum Classifier {
 
         Provider,
         Drafter,
-        Sequencer,
-        Requester
+        Sequencer
 
     }
 
@@ -28,9 +30,9 @@ namespace Operation {
      * Logic here should be limited to only what is necessary to make the needed state changes. However, care should still
      * be taken with regards to performance (see https://immerjs.github.io/immer/performance)
      */
-    export type Drafter = { 
+    export type Drafter<S extends State> = { 
         classifier: Classifier.Drafter, 
-        draft: DrafterFunc,
+        draft: DrafterFunc<S>,
         args?: OpArgs 
     }
 
@@ -38,18 +40,18 @@ namespace Operation {
      * Providers form more complex logic by chaining together Drafters and other Providers.
      * They have access to a read-only copy of the state and return some other operation. To modify the state, use a Drafter instead 
      */
-    export type Provider = { 
+    export type Provider<S extends State> = { 
         classifier: Classifier.Provider,
-        provide: ProviderFunc, 
+        provide: ProviderFunc<S>, 
         args?: OpArgs 
     }
 
     /**
      * A sequencer is an operation which is composed of a list of other operations which should be performed sequentally 
      */
-    export type Sequencer = {
+    export type Sequencer<S extends State> = {
         classifier: Classifier.Sequencer,
-        operations: Operation.Any[]
+        operations: Operation<S>[]
     } 
 
     /**
@@ -58,57 +60,39 @@ namespace Operation {
      * Important: All operations are purely functional, so the executor of the root operation is responsible for 
      * consuming the aggregated list of side effects and executing them in a timely fashion
      */
-    export type Requester = {
-        classifier: Classifier.Requester,
-        request: SideEffectRequest.Any
-    }
 
 }
 
 // Convenience functions for common operation use cases
 namespace Operation {
 
-    export let Draft = (draft: DrafterFunc, args?: OpArgs): Drafter => {
+    export function Draft<S extends State>(draft: DrafterFunc<S>, args?: OpArgs): Drafter<S> {
         return { classifier: Classifier.Drafter, draft, args }
     }
 
-    export let DraftStrict = (draft: DrafterFunc): Drafter => {
+    export function DraftStrict<S extends State>(draft: DrafterFunc<S>): Drafter<S> {
         return { classifier: Classifier.Drafter, draft, args: { strict: true } }
     }
 
-    export let Provide = (provide: ProviderFunc, args?: OpArgs): Provider => {
+    export function Provide<S extends State>(provide: ProviderFunc<S>, args?: OpArgs): Provider<S> {
         return { classifier: Classifier.Provider, provide, args }
     }
 
-    export let ProvideStrict = (provide: ProviderFunc): Provider => {
+    export function ProvideStrict<S extends State>(provide: ProviderFunc<S>): Provider<S> {
         return { classifier: Classifier.Provider, provide, args: { strict: true } }
     }
 
-    export let Sequence = (...operations: (Operation.Any)[]): Sequencer => {
+    export function Sequence<S extends State>(...operations: Operation<S>[]): Sequencer<S> {
         return { classifier: Classifier.Sequencer, operations }
     }
 
-    export let SequenceStrict = (...operations: Operation.Any[]): Provider => {
+    export function SequenceStrict<S extends State>(...operations: Operation<S>[]): Provider<S> {
         return Provide(() => Sequence(...operations), { strict: true })
-    }
-
-    export let Request = (request: SideEffectRequest.Any): Requester => {
-        return {
-            classifier: Classifier.Requester,
-            request
-        }
-    }
-
-    export let RequestTimerOp = (timerName: TimerName, operation: TimerOperation): Requester => {
-        return {
-            classifier: Classifier.Requester,
-            request: SideEffectRequest.TimerOperation(timerName, operation)
-        }
     }
 
     export let None = Sequence()
 
-    export function applyIf(condition: boolean, operation: Operation.Any): Operation.Any {
+    export function applyIf<S extends State>(condition: boolean, operation: Operation<S>): Operation<S> {
         return condition ? operation : Operation.None;
     }
 

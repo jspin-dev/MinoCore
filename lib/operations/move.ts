@@ -1,18 +1,24 @@
 import { willCollide } from "../util/stateUtils";
 import Operation from "../definitions/Operation";
 
-export default (dx: number, dy: number) => Operation.Provide(({ playfield, settings }) => {
-    let collision = willCollide(playfield.activePiece.coordinates, dx, dy, playfield, settings);
-    let shouldMovePiece = (dx !== 0 || dy !== 0) && !collision;
-    return Operation.applyIf(shouldMovePiece, move(dx, dy));
-}, {
-    description: "Checking for collision and moving only if allowed",
-    strict: true
-})
+/**
+ * Moves the active piece by the specified x/y offset if the new coordinates are unoccupied and within the playfield
+ */
+export default (dx: number, dy: number) => {
+    return Operation.Provide(({ state }) => {
+        if (dx == 0 && dy == 0) {
+            return Operation.None;
+        }
+        let collision = willCollide(state.playfield.activePiece.coordinates, dx, dy, state.playfield, state.settings);
+        return Operation.applyIf(!collision, move(dx, dy));
+    }, {
+        description: "Checking for collision and moving only if allowed",
+        strict: true
+    })
+}
 
-let move = (dx: number, dy: number) => Operation.Draft(draft => {
-    let { activePiece, grid } = draft.playfield;
-
+let move = (dx: number, dy: number) => Operation.Draft(({ state }) => {
+    let { activePiece, grid } = state.playfield;
     activePiece.coordinates.forEach(c => grid[c.y][c.x] = 0);
     activePiece.location.x += dx;
     activePiece.location.y += dy;
@@ -21,6 +27,14 @@ let move = (dx: number, dy: number) => Operation.Draft(draft => {
     });
     activePiece.coordinates.forEach(c => grid[c.y][c.x] = activePiece.id);
     activePiece.activeRotation = false;
+
+    if (dx > 0) {
+        state.meta.activeRightShiftDistance += dx;
+    } else if (dx < 0) {
+        state.meta.activeLeftShiftDistance += dx;
+    } else if (dy > 0) {
+        state.meta.activeDropDistance += dy;
+    }
 }, {
     description: "Moving piece",
     strict: true

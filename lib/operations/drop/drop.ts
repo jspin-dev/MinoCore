@@ -2,9 +2,6 @@ import Operation from "../../definitions/Operation";
 import { MovementType } from "../../definitions/inputDefinitions";
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import { instantAutoShiftActive } from "../../util/stateUtils";
-import updateLockStatusFor from "../lockdown/updateLockStatus";
-import move from "../move";
-import instantShift from "../shift/instantShift";
 import recordDrop from "../statistics/recordDrop";
 
 /**
@@ -13,13 +10,19 @@ import recordDrop from "../statistics/recordDrop";
  * effect of the ghost being partially "behind" the active piece
  */
 
-let continueInstantShiftIfActive = Operation.Provide(({ meta, settings }) => {
-    return Operation.applyIf(instantAutoShiftActive(meta, settings), instantShift);
+let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
+    return Operation.applyIf(instantAutoShiftActive(state.meta, state.settings), operations.instantShift);
 })
 
-export default (dy: number, dropScoreType: DropScoreType) => Operation.SequenceStrict(
-    move(0, dy),
-    updateLockStatusFor(MovementType.Drop),
-    recordDrop(dropScoreType, dy),
-    continueInstantShiftIfActive
-)
+let exportedOperation = (dy: number, dropScoreType: DropScoreType) => {
+    return Operation.ProvideStrict((_, { operations }) => {
+        return Operation.Sequence(
+            operations.move(0, dy),
+            operations.updateLockStatus(MovementType.Drop),
+            recordDrop(dropScoreType, dy),
+            continueInstantShiftIfActive
+        )
+    })
+}
+
+export default exportedOperation;

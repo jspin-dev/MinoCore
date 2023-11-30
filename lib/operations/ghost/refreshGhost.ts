@@ -1,14 +1,13 @@
 import Operation from "../../definitions/Operation";
 import { Coordinate } from "../../definitions/playfieldDefinitions";
 import { findHardDropDistance } from "../../util/stateUtils";
-import clearGhost from "./clearGhost";
 
-export default Operation.Provide(({ settings, playfield }) => {
+export default Operation.Provide(({ state }, { operations }) => {
+    let { settings, playfield } = state;
     if (!settings.ghostEnabled) {
-        return playfield.activePiece.ghostCoordinates.length > 0 ? clearGhost : Operation.None
+        return playfield.activePiece.ghostCoordinates.length > 0 ? operations.clearGhost : Operation.None
     }
     let dy = findHardDropDistance(playfield, settings);
-
     let activePieceCoordinates = playfield.activePiece.coordinates;
     let ghostCoordinates = activePieceCoordinates
         .map(c => { return { x: c.x, y: c.y + dy } })
@@ -20,8 +19,8 @@ export default Operation.Provide(({ settings, playfield }) => {
     strict: true
 })
 
-let setGhost = (coordinates: Coordinate[]) => Operation.DraftStrict(draft => {
-    let { activePiece, grid } = draft.playfield;
+let setGhost = (coordinates: Coordinate[]) => Operation.DraftStrict(({ state }) => {
+    let { activePiece, grid } = state.playfield;
     activePiece.ghostCoordinates.forEach(c => {
         if (grid[c.y][c.x] < 0) {
             grid[c.y][c.x] = 0;
@@ -32,7 +31,6 @@ let setGhost = (coordinates: Coordinate[]) => Operation.DraftStrict(draft => {
      * Ghost coordinates will only be represented on the grid if there is no
      * active piece coordinate already in that cell.
      */
-    console.log(coordinates)
     coordinates.forEach(c => {
         if (grid[c.y][c.x] <= 0) {
             grid[c.y][c.x] = -activePiece.id

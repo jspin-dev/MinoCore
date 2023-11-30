@@ -5,22 +5,21 @@ import { SideEffectRequest, TimerName, TimerOperation } from "../../definitions/
 import { Settings } from "../../definitions/settingsDefinitions";
 import { Playfield } from "../../definitions/stateTypes";
 import { onFloor } from "../../util/stateUtils";
-import lock from "./lock";
 
-export default (movementType: MovementType) => Operation.SequenceStrict(
-    resetOnMoveProvider(movementType),
-    onFloorProvider,
-    Operation.applyIf(
-        movementType == MovementType.Shift || movementType == MovementType.Rotate, 
-        decrementMovesRemainingProvider
-    ),
-    setLargestY
-)
+let exportedOperation = (movementType: MovementType) => {
+    return Operation.SequenceStrict(
+        resetOnMoveProvider(movementType),
+        onFloorProvider,
+        Operation.applyIf(
+            movementType == MovementType.Shift || movementType == MovementType.Rotate, 
+            decrementMovesRemaining
+        ),
+        setLargestY
+    )
+}
 
-let resetLockdownStatus = Operation.ProvideStrict(({ settings }) => {
-    return Operation.Draft(draft => { 
-        draft.playfield.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(settings)) 
-    })
+let resetLockdownStatus = Operation.Draft(({ state }) => { 
+    state.playfield.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(state.settings)) 
 })
 
 let getMoveLimit = (settings: Settings): number => {
@@ -33,16 +32,14 @@ let getMoveLimit = (settings: Settings): number => {
     }
 }
 
-let decrementMovesRemainingProvider = Operation.Provide(({ playfield }) => {
-    let lockdownStatus = playfield.lockdownInfo.status;
+let decrementMovesRemaining = Operation.Draft(({ state }) => {
+    let lockdownStatus = state.playfield.lockdownInfo.status;
     if (lockdownStatus.classifier == LockdownStatus.Classifier.TimerActive) {
         let status = lockdownStatus as LockdownStatus.TimerActiveType;
         if (status.movesRemaining) {
-            let newStatus = LockdownStatus.TimerActive(status.movesRemaining - 1);
-            return Operation.Draft(draft => { draft.playfield.lockdownInfo.status = newStatus })
+            state.playfield.lockdownInfo.status = LockdownStatus.TimerActive(status.movesRemaining - 1);
         }
     }
-    return Operation.None;
 })
 
 let shouldResetTimerOnMove = (playfield: Playfield, settings: Settings): boolean => {
@@ -71,40 +68,45 @@ let shouldResetTimerAndStatusOnDrop = (playfield: Playfield): boolean => {
     return false;
 }
 
-let resetTimer = Operation.Request(SideEffectRequest.TimerOperation(TimerName.DropLock, TimerOperation.Start))
+let resetTimer = Operation.Draft(({ sideEffectRequests }) => {
+    sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.DropLock, TimerOperation.Start))
+})
 
-let onFloorProvider = Operation.Provide((state) => {
+let onFloorProvider = Operation.Provide(({ state }, { operations }) => {
     if (onFloor(state)) {
         let lockdownStatus = state.playfield.lockdownInfo.status;
         switch (lockdownStatus.classifier) {
             case LockdownStatus.Classifier.NoLockdown:
                 return Operation.Sequence(resetLockdownStatus, resetTimer);
             case LockdownStatus.Classifier.Triggered:
-                return lock;
+                return operations.lock;
         }
     }
     return Operation.None;
 })
 
-let resetOnMoveProvider = (movementType: MovementType) => Operation.Provide(({ playfield, settings }) => {
+let resetOnMoveProvider = (movementType: MovementType) => Operation.Provide(({ state }) => {
     switch (movementType) {
         case MovementType.Shift:
         case MovementType.Rotate:
-            if (shouldResetTimerOnMove(playfield, settings)) {
+            if (shouldResetTimerOnMove(state.playfield, state.settings)) {
                 return resetTimer;
             }
             break;
         case MovementType.Drop:
-            if (shouldResetTimerAndStatusOnDrop(playfield)) {
+            if (shouldResetTimerAndStatusOnDrop(state.playfield)) {
                 return Operation.Sequence(resetTimer, resetLockdownStatus);
             }
     }
     return Operation.None;
 })
 
-let setLargestY = Operation.Provide(({ playfield }) => {
-    let { activePiece, lockdownInfo } = playfield;
+let setLargestY = Operation.Draft(({ state }) => { 
+    let { activePiece, lockdownInfo } = state.playfield;
     let y = activePiece.location.y;
-    let updateLargestY = Operation.Draft(draft => { draft.playfield.lockdownInfo.largestY = y })
-    return Operation.applyIf(y > lockdownInfo.largestY, updateLargestY)
+    if (y > lockdownInfo.largestY) {
+        state.playfield.lockdownInfo.largestY = y;
+    }
 })
+
+export default exportedOperation;

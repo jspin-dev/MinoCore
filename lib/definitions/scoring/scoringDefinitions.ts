@@ -24,7 +24,7 @@ export type LockScoreAction = {
 export enum DropScoreType {
     Auto,
     Soft,
-    Hard,
+    Hard
 }
 
 export type ScoreCalculationInfo = {

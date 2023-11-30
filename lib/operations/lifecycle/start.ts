@@ -1,11 +1,11 @@
 import Operation from "../../definitions/Operation";
-import { GameStatus, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
-import next from "../next/next";
-import updateStatus from "./updateStatus";
+import { GameStatus, SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
 
-export default Operation.Sequence(
-    next,
-    updateStatus(GameStatus.Active),
-    Operation.RequestTimerOp(TimerName.Clock, TimerOperation.Start),
-    Operation.RequestTimerOp(TimerName.AutoDrop, TimerOperation.Start)
-)
+export default Operation.Provide((_, { operations }) => Operation.Sequence(
+    operations.next,
+    Operation.Draft(({ state, sideEffectRequests }) => { 
+        state.meta.status = GameStatus.Active;
+        sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.Clock, TimerOperation.Start))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.AutoDrop, TimerOperation.Start))
+    }),
+))

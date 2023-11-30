@@ -1,7 +1,7 @@
 import Operation from "../../definitions/Operation";
 
-export default Operation.Draft(draft => {
-    let { activePiece, grid } = draft.playfield;
+export default Operation.Draft(({ state }) => {
+    let { activePiece, grid } = state.playfield;
     activePiece.ghostCoordinates.forEach(c => {
         if (grid[c.y][c.x] < 0) {
             grid[c.y][c.x] = 0;

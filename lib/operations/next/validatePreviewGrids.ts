@@ -2,19 +2,22 @@ import { cropGrid, createEmptyGrid, } from "../../util/sharedUtils";
 import Operation from "../../definitions/Operation";
 import { Grid } from "../../definitions/shared/Grid";
 import { Orientation } from "../../definitions/rotationDefinitions";
-import validateRotationSettings from "../rotation/validateRotationSettings";
 
-let createPreviewGridsProvider = Operation.Provide(({ settings }) => {
-    if (settings.rotationSystem.previewGrids != null) {
+export default Operation.Provide((_, { operations }) => Operation.Sequence(
+    operations.validateRotationSettings, 
+    createPreviewGridsProvider
+))
+
+let createPreviewGridsProvider = Operation.Provide(({ state }) => {
+    let rotationSystem = state.settings.rotationSystem;
+    if (rotationSystem.previewGrids != null) {
         return Operation.None;
     }
-    let shapes = settings.rotationSystem.rotationGrids.map(info => {
+    let shapes = rotationSystem.rotationGrids.map(info => {
         return [...info[Orientation.North].map(it => [...it])] // copying each grid
     });
     let grids = createPreviewGridSettings(shapes, 1);
-    return Operation.Draft(draft => {
-        draft.settings.rotationSystem.previewGrids = grids;
-    })
+    return Operation.Draft(({ state }) => { state.settings.rotationSystem.previewGrids = grids })
 })
 
 let createPreviewGridSettings = (grids: readonly Grid[], padding: number): Grid[] => {        
@@ -49,5 +52,3 @@ let createPreviewGridSettings = (grids: readonly Grid[], padding: number): Grid[
         ...grids
     ];
 } 
-
-export default Operation.Sequence(validateRotationSettings, createPreviewGridsProvider)

@@ -10,11 +10,7 @@
 
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
     import type { State } from '../../build/definitions/stateTypes';
-    
-    import setDAS from "../../build/operations/shift/setDAS";
-    import setARR from "../../build/operations/shift/setARR";
-    import setSDF from "../../build/operations/drop/setSDF";
-    import setGhostEnabled from "../../build/operations/ghost/setGhostEnabled";
+    import guidelineDependencies from "../../build/dependencies/guidelineDependencies";
 
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
@@ -22,12 +18,12 @@
     export let state: State;
     export let reportState: (state: State) => void;
 
-	let game = new MinoGame();
+	let game = new MinoGame(guidelineDependencies(gameSettings));
 	game.onStateChanged = reportState;
-	state = game.init(gameSettings);
+	state = game.init();
     reportState(state);
-    game.actions.prepareQueue();
-    game.actions.start();
+    game.run(ops => ops.prepareQueue);
+    game.run(ops => ops.start);
 
     let container: HTMLElement;
     let containerInFocus = true;
@@ -57,10 +53,10 @@
 	$: inactiveGame = state.meta.status != GameStatus.Active;
     $: isPaused = state.meta.status === GameStatus.Suspended;
     
-    $: game.run(setSDF(userPrefs.sdf));
-    $: game.run(setDAS(userPrefs.das));
-    $: game.run(setARR(userPrefs.arr));
-    $: game.run(setGhostEnabled(userPrefs.ghostEnabled));
+    $: game.run(ops => ops.setSDF(userPrefs.sdf));
+    $: game.run(ops => ops.setDAS(userPrefs.das));
+    $: game.run(ops => ops.setARR(userPrefs.arr));
+    $: game.run(ops => ops.setGhostEnabled(userPrefs.ghostEnabled));
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

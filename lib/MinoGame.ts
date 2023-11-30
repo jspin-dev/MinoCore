@@ -1,79 +1,52 @@
 import { Input } from "./definitions/inputDefinitions";
-
-import { Randomization, Settings } from "./definitions/settingsDefinitions";
-
-import { 
-    TimerName, 
-    GameStatus,
-    SideEffectRequest
-} from "./definitions/metaDefinitions";
-
+import { TimerName, SideEffectRequest } from "./definitions/metaDefinitions";
 import BasePausableTimer from "./util/async/BasePausableTimer";
 import PausableInterval from "./util/async/PausableInterval";
 import PausableTimeout from "./util/async/PausableTimeout";
 import { execute } from "./exec";
 import { DropScoreType } from "./definitions/scoring/scoringDefinitions";
-import { Dependencies, State } from "./definitions/stateTypes";
+import { State } from "./definitions/stateTypes";
 import Operation from "./definitions/Operation";
-import { PresetRandomizers } from "./dependencies/randomizers";
-import startAutoShift from "./operations/shift/startAutoShift";
-import drop from "./operations/drop/drop";
-import shift from "./operations/shift/shift";
-import initialize from "./operations/lifecycle/initialize";
-import start from "./operations/lifecycle/start";
-import startActiveInput from "./operations/lifecycle/startInput";
-import endActiveInput from "./operations/lifecycle/endInput";
-import prepareQueue from "./operations/next/prepareQueue";
-import addRns from "./operations/next/addRns";
 import recordTick from "./operations/statistics/recordTick";
-import hardDrop from "./operations/drop/hardDrop";
-import updateStatus from "./operations/lifecycle/updateStatus";
-import triggerLockdown from "./operations/lockdown/triggerLockdown";
+import Dependencies from "./definitions/Dependencies";
+import { Settings } from "./definitions/settingsDefinitions";
 
 export default class MinoGame {
 
     timers: Map<TimerName, BasePausableTimer>
     state: State;
-    isPaused: boolean;
-    dependencies: Dependencies;
+    defaultSettings: Settings;
+    operations: Dependencies.Operations<State>;
     onStateChanged: (state: State) => void;
 
-    actions: { [key: string]: () => void } = {
-        tick: () => this.run(recordTick),
-        prepareQueue: () => this.run(prepareQueue),
-        lock: () => this.run(triggerLockdown),
-        start: () => this.run(start),
-        hardDrop: () => this.run(hardDrop),
-        startAutoShift: () => this.run(startAutoShift),
-        drop: () => this.run(drop(1, DropScoreType.Auto)),
-        shift: () => this.run(shift(1))
+    constructor({ defaultSettings, operations }: Dependencies<State>) {
+        this.defaultSettings = defaultSettings;
+        this.operations = operations;
     }
 
-    init(settings: Settings): State {
+    init(): State {
+        let runTick = () => this.run(() => recordTick);
+        let runLock = () => this.run(ops => ops.triggerLockdown);
+        let runAutoShift = () => this.run(ops => ops.startAutoShift);
+        let runDrop = () => this.run(ops => ops.drop(1, DropScoreType.Auto));
+        let runShift = () => this.run(ops => ops.shift(1));
         this.timers = new Map<TimerName, PausableTimeout>()
-            .set(TimerName.DropLock, new PausableTimeout(settings.lockdownConfig.delay, this.actions.lock))
-            .set(TimerName.DAS, new PausableTimeout(settings.das, this.actions.startAutoShift))
-            .set(TimerName.Clock, new PausableInterval(1000, this.actions.tick))
-            .set(TimerName.AutoDrop, new PausableInterval(settings.dropInterval, this.actions.drop))
-            .set(TimerName.AutoShift,  new PausableInterval(settings.arr, this.actions.shift));
-        this.dependencies = this.generateDependencies(settings);
-        this.run(initialize(settings));
+            .set(TimerName.Clock, new PausableInterval(1000, runTick))
+            .set(TimerName.DropLock, new PausableTimeout(this.defaultSettings.lockdownConfig.delay, runLock))
+            .set(TimerName.DAS, new PausableTimeout(this.defaultSettings.das, runAutoShift))
+            .set(TimerName.AutoDrop, new PausableInterval(this.defaultSettings.dropInterval, runDrop))
+            .set(TimerName.AutoShift, new PausableInterval(this.defaultSettings.arr, runShift));
+        this.run(ops => ops.initialize);
         return this.state;
     }
-    
-    generateDependencies(settings: Settings): Dependencies {
-        let queueRandomizer: Dependencies.QueueRandomizer
-        switch(settings.randomization) {
-            case Randomization.Classic:
-                queueRandomizer = PresetRandomizers.Classic.dependencies;
-            case Randomization.Bag:
-                queueRandomizer = PresetRandomizers.NBag.dependencies;
-        }
-        return { queueRandomizer }
-    }
 
-    run(operation: Operation.Any) {
-        let result = execute(this.state, this.dependencies, operation);
+    run(getOperation: (operations: Dependencies.Operations<State>) => Operation<State>) {
+        let dependencies = { defaultSettings: this.defaultSettings, operations: this.operations }
+        let operation = getOperation(this.operations);
+        let result = execute(this.state, State.initial, dependencies, operation);
+        if (result.events.length > 0) {
+            console.log(result.events);
+        }
         this.state = result.state;
         result.sideEffectRequests.forEach(request => this.executeSideEffect(request));
         if (this.onStateChanged) {
@@ -91,27 +64,23 @@ export default class MinoGame {
                 break;
             case SideEffectRequest.Classifier.Rng:
                 let rns = Array.from(Array(request.quantity)).map(() => Math.random());
-                this.run(addRns(rns));
+                this.run(ops => ops.addRns(rns));
         }
     }
 
-    gameIsActive(): boolean {
-        return !this.isPaused && this.state.meta.status == GameStatus.Active
-    }
-
-    startInput(anyInput: Input.Any) {
-        if (anyInput == null) { return }
-        switch (anyInput.classifier) {
+    startInput(input: Input.Any) {
+        if (!input) { return }
+        switch (input.classifier) {
             case Input.Classifier.ActiveGameInput:
-                this.run(startActiveInput(anyInput.input));
+                this.run(ops => ops.startInput(input.input));
                 break;
             case Input.Classifier.Lifecycle:
-                switch(anyInput.input) {
+                switch(input.input) {
                     case Input.Lifecycle.Restart:
                         this.restart();
                         break;
                     case Input.Lifecycle.Pause:
-                        this.togglePause();
+                        this.run(ops => ops.togglePause)
                 }
                 break;
             default:
@@ -120,29 +89,15 @@ export default class MinoGame {
     }
 
     endInput(input: Input.Any) {
-        if (input == null) { return }
-        if (input.classifier === Input.Classifier.ActiveGameInput && this.gameIsActive()) {
-            this.run(endActiveInput(input.input));
-        }
-    }
-
-    togglePause() {
-        switch (this.state.meta.status) {
-            case GameStatus.Active:
-                this.timers.forEach(timer => timer.pause());
-                this.run(updateStatus(GameStatus.Suspended));
-                break;
-            case GameStatus.Suspended:
-                this.timers.forEach(timer => timer.resume());
-                this.run(updateStatus(GameStatus.Active));
+        if (input && input.classifier === Input.Classifier.ActiveGameInput) {
+            this.run(ops => ops.endInput(input.input));
         }
     }
 
     restart() {
-        this.isPaused = false;
-        this.run(initialize(this.state.settings))
-        this.run(prepareQueue);
-        this.run(start);
+        this.run(ops => ops.initialize);
+        this.run(ops => ops.prepareQueue);
+        this.run(ops => ops.start);
     }
 
 }
