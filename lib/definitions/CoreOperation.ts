@@ -2,44 +2,52 @@ import CoreDependencies from "./CoreDependencies"
 import Operation from "./Operation"
 import { GameStatus } from "./metaDefinitions";
 import CoreState from "./CoreState";
-import { OperationResult } from "./OperationResult";
+import { CoreOperationResult as OperationResult } from "./CoreOperationResult";
+
+import { produce, type Draft } from "immer";
 
 namespace CoreOperation {
 
     export function Draft<S extends CoreState, R extends OperationResult<S>>(
-        draft: Operation.DrafterFunc<R>, 
-        args?: Operation.OpArgs
+        draft: (draft: Draft<R>) => void
     ): Operation.Drafter<R> {
-        return Operation.Draft(draft, args);
+        return Operation.Draft(draft);
     }
 
     export function Provide<S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
-        provide: Operation.ProviderFunc<S, D, R>, 
-        args?: Operation.OpArgs
-    ): Operation.Provider<S, D, R> {
-        return Operation.Provide(provide, args);
+        provide: (result: R, dependencies: D) => Operation<R, D>
+    ): Operation.Provider<R, D> {
+        return Operation.Provide(provide);
     }
 
     export function Sequence<S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
-        ...operations: Operation<S, D, R>[]
-    ): Operation.Sequencer<S, D, R> {
+        ...operations: Operation<R, D>[]
+    ): Operation.Provider<R, D> {
         return Operation.Sequence(...operations);
     }
 
     export let None = Sequence()
 
-    export function applyIf<S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
-        condition: boolean, 
-        operation: Operation<S, D, R>
-    ): Operation<S, D, R> {
-        return Operation.applyIf(condition, operation);
-    }
+}
 
-    export let requireActiveGame = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
-        operation: Operation<S, D, R>
-    ): Operation<S, D, R> => Operation.Provide(({ state }) => {
-        return state.meta?.status != GameStatus.Active ? Operation.None : operation;
-    })
+namespace CoreOperation {
+
+    export namespace Util {
+
+        export let applyIf = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
+            condition: boolean, 
+            operation: Operation<R, D>
+        ): Operation<R, D> => {
+            return condition ? operation : Operation.None();
+        }
+    
+        export let requireActiveGame = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
+            operation: Operation<R, D>
+        ): Operation<R, D> => Operation.Provide(({ state }) => {
+            return state.meta?.status != GameStatus.Active ? Operation.None() : operation;
+        })
+
+    }
 
 }
 

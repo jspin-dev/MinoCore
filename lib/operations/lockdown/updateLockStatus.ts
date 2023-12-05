@@ -6,11 +6,11 @@ import { Settings } from "../../definitions/settingsDefinitions";
 import { Playfield } from "../../definitions/stateTypes";
 import { onFloor } from "../../util/stateUtils";
 
-export default (movementType: MovementType) => Operation.requireActiveGame(
+export default (movementType: MovementType) => Operation.Util.requireActiveGame(
     Operation.Sequence(
         resetOnMoveProvider(movementType),
         onFloorProvider,
-        Operation.applyIf(
+        Operation.Util.applyIf(
             movementType == MovementType.Shift || movementType == MovementType.Rotate, 
             decrementMovesRemaining
         ),

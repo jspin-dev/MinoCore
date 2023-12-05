@@ -36,8 +36,6 @@ export namespace PresetRandomizers {
                 operations.removeRns(randomNumbers.length),
                 addRnsRequest
             )
-        }, {
-            description: "Inserting a random bag of n pieces"
         })
     
         let enqueueFull = Operation.Provide(({ state }, { operations }) => {
@@ -49,8 +47,6 @@ export namespace PresetRandomizers {
                 ...[...Array(bagCount)].map(() => insertBag),
                 operations.syncPreviewGrid
             );
-        }, { 
-            description: "Preparing n-bag randomization queue" 
         })
     
         export let operations = {
@@ -70,8 +66,6 @@ export namespace PresetRandomizers {
             let numberOfPieces = state.settings.rotationSystem.shapes.length;
             let randomPiece = Math.floor(randomNumber * numberOfPieces) + 1;
             return enqueue(randomPiece);
-        }, {
-            description: "Enqueing a random piece"
         })
     
         let enqueueFull = Operation.Provide(({ state }, { operations }) => {
@@ -86,8 +80,6 @@ export namespace PresetRandomizers {
                 enqueue(...queue),
                 operations.syncPreviewGrid
             );
-        }, {
-            description: "Preparing classic-randomization queue",
         })
     
         export let operations = {

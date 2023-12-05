@@ -4,29 +4,33 @@ import BasePausableTimer from "./util/async/BasePausableTimer";
 import PausableInterval from "./util/async/PausableInterval";
 import PausableTimeout from "./util/async/PausableTimeout";
 import { DropScoreType } from "./definitions/scoring/scoringDefinitions";
-import Operation from "./definitions/Operation";
+import GenericOperation from "./definitions/Operation";
 import { Settings } from "./definitions/settingsDefinitions";
 import { OverallState, executeStats as execute } from "./execStats";
 import { Statistics } from "./definitions/Statistics";
 import CoreDependencies from "./definitions/CoreDependencies";
 import CoreState from "./definitions/CoreState";
-import CoreOperations from "./definitions/CoreOperations";
-import { OperationResult } from "./definitions/OperationResult";
+import GenericCoreOperations from "./definitions/CoreOperations";
+import { CoreOperationResult as OperationResult } from "./definitions/CoreOperationResult";
+
+type AllOperations = GenericCoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>
+type Operation = GenericOperation<OperationResult<CoreState>, CoreDependencies>
+type State = OverallState<CoreState, Statistics>
 
 export default class MinoGame {
 
     timers: Map<TimerName, BasePausableTimer>
-    state: OverallState<CoreState, Statistics>;
+    state: State;
     defaultSettings: Settings;
-    operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>;
-    onStateChanged: (state: OverallState<CoreState, Statistics>) => void;
+    operations: AllOperations;
+    onStateChanged: (state: State) => void;
 
     constructor({ defaultSettings, operations }: CoreDependencies) {
         this.defaultSettings = defaultSettings;
         this.operations = operations;
     }
 
-    init(): OverallState<CoreState,Statistics> {
+    init(): State {
         let runTick = () => this.run(ops => ops.recordTick);
         let runLock = () => this.run(ops => ops.triggerLockdown);
         let runAutoShift = () => this.run(ops => ops.startAutoShift);
@@ -42,7 +46,7 @@ export default class MinoGame {
         return this.state;
     }
 
-    run(getOperation: (operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>) => Operation<CoreState, CoreDependencies, OperationResult<CoreState>>) {
+    run(getOperation: (operations: AllOperations) => Operation) {
         let dependencies = { defaultSettings: this.defaultSettings, operations: this.operations }
         let operation = getOperation(this.operations);
         let initialState = { core: CoreState.initial, statistics: Statistics.initial }

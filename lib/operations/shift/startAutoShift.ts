@@ -19,4 +19,4 @@ let conditionalShift = Operation.Provide (({ state }, { operations }) => {
     return state.settings.arr == 0 ? operations.shift(findInstantShiftDistance(state)) : requestStartAutoShiftTimer
 })
 
-export default Operation.requireActiveGame(Operation.Sequence(charge, conditionalShift));
+export default Operation.Util.requireActiveGame(Operation.Sequence(charge, conditionalShift));

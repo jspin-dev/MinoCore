@@ -74,7 +74,7 @@ let conditionalShift = Operation.Provide(({ state }, { operations }) => {
         return Operation.None;
     }
     if (settings.dasPreservationEnabled) {
-        return Operation.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
+        return Operation.Util.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
     } else {
         let unchargeDAS = Operation.Draft(({ state }) => {
             state.meta.dasRightCharged = false;
@@ -98,4 +98,3 @@ let setActivePiece = (coordinates: Coordinate[], pieceId: number, location: Coor
         events.push(GameEvent.Spawn(state.playfield.activePiece));
     })
 }
-

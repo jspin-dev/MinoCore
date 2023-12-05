@@ -7,17 +7,17 @@ let invertDirection = Operation.Provide(({ state }) => {
         return Operation.None;
     }
     let provideInstantShift = Operation.Provide(({ state }, { operations }) => {
-        return Operation.applyIf(state.settings.arr === 0, operations.shift(findInstantShiftDistance(state)))
+        return Operation.Util.applyIf(state.settings.arr === 0, operations.shift(findInstantShiftDistance(state)))
     })
     let setShiftDirectionRight = Operation.Draft(({ state }) => { state.meta.direction = ShiftDirection.Right });
     return Operation.Sequence(setShiftDirectionRight, provideInstantShift)
 })
 
 let conditionalCancelAutoShift = Operation.Provide(({ state }, { operations }) => {
-    return Operation.applyIf(state.meta.direction == ShiftDirection.Left, operations.cancelAutoShift)
+    return Operation.Util.applyIf(state.meta.direction == ShiftDirection.Left, operations.cancelAutoShift)
 })
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Sequence(
         Operation.Draft(({ state }) => { state.meta.dasLeftCharged = false }), 
         invertDirection, 

@@ -4,7 +4,7 @@ import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions"
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import { findInstantDropDistance } from "../../util/stateUtils";
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
         Operation.Draft(({ state }) => { state.meta.pendingMovement = PendingMovement.SoftDrop(0) }),
         operations.drop(1, DropScoreType.Soft), 

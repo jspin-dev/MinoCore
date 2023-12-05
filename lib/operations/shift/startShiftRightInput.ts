@@ -2,7 +2,7 @@ import Operation from "../../definitions/CoreOperation";
 import PendingMovement from "../../definitions/PendingMovement";
 import { ShiftDirection } from "../../definitions/playfieldDefinitions";
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(draftChanges, operations.startDAS))
 )
 

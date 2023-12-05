@@ -2,7 +2,7 @@ import Operation from "../../definitions/CoreOperation";
 import { Coordinate } from "../../definitions/playfieldDefinitions";
 import { findInstantDropDistance } from "../../util/stateUtils";
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Provide(({ state }, { operations }) => {
         let { settings, playfield } = state;
         if (!settings.ghostEnabled) {
@@ -15,8 +15,6 @@ export default Operation.requireActiveGame(
             .filter(c => !activePieceCoordinates.some(coord => coord.x === c.x && coord.y === c.y));
     
         return setGhost(ghostCoordinates);
-    }, {
-        description: "Refreshing ghost piece placement so that it is in sync with the active piece"
     })  
 )
 

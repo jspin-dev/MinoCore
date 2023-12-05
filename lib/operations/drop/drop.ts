@@ -3,7 +3,7 @@ import { MovementType } from "../../definitions/inputDefinitions";
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import { findInstantShiftDistance, shouldContinueInstantShift } from "../../util/stateUtils";
 
-export default (dy: number, dropScoreType: DropScoreType) => Operation.requireActiveGame(
+export default (dy: number, dropScoreType: DropScoreType) => Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
         operations.move(0, dy),
         operations.updateLockStatus(MovementType.Drop),
@@ -18,7 +18,5 @@ export default (dy: number, dropScoreType: DropScoreType) => Operation.requireAc
  */
 
 let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
-}, {
-    description: "continue instant shift"
+    return Operation.Util.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
 })

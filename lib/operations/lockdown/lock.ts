@@ -3,7 +3,7 @@ import Operation from "../../definitions/CoreOperation";
 import { GameOverCondition, GameStatus } from "../../definitions/metaDefinitions";
 import { Playfield } from "../../definitions/stateTypes";
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Provide(({ state }, { operations }) => {
         let linesToClear = getLinesToClear(state.playfield);
         return Operation.Sequence(

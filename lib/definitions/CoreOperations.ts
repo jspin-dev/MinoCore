@@ -1,71 +1,71 @@
-import CoreDependencies from "./CoreDependencies";
+import Dependencies from "./CoreDependencies";
 import CoreState from "./CoreState";
 import Operation from "./Operation";
-import { OperationResult } from "./OperationResult";
+import { CoreOperationResult as OperationResult } from "./CoreOperationResult";
 import { Input, MovementType } from "./inputDefinitions";
 import { Rotation } from "./rotationDefinitions";
 import { DropScoreType } from "./scoring/scoringDefinitions";
 
-type CoreOperations<S extends CoreState, D extends CoreDependencies, R extends OperationResult<CoreState>> = {
-    enqueueFull: Operation<S, D, R>,
-    enqueueNext: Operation<S, D, R>,
-    startDAS: Operation<S, D, R>,
-    startAutoShift: Operation<S, D, R>,
-    cancelAutoShift: Operation<S, D, R>,
-    hold: Operation<S, D, R>,
-    clearGhost: Operation<S, D, R>,
-    refreshGhost: Operation<S, D, R>,
-    hardDrop: Operation<S, D, R>,
-    lock: Operation<S, D, R>,
-    triggerLockdown: Operation<S, D, R>,
-    startSoftDrop: Operation<S, D, R>,
-    togglePause: Operation<S, D, R>,
-    start: Operation<S, D, R>,
-    initialize: Operation<S, D, R>,
-    validateRotationSettings: Operation<S, D, R>,
-    next: Operation<S, D, R>,
-    startShiftLeftInput: Operation<S, D, R>,
-    startShiftRightInput: Operation<S, D, R>,
-    endShiftLeftInput: Operation<S, D, R>,
-    endShiftRightInput: Operation<S, D, R>,
-    prepareQueue: Operation<S, D, R>,
-    syncPreviewGrid: Operation<S, D, R>,
-    validatePreviewGrids: Operation<S, D, R>,
-    recordTick: Operation<S, D, R>,
-    rotate: CoreOperations.Rotate<S, D, R>,
-    move: CoreOperations.Move<S, D, R>,
-    drop: CoreOperations.Drop<S, D, R>,
-    shift: CoreOperations.Shift<S, D, R>,
-    spawn: CoreOperations.Spawn<S, D, R>,
-    clearLines: CoreOperations.ClearLines<S, D, R>,
-    updateLockStatus: CoreOperations.UpdateLockStatus<S, D, R>,
-    setSDF: CoreOperations.SetSDF<S, D, R>,
-    setARR: CoreOperations.SetARR<S, D, R>,
-    setDAS: CoreOperations.SetDAS<S, D, R>,
-    setGhostEnabled: CoreOperations.SetGhostEnabled<S, D, R>,
-    startInput: CoreOperations.StartInput<S, D, R>,
-    endInput: CoreOperations.EndInput<S, D, R>,
-    addRns: CoreOperations.AddRns<S, D, R>,
-    removeRns: CoreOperations.RemoveRns<S, D, R>
+interface CoreOperations<S extends CoreState, D extends Dependencies, R extends OperationResult<CoreState>> {
+    enqueueFull: Operation<R, D>
+    enqueueNext: Operation<R, D>
+    startDAS: Operation<R, D>
+    startAutoShift: Operation<R, D>
+    cancelAutoShift: Operation<R, D>
+    hold: Operation<R, D>
+    clearGhost: Operation<R, D>
+    refreshGhost: Operation<R, D>
+    hardDrop: Operation<R, D>
+    lock: Operation<R, D>
+    triggerLockdown: Operation<R, D>
+    startSoftDrop: Operation<R, D>
+    togglePause: Operation<R, D>
+    start: Operation<R, D>
+    initialize: Operation<R, D>
+    validateRotationSettings: Operation<R, D>
+    next: Operation<R, D>
+    startShiftLeftInput: Operation<R, D>
+    startShiftRightInput: Operation<R, D>,
+    endShiftLeftInput: Operation<R, D>
+    endShiftRightInput: Operation<R, D>
+    prepareQueue: Operation<R, D>
+    syncPreviewGrid: Operation<R, D>
+    validatePreviewGrids: Operation<R, D>
+    recordTick: Operation<R, D>
+    rotate: CoreOperations.Rotate<R, D>
+    move: CoreOperations.Move<R, D>
+    drop: CoreOperations.Drop<R, D>
+    shift: CoreOperations.Shift<R, D>
+    spawn: CoreOperations.Spawn<R, D>
+    clearLines: CoreOperations.ClearLines<R, D>
+    updateLockStatus: CoreOperations.UpdateLockStatus<R, D>
+    setSDF: CoreOperations.SetSDF<R, D>
+    setARR: CoreOperations.SetARR<R, D>
+    setDAS: CoreOperations.SetDAS<R, D>
+    setGhostEnabled: CoreOperations.SetGhostEnabled<R, D>
+    startInput: CoreOperations.StartInput<R, D>
+    endInput: CoreOperations.EndInput<R, D>
+    addRns: CoreOperations.AddRns<R, D>
+    removeRns: CoreOperations.RemoveRns<R, D>
 }    
 
 namespace CoreOperations {
 
-    export type Rotate<S, D, R> = (rotation: Rotation) => Operation<S, D, R>
-    export type Move<S, D, R> = (dx: number, dy: number) => Operation<S, D, R>
-    export type Drop<S, D, R> = (dy: number, scoreType: DropScoreType) => Operation<S, D, R>
-    export type Shift<S, D, R> = (dx: number) => Operation<S, D, R>
-    export type Spawn<S, D, R> = (pieceId: number) => Operation<S, D, R>
-    export type ClearLines<S, D, R> = (lines: number[]) => Operation<S, D, R>
-    export type UpdateLockStatus<S, D, R> = (movementType: MovementType) => Operation<S, D, R>
-    export type SetSDF<S, D, R> = (softDropInterval: number) => Operation<S, D, R>
-    export type SetARR<S, D, R> = (delay: number) => Operation<S, D, R>
-    export type SetDAS<S, D, R> = (delay: number) => Operation<S, D, R>
-    export type SetGhostEnabled<S, D, R> = (enabled: boolean) => Operation<S, D, R>
-    export type StartInput<S, D, R> = (input: Input.ActiveGame) => Operation<S, D, R>
-    export type EndInput<S, D, R> = (input: Input.ActiveGame) => Operation<S, D, R>
-    export type AddRns<S, D, R> = (numbers: number[]) => Operation<S, D, R>
-    export type RemoveRns<S, D, R>= (n: number) => Operation<S, D, R>
+    export type Rotate<R, D> = (rotation: Rotation) => Operation<R, D>
+    export type Move<R, D> = (dx: number, dy: number) => Operation<R, D>
+    export type Drop<R, D> = (dy: number, scoreType: DropScoreType) => Operation<R, D>
+    export type Shift<R, D> = (dx: number) => Operation<R, D>
+    export type Spawn<R, D> = (pieceId: number) => Operation<R, D>
+    export type ClearLines<R, D> = (lines: number[]) => Operation<R, D>
+    export type UpdateLockStatus<R, D> = (movementType: MovementType) => Operation<R, D>
+    export type SetSDF<R, D> = (softDropInterval: number) => Operation<R, D>
+    export type SetARR<R, D> = (delay: number) => Operation<R, D>
+    export type SetDAS<R, D> = (delay: number) => Operation<R, D>
+    export type SetGhostEnabled<R, D> = (enabled: boolean) => Operation<R, D>
+    export type StartInput<R, D> = (input: Input.ActiveGame) => Operation<R, D>
+    export type EndInput<R, D> = (input: Input.ActiveGame) => Operation<R, D>
+    export type AddRns<R, D> = (numbers: number[]) => Operation<R, D>
+    export type RemoveRns<R, D> = (n: number) => Operation<R, D>
 
 }
 

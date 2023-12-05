@@ -5,18 +5,15 @@ import PendingMovement from "../definitions/PendingMovement";
 /**
  * Moves the active piece by the specified x/y offset if the new coordinates are unoccupied and within the playfield
  */
-export default (dx: number, dy: number) => {
-    return Operation.Provide(({ state }) => {
+export default (dx: number, dy: number) => Operation.Util.requireActiveGame(
+    Operation.Provide(({ state }) => {
         if (dx == 0 && dy == 0) {
             return Operation.None;
         }
         let collision = willCollide(state.playfield.activePiece.coordinates, dx, dy, state.playfield, state.settings);
-        return Operation.applyIf(!collision, move(dx, dy));
-    }, {
-        description: "Checking for collision and moving only if allowed",
-        strict: true
+        return Operation.Util.applyIf(!collision, move(dx, dy));
     })
-}
+)
 
 let move = (dx: number, dy: number) => Operation.Draft(({ state }) => {
     let { activePiece, grid } = state.playfield;
@@ -52,7 +49,4 @@ let move = (dx: number, dy: number) => Operation.Draft(({ state }) => {
         state.meta.activeDropDistance += dy;
         state.meta.pendingMovement = PendingMovement.SoftDrop(distance);
     }
-}, {
-    description: "Moving piece",
-    strict: true
 })

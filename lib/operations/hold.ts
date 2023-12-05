@@ -4,7 +4,7 @@ import { Grid } from "../definitions/shared/Grid";
 import { copyPreviewGridSettings } from "../util/stateUtils";
 import GameEvent from "../definitions/GameEvent";
 
-export default Operation.requireActiveGame(
+export default Operation.Util.requireActiveGame(
     Operation.Provide(({ state }, { operations }) => {
         if (state.hold.enabled) {
             return Operation.Sequence(

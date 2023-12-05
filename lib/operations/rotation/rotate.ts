@@ -14,7 +14,7 @@ import Operation from "../../definitions/CoreOperation";
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import GameEvent from "../../definitions/GameEvent";
 
-export default (rotation: Rotation) => Operation.requireActiveGame(
+export default (rotation: Rotation) => Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
         operations.validateRotationSettings,
         rotate(rotation),
@@ -31,7 +31,7 @@ let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations 
     } else {
         return Operation.Sequence(
             applyKickInfo(kickInfo),
-            Operation.applyIf(kickInfo.unadjustedCoordinates != null, operations.refreshGhost),
+            Operation.Util.applyIf(kickInfo.unadjustedCoordinates != null, operations.refreshGhost),
             operations.updateLockStatus(MovementType.Rotate),
             Operation.Draft(({ state, events }) => { 
                 events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfield.grid, state.playfield.activePiece)) 
@@ -65,11 +65,11 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
 }
 
 let continueIntantSoftDropIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.applyIf(shouldContinueInstantSoftDrop(state), operations.drop(findInstantDropDistance(state), DropScoreType.Soft))
+    return Operation.Util.applyIf(shouldContinueInstantSoftDrop(state), operations.drop(findInstantDropDistance(state), DropScoreType.Soft))
 })
 
 let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
+    return Operation.Util.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
 })
 
 let getKickInfo = (n: Rotation, playfield: Playfield, settings: Settings): KickInfo => {

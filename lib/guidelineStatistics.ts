@@ -8,13 +8,18 @@ import { ActivePiece } from "./definitions/playfieldDefinitions";
 import finesseSettings from "./rotationSystems/finesseSettings";
 import { Grid } from "./definitions/shared/Grid";
 import { Score } from "./definitions/scoring/Score";
-import { OperationResult } from "./definitions/OperationResult";
+import { CoreOperationResult as OperationResult } from "./definitions/CoreOperationResult";
 import CoreState from "./definitions/CoreState";
 import Operation from "./definitions/Operation";
 
-export type StatisticsOperation = Operation<Statistics, void, Statistics>
+type StatisticsOperation = Operation<Statistics, void>
 
-export let moveCounts = {
+export let updateStatistics = <S extends CoreState>(coreResult: OperationResult<S>) => {
+    let operations = coreResult.events.map(event => updateStatisticsFromEvent(event, coreResult.state.settings));
+    return Operation.Sequence(...operations)
+}
+
+let moveCounts = {
     [Input.ActiveGame.SD]: 0,
     [Input.ActiveGame.HD]: 0,
     [Input.ActiveGame.Hold]: 0,
@@ -23,11 +28,6 @@ export let moveCounts = {
     [Input.ActiveGame.RotateCW]: 1,
     [Input.ActiveGame.RotateCCW]: 1,
     [Input.ActiveGame.Rotate180]: 2
-}
-
-export let updateStatistics = <S extends CoreState>(coreResult: OperationResult<S>) => {
-    let operations = coreResult.events.map(event => updateStatisticsFromEvent(event, coreResult.state.settings));
-    return Operation.Sequence(...operations)
 }
 
 let updateStatisticsFromEvent = (event: GameEvent, settings: Settings) => {
@@ -45,7 +45,7 @@ let updateStatisticsFromEvent = (event: GameEvent, settings: Settings) => {
         case GameEvent.Classifier.Rotate:
             return onRotation(event);
         default:
-            return Operation.None;
+            return Operation.None();
     }
 }
 

@@ -1,11 +1,11 @@
 import { Settings } from "./settingsDefinitions"
 import { Hold, Meta, Playfield, Preview } from "./stateTypes"
 
-type CoreState = {
-    playfield: Playfield,
-    hold: Hold,
-    preview: Preview,
-    meta: Meta,
+interface CoreState {
+    playfield: Playfield
+    hold: Hold
+    preview: Preview
+    meta: Meta
     settings: Settings
 }
 
