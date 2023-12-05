@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 
 export default Operation.Draft(({ state }) => {
     let { activePiece, grid } = state.playfield;

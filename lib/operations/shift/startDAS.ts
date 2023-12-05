@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation"
+import Operation from "../../definitions/CoreOperation"
 import { SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions"
 
 let mainProvider = Operation.Provide(({ state }, { operations }) => {
@@ -14,8 +14,10 @@ let conditionalPreIntervalShift = Operation.Provide(({ state }, { operations }) 
     return Operation.applyIf(state.settings.dasPreIntervalShift, operations.shift(1))
 })
 
-export default Operation.SequenceStrict(
-    conditionalPreIntervalShift,
-    Operation.Provide((_, { operations }) => operations.cancelAutoShift),
-    mainProvider
+export default Operation.requireActiveGame(
+    Operation.Sequence(
+        conditionalPreIntervalShift,
+        Operation.Provide((_, { operations }) => operations.cancelAutoShift),
+        mainProvider
+    )
 )

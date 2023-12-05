@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { Offset, Orientation, RotationGridSet } from "../../definitions/rotationDefinitions";
 import { Grid } from "../../definitions/shared/Grid";
 import { createEmptyGrid, gridToList, rotateGrid } from "../../util/sharedUtils";

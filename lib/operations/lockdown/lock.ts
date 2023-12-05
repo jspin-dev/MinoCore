@@ -1,17 +1,22 @@
-import Operation from "../../definitions/Operation";
+import GameEvent from "../../definitions/GameEvent";
+import Operation from "../../definitions/CoreOperation";
 import { GameOverCondition, GameStatus } from "../../definitions/metaDefinitions";
 import { Playfield } from "../../definitions/stateTypes";
-import recordLock from "../statistics/recordLock";
 
-export default Operation.ProvideStrict(({ state }, { operations }) => {
-    let linesToClear = getLinesToClear(state.playfield);
-    let previousGrid = state.playfield.spinSnapshot ? state.playfield.spinSnapshot.map(row => [...row]) : null;
-    return Operation.Sequence(
-        operations.clearLines(linesToClear),
-        recordLock(linesToClear.length, previousGrid),
-        enableHold,
-        nextProvider
-    )
+export default Operation.requireActiveGame(
+    Operation.Provide(({ state }, { operations }) => {
+        let linesToClear = getLinesToClear(state.playfield);
+        return Operation.Sequence(
+            recordLockEvent(linesToClear),
+            operations.clearLines(linesToClear),
+            enableHold,
+            nextProvider
+        )
+    })
+)
+
+let recordLockEvent = (linesToClear: number[]) => Operation.Draft(({ state, events }) => { 
+    events.push(GameEvent.Lock(state.playfield.activePiece, linesToClear, state.playfield.grid)) 
 })
 
 let nextProvider = Operation.Provide(({ state }, { operations }) => {
@@ -38,7 +43,7 @@ let getLinesToClear = (playfield: Playfield): number[] => {
     }, [] as number[]);
 }   
 
-let gameOverClearActivePiece = Operation.DraftStrict(({ state }) => {
+let gameOverClearActivePiece = Operation.Draft(({ state }) => {
     state.meta.status = GameStatus.GameOver(GameOverCondition.Lockout)
 
     let playfield = state.playfield;

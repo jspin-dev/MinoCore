@@ -1,14 +1,13 @@
-;import GameEvent from "../../definitions/GameEvent";
-import InputResult from "../../definitions/InputResult";
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { ShiftDirection } from "../../definitions/playfieldDefinitions";
+import { findInstantShiftDistance } from "../../util/stateUtils";
 
 let invertDirection = Operation.Provide(({ state }) => {
     if (!state.settings.dasInteruptionEnabled || !state.meta.dasRightCharged) {
         return Operation.None;
     }
     let provideInstantShift = Operation.Provide(({ state }, { operations }) => {
-        return Operation.applyIf(state.settings.arr === 0, operations.instantShift)
+        return Operation.applyIf(state.settings.arr === 0, operations.shift(findInstantShiftDistance(state)))
     })
     let setShiftDirectionRight = Operation.Draft(({ state }) => { state.meta.direction = ShiftDirection.Right });
     return Operation.Sequence(setShiftDirectionRight, provideInstantShift)
@@ -18,12 +17,10 @@ let conditionalCancelAutoShift = Operation.Provide(({ state }, { operations }) =
     return Operation.applyIf(state.meta.direction == ShiftDirection.Left, operations.cancelAutoShift)
 })
 
-let draftChanges = Operation.Draft(({ state, events }) => { 
-    state.meta.dasLeftCharged = false;
-    state.meta.activeLeftShiftDistance = 0;
-
-    let inputResult = InputResult.Shift(ShiftDirection.Left, state.meta.activeLeftShiftDistance, true);
-    events.push(GameEvent.InputResult(inputResult));
-})
-
-export default Operation.SequenceStrict(draftChanges, invertDirection, conditionalCancelAutoShift)
+export default Operation.requireActiveGame(
+    Operation.Sequence(
+        Operation.Draft(({ state }) => { state.meta.dasLeftCharged = false }), 
+        invertDirection, 
+        conditionalCancelAutoShift
+    )
+)

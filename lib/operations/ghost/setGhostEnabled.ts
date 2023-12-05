@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation"
+import Operation from "../../definitions/CoreOperation"
 
 let exportedOperation = (enabled: boolean) => {
     return Operation.Provide((_, { operations }) => Operation.Sequence(

@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { GameStatus, SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
 
 export default Operation.Provide((_, { operations }) => Operation.Sequence(

@@ -1,16 +1,13 @@
 
-import { OperationResult } from "../exec";
-import Dependencies from "./Dependencies";
-import { State } from "./stateTypes";
 import type { Draft } from "immer";
+import { OperationResult } from "./OperationResult";
 
-type Operation<S extends State> = Operation.Drafter<S> | Operation.Provider<S> | Operation.Sequencer<S>
+type Operation<S, D, R> = Operation.Drafter<R> | Operation.Provider<S, D, R> | Operation.Sequencer<S, D, R>
 
 namespace Operation {
 
-
-    export type DrafterFunc<S extends State> = (draft: Draft<OperationResult<S>>) => void
-    export type ProviderFunc<S extends State> = (result: OperationResult<S>, dependencies: Dependencies<S>) => Operation<S>
+    export type DrafterFunc<R> = (draft: Draft<R>) => void
+    export type ProviderFunc<S, D, R> = (result: R, dependencies: D) => Operation<S, D, R>
 
     export enum Classifier {
 
@@ -30,9 +27,9 @@ namespace Operation {
      * Logic here should be limited to only what is necessary to make the needed state changes. However, care should still
      * be taken with regards to performance (see https://immerjs.github.io/immer/performance)
      */
-    export type Drafter<S extends State> = { 
+    export type Drafter<R> = { 
         classifier: Classifier.Drafter, 
-        draft: DrafterFunc<S>,
+        draft: DrafterFunc<R>,
         args?: OpArgs 
     }
 
@@ -40,18 +37,18 @@ namespace Operation {
      * Providers form more complex logic by chaining together Drafters and other Providers.
      * They have access to a read-only copy of the state and return some other operation. To modify the state, use a Drafter instead 
      */
-    export type Provider<S extends State> = { 
+    export type Provider<S, D, R> = { 
         classifier: Classifier.Provider,
-        provide: ProviderFunc<S>, 
+        provide: ProviderFunc<S, D, R>, 
         args?: OpArgs 
     }
 
     /**
      * A sequencer is an operation which is composed of a list of other operations which should be performed sequentally 
      */
-    export type Sequencer<S extends State> = {
+    export type Sequencer<S, D, R> = {
         classifier: Classifier.Sequencer,
-        operations: Operation<S>[]
+        operations: Operation<S, D, R>[]
     } 
 
     /**
@@ -66,33 +63,33 @@ namespace Operation {
 // Convenience functions for common operation use cases
 namespace Operation {
 
-    export function Draft<S extends State>(draft: DrafterFunc<S>, args?: OpArgs): Drafter<S> {
+    export function Draft<R>(draft: DrafterFunc<R>, args?: OpArgs): Drafter<R> {
         return { classifier: Classifier.Drafter, draft, args }
     }
 
-    export function DraftStrict<S extends State>(draft: DrafterFunc<S>): Drafter<S> {
+    export function DraftStrict<R>(draft: DrafterFunc<R>): Drafter<R> {
         return { classifier: Classifier.Drafter, draft, args: { strict: true } }
     }
 
-    export function Provide<S extends State>(provide: ProviderFunc<S>, args?: OpArgs): Provider<S> {
+    export function Provide<S, D, R>(provide: ProviderFunc<S, D, R>, args?: OpArgs): Provider<S, D, R> {
         return { classifier: Classifier.Provider, provide, args }
     }
 
-    export function ProvideStrict<S extends State>(provide: ProviderFunc<S>): Provider<S> {
+    export function ProvideStrict<S, D, R>(provide: ProviderFunc<S, D, R>): Provider<S, D, R> {
         return { classifier: Classifier.Provider, provide, args: { strict: true } }
     }
 
-    export function Sequence<S extends State>(...operations: Operation<S>[]): Sequencer<S> {
+    export function Sequence<S, D, R>(...operations: Operation<S, D, R>[]): Sequencer<S, D, R> {
         return { classifier: Classifier.Sequencer, operations }
     }
 
-    export function SequenceStrict<S extends State>(...operations: Operation<S>[]): Provider<S> {
+    export function SequenceStrict<S, D, R>(...operations: Operation<S, D, R>[]): Provider<S, D, R> {
         return Provide(() => Sequence(...operations), { strict: true })
     }
 
     export let None = Sequence()
 
-    export function applyIf<S extends State>(condition: boolean, operation: Operation<S>): Operation<S> {
+    export function applyIf<S, D, R>(condition: boolean, operation: Operation<S, D, R>): Operation<S, D, R> {
         return condition ? operation : Operation.None;
     }
 

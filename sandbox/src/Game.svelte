@@ -9,14 +9,16 @@
     import { getKeycodeDisplayValue } from "./form/forms";
 
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
-    import type { State } from '../../build/definitions/stateTypes';
+    import type CoreState from '../../build/definitions/CoreState';
     import guidelineDependencies from "../../build/dependencies/guidelineDependencies";
+    import type { OverallState } from '../../build/execStats';
+    import type { Statistics } from '../../build/definitions/Statistics';
 
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
     export let gameSettings: Settings;
-    export let state: State;
-    export let reportState: (state: State) => void;
+    export let state: OverallState<CoreState, Statistics>;
+    export let reportState: (state: OverallState<CoreState, Statistics>) => void;
 
 	let game = new MinoGame(guidelineDependencies(gameSettings));
 	game.onStateChanged = reportState;
@@ -48,10 +50,10 @@
         return getKeycodeDisplayValue(keycode)
     }
 
-	$: playfieldGrid = state.playfield.grid;
+	$: playfieldGrid = state.core.playfield.grid;
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
-	$: inactiveGame = state.meta.status != GameStatus.Active;
-    $: isPaused = state.meta.status === GameStatus.Suspended;
+	$: inactiveGame = state.core.meta.status != GameStatus.Active;
+    $: isPaused = state.core.meta.status === GameStatus.Suspended;
     
     $: game.run(ops => ops.setSDF(userPrefs.sdf));
     $: game.run(ops => ops.setDAS(userPrefs.das));
@@ -70,14 +72,14 @@
     on:blur={onBlur}>
     <div class='game-container'>
         <Grid
-            gridData={state.hold.grid} 
+            gridData={state.core.hold.grid} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={state.hold.grid.length}
+            borderlessHeight={state.core.hold.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
             concealBlocks={isPaused}/>
-        {#key state.playfield}
+        {#key state.core.playfield}
             <Grid 
                 gridData={visiblePlayfieldGrid} 
                 colors={uiSettings.blockColors} 
@@ -88,9 +90,9 @@
                 concealBlocks={isPaused}/>
         {/key}
         <Grid
-            gridData={state.preview.grid} 
+            gridData={state.core.preview.grid} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={state.preview.grid.length}
+            borderlessHeight={state.core.preview.grid.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
@@ -103,7 +105,7 @@
             <div class='banner'>
                 {bannerPauseMessage.replace("%%", getDisplayValueForInput(Input.Pause))}
             </div>
-        {:else if state.meta.status.classifier === GameStatus.Classifier.GameOver}
+        {:else if state.core.meta.status.classifier === GameStatus.Classifier.GameOver}
             <div class='banner'>
                 {bannerGameOverMessage.replace("%%", getDisplayValueForInput(Input.Restart))}
             </div>  

@@ -1,6 +1,4 @@
-import Dependencies from "../definitions/Dependencies";
-import Operation from "../definitions/Operation";
-import { State } from "../definitions/stateTypes";
+import Operation from "../definitions/CoreOperation";
 
 export default (linesToClear: number[]) => Operation.Provide(({ state }) => {
     let playfield = state.playfield;

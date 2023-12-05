@@ -3,29 +3,31 @@ import { TimerName, SideEffectRequest } from "./definitions/metaDefinitions";
 import BasePausableTimer from "./util/async/BasePausableTimer";
 import PausableInterval from "./util/async/PausableInterval";
 import PausableTimeout from "./util/async/PausableTimeout";
-import { execute } from "./exec";
 import { DropScoreType } from "./definitions/scoring/scoringDefinitions";
-import { State } from "./definitions/stateTypes";
 import Operation from "./definitions/Operation";
-import recordTick from "./operations/statistics/recordTick";
-import Dependencies from "./definitions/Dependencies";
 import { Settings } from "./definitions/settingsDefinitions";
+import { OverallState, executeStats as execute } from "./execStats";
+import { Statistics } from "./definitions/Statistics";
+import CoreDependencies from "./definitions/CoreDependencies";
+import CoreState from "./definitions/CoreState";
+import CoreOperations from "./definitions/CoreOperations";
+import { OperationResult } from "./definitions/OperationResult";
 
 export default class MinoGame {
 
     timers: Map<TimerName, BasePausableTimer>
-    state: State;
+    state: OverallState<CoreState, Statistics>;
     defaultSettings: Settings;
-    operations: Dependencies.Operations<State>;
-    onStateChanged: (state: State) => void;
+    operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>;
+    onStateChanged: (state: OverallState<CoreState, Statistics>) => void;
 
-    constructor({ defaultSettings, operations }: Dependencies<State>) {
+    constructor({ defaultSettings, operations }: CoreDependencies) {
         this.defaultSettings = defaultSettings;
         this.operations = operations;
     }
 
-    init(): State {
-        let runTick = () => this.run(() => recordTick);
+    init(): OverallState<CoreState,Statistics> {
+        let runTick = () => this.run(ops => ops.recordTick);
         let runLock = () => this.run(ops => ops.triggerLockdown);
         let runAutoShift = () => this.run(ops => ops.startAutoShift);
         let runDrop = () => this.run(ops => ops.drop(1, DropScoreType.Auto));
@@ -40,13 +42,11 @@ export default class MinoGame {
         return this.state;
     }
 
-    run(getOperation: (operations: Dependencies.Operations<State>) => Operation<State>) {
+    run(getOperation: (operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>) => Operation<CoreState, CoreDependencies, OperationResult<CoreState>>) {
         let dependencies = { defaultSettings: this.defaultSettings, operations: this.operations }
         let operation = getOperation(this.operations);
-        let result = execute(this.state, State.initial, dependencies, operation);
-        if (result.events.length > 0) {
-            console.log(result.events);
-        }
+        let initialState = { core: CoreState.initial, statistics: Statistics.initial }
+        let result = execute(this.state, initialState, dependencies, operation);
         this.state = result.state;
         result.sideEffectRequests.forEach(request => this.executeSideEffect(request));
         if (this.onStateChanged) {

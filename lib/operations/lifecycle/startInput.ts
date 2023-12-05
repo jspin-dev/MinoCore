@@ -1,22 +1,27 @@
-import Dependencies from "../../definitions/Dependencies";
-import Operation from "../../definitions/Operation";
+import GameEvent from "../../definitions/GameEvent";
+import Operation from "../../definitions/CoreOperation";
 import { Input } from "../../definitions/inputDefinitions";
 import { Rotation } from "../../definitions/rotationDefinitions";
-import { State } from "../../definitions/stateTypes";
-import recordInput from "../statistics/recordInput";
+import completePendingMovement from "./completePendingMovement";
+import CoreDependencies from "../../definitions/CoreDependencies";
 
 export default (input: Input.ActiveGame) => Operation.Provide(({ state }, depencencies) => {
     if (state.meta.activeInputs.includes(input)) {
         return Operation.None;
     }
     return Operation.Sequence(
-        Operation.Draft(({ state }) => { state.meta.activeInputs.push(input) }),
-        performInputAction(input, depencencies),
-        recordInput
+        completePendingMovement,
+        recordInputStart(input),
+        performInputAction(input, depencencies)
     );
 })
 
-let performInputAction = <S extends State>(input: Input.ActiveGame, { operations }: Dependencies<S>): Operation<S> => {
+let recordInputStart = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => { 
+    state.meta.activeInputs.push(input);
+    events.push(GameEvent.InputStart(input));
+})
+
+let performInputAction = (input: Input.ActiveGame, { operations }: CoreDependencies) => {
     switch (input) {
         case Input.ActiveGame.ShiftLeft:
             return operations.startShiftLeftInput

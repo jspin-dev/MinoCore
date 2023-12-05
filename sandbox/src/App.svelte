@@ -9,9 +9,10 @@
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
     import type { State } from "../../build/definitions/stateTypes";
+    import type { OverallState } from "../../build/execStats";
 
 	let userPrefs = userPrefPresets.alternate;
-	let gameState: State;
+	let gameState: OverallState<State>;
 
 	let onUserPrefsChanged = (
 		value: string | boolean | number, 

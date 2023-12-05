@@ -1,7 +1,6 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { Settings } from "../../definitions/settingsDefinitions";
 import { Grid } from "../../definitions/shared/Grid";
-import { State } from "../../definitions/stateTypes";
 import { copyPreviewGridSettings } from "../../util/stateUtils";
 
 export default Operation.Provide(({ state }) => {

@@ -1,12 +1,16 @@
-import Operation from "../../definitions/Operation";
+import GameEvent from "../../definitions/GameEvent";
+import Operation from "../../definitions/CoreOperation";
 
 export default Operation.Provide((_, { operations }) => {
     let dequeuedPiece: number;
+    let dequeuePiece = Operation.Draft(({ state, events }) => { 
+        dequeuedPiece = state.preview.queue.shift() 
+        events.push(GameEvent.Dequeue(dequeuedPiece, state.preview.queue))
+    })
     return Operation.Sequence(            
-        Operation.Draft(({ state }) => { dequeuedPiece = state.preview.queue.shift() }),
+        dequeuePiece,
         operations.enqueueNext,
         operations.syncPreviewGrid,
-        // Dummy provider here so that we can properly pass the newly dequeued piece into the spawn function
         Operation.Provide(() => operations.spawn(dequeuedPiece))
     )   
 })

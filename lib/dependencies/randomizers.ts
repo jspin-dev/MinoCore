@@ -1,11 +1,13 @@
-import Operation from "../definitions/Operation";
+import GameEvent from "../definitions/GameEvent";
+import Operation from "../definitions/CoreOperation";
 import { SideEffectRequest } from "../definitions/metaDefinitions";
 import { shuffle } from "../util/sharedUtils";
 
 export namespace PresetRandomizers {
 
-    let enqueue = (...pieceIds: number[]) => Operation.Draft(({ state }) => { 
-        state.preview.queue.push(...pieceIds) 
+    let enqueue = (...pieceIds: number[]) => Operation.Draft(({ state, events }) => { 
+        state.preview.queue.push(...pieceIds);
+        events.push(GameEvent.Enqueue(pieceIds, state.preview.queue)) ;
     })
 
     export namespace NBag {

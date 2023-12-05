@@ -1,8 +1,15 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { MovementType } from "../../definitions/inputDefinitions";
 import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
-import { instantAutoShiftActive } from "../../util/stateUtils";
-import recordDrop from "../statistics/recordDrop";
+import { findInstantShiftDistance, shouldContinueInstantShift } from "../../util/stateUtils";
+
+export default (dy: number, dropScoreType: DropScoreType) => Operation.requireActiveGame(
+    Operation.Provide((_, { operations }) => Operation.Sequence(
+        operations.move(0, dy),
+        operations.updateLockStatus(MovementType.Drop),
+        continueInstantShiftIfActive
+    ))
+)
 
 /**
  * Note that ghost coordinates NEVER depend on y coordinate position. If the ghost and active piece 
@@ -11,18 +18,7 @@ import recordDrop from "../statistics/recordDrop";
  */
 
 let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.applyIf(instantAutoShiftActive(state.meta, state.settings), operations.instantShift);
+    return Operation.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
+}, {
+    description: "continue instant shift"
 })
-
-let exportedOperation = (dy: number, dropScoreType: DropScoreType) => {
-    return Operation.ProvideStrict((_, { operations }) => {
-        return Operation.Sequence(
-            operations.move(0, dy),
-            operations.updateLockStatus(MovementType.Drop),
-            recordDrop(dropScoreType, dy),
-            continueInstantShiftIfActive
-        )
-    })
-}
-
-export default exportedOperation;

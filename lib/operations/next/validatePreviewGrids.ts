@@ -1,5 +1,5 @@
 import { cropGrid, createEmptyGrid, } from "../../util/sharedUtils";
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { Grid } from "../../definitions/shared/Grid";
 import { Orientation } from "../../definitions/rotationDefinitions";
 

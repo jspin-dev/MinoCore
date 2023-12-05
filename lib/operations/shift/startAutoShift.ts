@@ -1,6 +1,7 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
 import { ShiftDirection } from "../../definitions/playfieldDefinitions";
+import { findInstantShiftDistance } from "../../util/stateUtils";
 
 let charge = Operation.Draft(({ state }) => { 
     if (state.meta.direction == ShiftDirection.Right) {
@@ -15,7 +16,7 @@ let requestStartAutoShiftTimer = Operation.Draft(({ sideEffectRequests }) => {
 })
 
 let conditionalShift = Operation.Provide (({ state }, { operations }) => {
-    return state.settings.arr == 0 ? operations.instantShift : requestStartAutoShiftTimer
+    return state.settings.arr == 0 ? operations.shift(findInstantShiftDistance(state)) : requestStartAutoShiftTimer
 })
 
-export default Operation.SequenceStrict(charge, conditionalShift);
+export default Operation.requireActiveGame(Operation.Sequence(charge, conditionalShift));

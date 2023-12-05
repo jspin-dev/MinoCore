@@ -1,10 +1,9 @@
-import Dependencies from "../definitions/Dependencies";
+import Dependencies from "../definitions/CoreDependencies";
 import { Randomization, Settings } from "../definitions/settingsDefinitions";
-import { State } from "../definitions/stateTypes";
+import State from "../definitions/CoreState";
 import clearLines from "../operations/clearLines";
 import drop from "../operations/drop/drop";
 import hardDrop from "../operations/drop/hardDrop";
-import instantDrop from "../operations/drop/instantDrop";
 import setSDF from "../operations/drop/setSDF";
 import startSoftDrop from "../operations/drop/startSoftDrop";
 import clearGhost from "../operations/ghost/clearGhost";
@@ -31,7 +30,6 @@ import validateRotationSettings from "../operations/rotation/validateRotationSet
 import cancelAutoShift from "../operations/shift/cancelAutoShift";
 import endShiftLeftInput from "../operations/shift/endShiftLeftInput";
 import endShiftRightInput from "../operations/shift/endShiftRightInput";
-import instantShift from "../operations/shift/instantShift";
 import setARR from "../operations/shift/setARR";
 import setDAS from "../operations/shift/setDAS";
 import shift from "../operations/shift/shift";
@@ -40,9 +38,11 @@ import startDAS from "../operations/shift/startDAS";
 import startShiftLeftInput from "../operations/shift/startShiftLeftInput";
 import startShiftRightInput from "../operations/shift/startShiftRightInput";
 import spawn from "../operations/spawn";
+import recordTick from "../operations/lifecycle/recordTick";
 import { PresetRandomizers } from "./randomizers";
+import CoreDependencies from "../definitions/CoreDependencies";
 
-export default function<S extends State> (settings: Settings): Dependencies<S> {
+export default function(settings: Settings): CoreDependencies {
     let queueOperations;
     switch(settings.randomization) {
         case Randomization.Classic:
@@ -74,15 +74,14 @@ export default function<S extends State> (settings: Settings): Dependencies<S> {
             startShiftRightInput,
             endShiftLeftInput,
             endShiftRightInput, 
-            instantShift,
             prepareQueue,
             syncPreviewGrid,
             validatePreviewGrids,
+            recordTick,
             spawn,
             rotate,
             move,
             drop,
-            instantDrop,
             shift,
             clearLines,
             updateLockStatus,

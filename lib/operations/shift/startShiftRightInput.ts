@@ -1,19 +1,17 @@
-import Operation from "../../definitions/Operation";
-import { MovementType } from "../../definitions/inputDefinitions";
+import Operation from "../../definitions/CoreOperation";
+import PendingMovement from "../../definitions/PendingMovement";
 import { ShiftDirection } from "../../definitions/playfieldDefinitions";
-import recordStep from "../statistics/recordStep";
 
-export default Operation.ProvideStrict((_, { operations }) => Operation.Sequence(
-    draftChanges,
-    operations.startDAS,
-    recordStep(MovementType.Shift)
-))
+export default Operation.requireActiveGame(
+    Operation.Provide((_, { operations }) => Operation.Sequence(draftChanges, operations.startDAS))
+)
 
 // Why are we just setting DAS left charged to true?
 let draftChanges = Operation.Draft(({ state }) => { 
+    state.meta.pendingMovement = PendingMovement.RightShift(0);
     state.meta.direction = ShiftDirection.Right;
-    state.meta.activeRightShiftDistance = 0;
     if (!state.settings.dasInteruptionEnabled) {
         state.meta.dasRightCharged = true;
     }
 })
+

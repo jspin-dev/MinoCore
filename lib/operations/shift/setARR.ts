@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation"
+import Operation from "../../definitions/CoreOperation"
 import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions"
 
 export default (arr: number) => Operation.Draft(({ state, sideEffectRequests }) => { 

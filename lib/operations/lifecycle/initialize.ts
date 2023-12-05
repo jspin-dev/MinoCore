@@ -1,33 +1,10 @@
 import { WritableDraft } from "immer/dist/internal"
-import Operation from "../../definitions/Operation"
+import Operation from "../../definitions/CoreOperation"
 import { GameStatus, SideEffectRequest } from "../../definitions/metaDefinitions"
 import { Settings } from "../../definitions/settingsDefinitions"
 import { createEmptyGrid } from "../../util/sharedUtils"
-import { Hold, Meta, Playfield, Preview, Statistics } from "../../definitions/stateTypes"
+import { Hold, Meta, Playfield, Preview } from "../../definitions/stateTypes"
 import { LockdownStatus } from "../../definitions/lockdownDefinitions"
-
-let initialStats: Statistics = {
-    level: 1,
-    lines: 0,
-    keysPressed: 0,
-    piecesLocked: 0,
-    time: 0,
-    kpp: 0,
-    pps: 0,
-    steps: {
-        drop: 0,
-        rotate: 0,
-        shift: 0,
-        hold: 0
-    },
-    finesse: 0,
-    scoreState: {
-        lastLockScoreAction: null,
-        score: 0,
-        combo: -1
-    },
-    actionTally: {}
-}
 
 let initialPlayfield = (settings: Settings): Playfield => {
     return {
@@ -57,7 +34,8 @@ let initialMeta: Meta = {
     softDropActive: false,
     dasRightCharged: false,
     dasLeftCharged: false,
-    direction: null
+    direction: null,
+    pendingMovement: null
 }
 
 let initialHold: Hold = {
@@ -78,8 +56,7 @@ let initializeState = (settings: Settings) =>  Operation.Draft(({ state }) => {
         meta: initialMeta as WritableDraft<Meta>,
         settings: settings as WritableDraft<Settings>,
         hold: initialHold as WritableDraft<Hold>,
-        preview: initialPreview as WritableDraft<Preview>,
-        statistics: initialStats
+        preview: initialPreview as WritableDraft<Preview>
     })
 })
 

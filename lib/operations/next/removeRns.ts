@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 
 export default (n: number) => {
     if (!Number.isInteger(n) || n <= 0) {

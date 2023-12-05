@@ -1,36 +1,19 @@
 import Operation from "./definitions/Operation";
 import { produce } from "immer";
-import devSettings from "./devSettings.json";
-import { GameStatus, SideEffectRequest, } from "./definitions/metaDefinitions";
-import { State, Meta } from "./definitions/stateTypes";
-import Dependencies from "./definitions/Dependencies";
-import GameEvent from "./definitions/GameEvent";
 
-export type OperationResult<S extends State> = {
-    state: S,
-    sideEffectRequests: SideEffectRequest.Any[],
-    events: GameEvent[]
-}
-
-export function execute<S extends State, D extends Dependencies<S>>(
-    state: S | null,
-    initialState: S,
+export function execute<S, D, R>(
+    initialResult: R,
     depencencies: D,
-    rootOperation: Operation<S>
-): OperationResult<S> {
-    let initialResult: OperationResult<S> = {
-        state: state || initialState,
-        sideEffectRequests: [],
-        events: []
-    }
+    rootOperation: Operation<S, D, R>
+): R {
     return executeOperation(initialResult, depencencies, rootOperation);
 }
 
-function executeOperation<S extends State, D extends Dependencies<S>>(
-    cumulativeResult: OperationResult<S>, 
+function executeOperation<S, D, R>(
+    cumulativeResult: R, 
     depencencies: D,
-    operation: Operation<S>
-): OperationResult<S> {
+    operation: Operation<S, D, R>
+): R {
     switch (operation.classifier) {
         case Operation.Classifier.Provider:
             return executeProvider(cumulativeResult, depencencies, operation)
@@ -41,11 +24,11 @@ function executeOperation<S extends State, D extends Dependencies<S>>(
     }
 }
 
-function executeSequencer<S extends State, D extends Dependencies<S>>(
-    cumulativeResult: OperationResult<S>, 
+function executeSequencer<S, D, R>(
+    cumulativeResult: R, 
     depencencies: D,
-    sequence: Operation.Sequencer<S>
-): OperationResult<S> {
+    sequence: Operation.Sequencer<S, D, R>
+): R {
     return sequence.operations.reduce((current, operation) => executeOperation(
         current, 
         depencencies,
@@ -53,42 +36,18 @@ function executeSequencer<S extends State, D extends Dependencies<S>>(
     ), cumulativeResult);  
 }
 
-function executeDrafter<S extends State>(
-    cumulativeResult: OperationResult<S>, 
-    drafter: Operation.Drafter<S>
-): OperationResult<S> {
-    if (!prechecksPass(cumulativeResult.state.meta, drafter)) {
-        return cumulativeResult;
-    }
+function executeDrafter<R>(
+    cumulativeResult: R, 
+    drafter: Operation.Drafter<R>
+): R {
     return produce(cumulativeResult, drafter.draft);
 }
 
-function executeProvider<S extends State, D extends Dependencies<S>>(
-    cumulativeResult: OperationResult<S>, 
+function executeProvider<S, D, R>(
+    cumulativeResult: R, 
     depencencies: D,
-    provider: Operation.Provider<S>
-): OperationResult<S> {
-    if (!prechecksPass(cumulativeResult.state.meta, provider)) {
-        return cumulativeResult;
-    }
+    provider: Operation.Provider<S, D, R>
+): R {
     let operation = provider.provide(cumulativeResult, depencencies);
     return executeOperation(cumulativeResult, depencencies, operation);
-}
-
-// Returns false if this operation is not allowed
-let prechecksPass = <S extends State>(meta: Meta, operation: Operation<S>): boolean => {
-    if (operation == null) {
-        throw "Undefined operation, ignoring";
-    }
-    switch (operation.classifier) {
-        case Operation.Classifier.Provider:
-        case Operation.Classifier.Drafter:
-            if (devSettings.verboseLog && operation.args?.description) {
-                console.log(operation.args.description);
-            }
-            let gameInactive = meta && meta.status != GameStatus.Active;
-            return !gameInactive || !operation.args?.strict;
-        case Operation.Classifier.Sequencer:
-            return operation.operations.every(op => prechecksPass(meta, op));
-    }
 }

@@ -1,13 +1,13 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 import { MovementType } from "../../definitions/inputDefinitions";
 import { LockdownReset, LockdownStatus } from "../../definitions/lockdownDefinitions";
-import { SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
+import {  SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
 import { Settings } from "../../definitions/settingsDefinitions";
 import { Playfield } from "../../definitions/stateTypes";
 import { onFloor } from "../../util/stateUtils";
 
-let exportedOperation = (movementType: MovementType) => {
-    return Operation.SequenceStrict(
+export default (movementType: MovementType) => Operation.requireActiveGame(
+    Operation.Sequence(
         resetOnMoveProvider(movementType),
         onFloorProvider,
         Operation.applyIf(
@@ -16,7 +16,7 @@ let exportedOperation = (movementType: MovementType) => {
         ),
         setLargestY
     )
-}
+)
 
 let resetLockdownStatus = Operation.Draft(({ state }) => { 
     state.playfield.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(state.settings)) 
@@ -109,4 +109,3 @@ let setLargestY = Operation.Draft(({ state }) => {
     }
 })
 
-export default exportedOperation;

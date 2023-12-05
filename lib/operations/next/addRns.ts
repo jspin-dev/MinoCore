@@ -1,4 +1,4 @@
-import Operation from "../../definitions/Operation";
+import Operation from "../../definitions/CoreOperation";
 
 export default (numbers: number[]) => {
     if (numbers.some(i => i < 0 || i >= 1)) {

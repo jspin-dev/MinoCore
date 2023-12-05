@@ -3,13 +3,16 @@ import { Settings } from "../definitions/settingsDefinitions";
 import { TimerName, TimerOperation, GameStatus, GameOverCondition, SideEffectRequest } from "../definitions/metaDefinitions";
 import { LockdownStatus } from "../definitions/lockdownDefinitions";
 import { gridToList } from "../util/sharedUtils";
-import { instantAutoShiftActive, instantSoftDropActive } from "../util/stateUtils";
+import { 
+    findInstantDropDistance, 
+    findInstantShiftDistance, 
+    shouldContinueInstantShift, 
+    shouldContinueInstantSoftDrop 
+} from "../util/stateUtils";
 import { DropScoreType } from "../definitions/scoring/scoringDefinitions";
-import { MovementType } from "../definitions/inputDefinitions";
-import Operation from "../definitions/Operation";
+import Operation from "../definitions/CoreOperation";
 import { Orientation } from "../definitions/rotationDefinitions";
-import recordStep from "./statistics/recordStep";
-import Dependencies from "../definitions/Dependencies";
+import GameEvent from "../definitions/GameEvent";
 
 /**
  * Spawns a piece (indicated by pieceId) at the top of the playfield,
@@ -62,14 +65,7 @@ let conditionalDrop = Operation.Provide(({ state }, { operations }) => {
     let timerOperation = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.AutoDrop, TimerOperation.Start))
     })
-    return Operation.Sequence(
-        instantSoftDropActive(state.meta, state.settings) ? operations.instantDrop(DropScoreType.Soft) : timerOperation,
-        /**
-         * Since we are on a new active piece, this counts as an additional move for finesse logging, even 
-         * though user is still in the middle of the soft drop carried over from the previous piece
-         */
-        recordStep(MovementType.Drop) 
-    )
+    return shouldContinueInstantSoftDrop(state) ? operations.drop(findInstantDropDistance(state), DropScoreType.Soft) : timerOperation;
 })
 
 let conditionalShift = Operation.Provide(({ state }, { operations }) => {
@@ -78,14 +74,7 @@ let conditionalShift = Operation.Provide(({ state }, { operations }) => {
         return Operation.None;
     }
     if (settings.dasPreservationEnabled) {
-        return Operation.Sequence(
-            Operation.applyIf(instantAutoShiftActive(meta, settings), operations.instantShift),
-            /**
-             * Since we are on a new active piece, this counts as an additional move for finesse logging, even 
-             * though user still has one or both of left/right shift inputs active from the previous piece
-             */
-            recordStep(MovementType.Shift) 
-        )
+        return Operation.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
     } else {
         let unchargeDAS = Operation.Draft(({ state }) => {
             state.meta.dasRightCharged = false;
@@ -96,13 +85,17 @@ let conditionalShift = Operation.Provide(({ state }, { operations }) => {
 })
 
 let setActivePiece = (coordinates: Coordinate[], pieceId: number, location: Coordinate) => {
-    return Operation.Draft(({ state }) => {
+    return Operation.Draft(({ state, events }) => {
         coordinates.forEach(c => state.playfield.grid[c.y][c.x] = pieceId);
-        Object.assign(state.playfield.activePiece, {
+        state.playfield.activePiece = {
             id: pieceId,
             location: location,
             coordinates: coordinates,
-            orientation: 0
-        });
+            orientation: 0,
+            ghostCoordinates: [],
+            activeRotation: false
+        }
+        events.push(GameEvent.Spawn(state.playfield.activePiece));
     })
 }
+

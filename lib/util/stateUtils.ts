@@ -1,20 +1,23 @@
+import CoreState from "../definitions/CoreState";
+import { Statistics } from "../definitions/Statistics";
 import type { ActivePiece, Coordinate } from "../definitions/playfieldDefinitions";
 import { ShiftDirection } from "../definitions/playfieldDefinitions";
 import { LockScoreAction } from "../definitions/scoring/scoringDefinitions";
 import { Settings } from "../definitions/settingsDefinitions";
 import { Grid } from "../definitions/shared/Grid";
-import { Meta, Playfield, State, Statistics } from "../definitions/stateTypes";
+import { Playfield } from "../definitions/stateTypes";
 import { Piece } from "../rotationSystems/tetraPieces";
 import { gridContainsOnly } from "./sharedUtils";
 
-export function instantAutoShiftActive(meta: Meta, settings: Settings): boolean {
+export function shouldContinueInstantShift(state: CoreState): boolean {
+    let { meta, settings } = state;
     let shouldAutoShiftRight = meta.dasRightCharged && meta.direction == ShiftDirection.Right;
     let shouldAutoShiftLeft = meta.dasLeftCharged && meta.direction == ShiftDirection.Left;
-    return settings.arr === 0 && (shouldAutoShiftRight || shouldAutoShiftLeft);
+    return settings.arr === 0 && findInstantShiftDistance(state) > 0 && (shouldAutoShiftRight || shouldAutoShiftLeft);
 }
 
-export function instantSoftDropActive(meta: Meta, settings: Settings): boolean {
-    return settings.softDropInterval === 0 && meta.softDropActive;
+export function shouldContinueInstantSoftDrop(state: CoreState): boolean {
+    return state.settings.softDropInterval === 0 && findInstantDropDistance(state) > 0 && state.meta.softDropActive;
 }
 
 /**
@@ -46,17 +49,33 @@ export let isBlockLocked = (x: number, y: number, playfield: Playfield) => {
     return playfield.grid[y][x] > 0 && !isActiveCoordinate; 
 }
 
-export function findHardDropDistance(playfield: Playfield, settings: Settings): number {
+export function findInstantDropDistance({ playfield, settings }: CoreState): number {
     let verticalCollision = false;
     let dy = 0;
-    let activePieceCoordinates = playfield.activePiece.coordinates;
-    if (activePieceCoordinates.length > 0) {
+    let coordinates = playfield.activePiece.coordinates;
+    if (coordinates.length > 0) {
         while (!verticalCollision) {
             dy++;
-            verticalCollision = willCollide(activePieceCoordinates, 0, dy, playfield, settings);
+            verticalCollision = willCollide(coordinates, 0, dy, playfield, settings);
         }
     }
     return dy - 1;
+}
+
+export function findInstantShiftDistance({ playfield, meta, settings }: CoreState): number {
+    let coordinates = playfield.activePiece.coordinates;
+    if (coordinates.length == 0) { return -1 } 
+    if (!meta.direction || willCollide(coordinates, meta.direction, 0, playfield, settings)) {
+        return 0;
+    }
+    let horizontalCollision = false;
+    let dx = 0;
+
+    while (!horizontalCollision) {
+        dx += meta.direction;
+        horizontalCollision = willCollide(coordinates, dx, 0, playfield, settings);
+    }
+    return Math.abs(dx - meta.direction); // Shift function expects a positive integer
 }
 
 export let copyPreviewGridSettings = (settings: Settings): Grid[] => { 
@@ -77,24 +96,23 @@ export let calculatePPS = (statistics: Statistics): number => {
     return statistics.time ? statistics.piecesLocked / statistics.time : 0;
 }
 
-export let onFloor = ({ playfield, settings }: State) => findHardDropDistance(playfield, settings) == 0;
+export let onFloor = (state: CoreState) => findInstantDropDistance(state) == 0;
 
-export let detectPC = (playfield: Playfield): boolean => {
-    let grid = playfield.grid.map(row => [...row]);
-    return gridContainsOnly(grid, 0);
+export let detectPC = (playfieldGrid: Grid): boolean => {
+    return gridContainsOnly(playfieldGrid, 0);
 }
 
-export let detectTspin = (activePiece: ActivePiece, spinSnapshot: Readonly<Grid>): LockScoreAction.Type => {
+export let detectTspin = (activePiece: ActivePiece, previousGrid: Readonly<Grid>): LockScoreAction.Type => {
     if (!activePiece.activeRotation || activePiece.id != Piece.T) {
         return null;
     }
     let x = activePiece.location.x;
     let y = activePiece.location.y;
     let corners = [
-        spinSnapshot[y] == undefined || spinSnapshot[y][x] != 0,
-        spinSnapshot[y] == undefined || spinSnapshot[y][x + 2] != 0,
-        spinSnapshot[y + 2] == undefined || spinSnapshot[y + 2][x] != 0, 
-        spinSnapshot[y + 2] == undefined || spinSnapshot[y + 2][x + 2] != 0
+        previousGrid[y] == undefined || previousGrid[y][x] != 0,
+        previousGrid[y] == undefined || previousGrid[y][x + 2] != 0,
+        previousGrid[y + 2] == undefined || previousGrid[y + 2][x] != 0, 
+        previousGrid[y + 2] == undefined || previousGrid[y + 2][x + 2] != 0
     ]
     let occupiedCornerCount = corners.reduce((sum, cornerOccupied) => cornerOccupied ? sum + 1 : sum, 0);
     // T-spin detected, still need to specify the type of t-spin

@@ -1,29 +1,35 @@
 import { Settings } from "../definitions/settingsDefinitions";
-import Operation from "../definitions/Operation";
+import Operation from "../definitions/CoreOperation";
 import { Grid } from "../definitions/shared/Grid";
 import { copyPreviewGridSettings } from "../util/stateUtils";
+import GameEvent from "../definitions/GameEvent";
 
-export default Operation.Provide(({ state }, { operations }) => {
-    if (state.hold.enabled) {
-        return Operation.Sequence(
-            operations.validatePreviewGrids,
-            holdActivePiece,
-            syncGrid,
-            clearActivePiece,
-            /**
-             * Note: Unlike most cases, here we are intentionally referncing the 
-             * original hold state rather than using the provider's state
-             */
-            replaceActivePiece(state.hold.pieceId)
-        )
-    } else {
-        return Operation.None;
-    }
-})
+export default Operation.requireActiveGame(
+    Operation.Provide(({ state }, { operations }) => {
+        if (state.hold.enabled) {
+            return Operation.Sequence(
+                operations.validatePreviewGrids,
+                holdActivePiece,
+                syncGrid,
+                clearActivePiece,
+                /**
+                 * Note: Unlike most cases, here we are intentionally referncing the 
+                 * original hold state rather than using the provider's state
+                 */
+                replaceActivePiece(state.hold.pieceId)
+            )
+        } else {
+            return Operation.None;
+        }
+    })
+)
 
-let holdActivePiece = Operation.DraftStrict(({ state }) => {
-    state.hold.pieceId = state.playfield.activePiece.id;
+let holdActivePiece = Operation.Draft(({ state, events }) => {
+    let previousHoldPiece = state.hold.pieceId;
+    let holdPiece = state.playfield.activePiece.id;
+    state.hold.pieceId = holdPiece;
     state.hold.enabled = false;
+    events.push(GameEvent.Hold(previousHoldPiece, holdPiece));
 })
 
 let createHoldGrid = (pieceId: number, settings: Settings): Grid => {
@@ -37,11 +43,11 @@ let syncGrid = Operation.Provide(({ state }) =>{
     return Operation.Draft(({ state }) => { state.hold.grid = grid })
 })
 
-let replaceActivePiece = (previousHoldPieceId: number) => Operation.Provide((_, { operations }) => {
-    return previousHoldPieceId > 0 ? operations.spawn(previousHoldPieceId) : operations.next;
+let replaceActivePiece = (previousHoldPiece: number) => Operation.Provide((_, { operations }) => {
+    return previousHoldPiece > 0 ? operations.spawn(previousHoldPiece) : operations.next;
 })
 
-let clearActivePiece = Operation.DraftStrict(({ state }) => {
+let clearActivePiece = Operation.Draft(({ state }) => {
     let playfield = state.playfield;
     // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
     playfield.activePiece.ghostCoordinates.forEach(c => {
