@@ -1,12 +1,13 @@
 import Dependencies from "./CoreDependencies";
 import CoreState from "./CoreState";
 import Operation from "./Operation";
-import { CoreOperationResult as OperationResult } from "./CoreOperationResult";
-import { Input, MovementType } from "./inputDefinitions";
-import { Rotation } from "./rotationDefinitions";
-import { DropScoreType } from "./scoring/scoringDefinitions";
+import OperationResult from "./CoreOperationResult";
+import Input from "./Input";
+import MovementType from "./MovementType";
+import Rotation from "./Rotation";
+import PieceIdentity from "./PieceIdentifier";
 
-interface CoreOperations<S extends CoreState, D extends Dependencies, R extends OperationResult<CoreState>> {
+interface CoreOperations<S extends CoreState, D extends Dependencies, R extends OperationResult<S>> {
     enqueueFull: Operation<R, D>
     enqueueNext: Operation<R, D>
     startDAS: Operation<R, D>
@@ -29,8 +30,6 @@ interface CoreOperations<S extends CoreState, D extends Dependencies, R extends 
     endShiftLeftInput: Operation<R, D>
     endShiftRightInput: Operation<R, D>
     prepareQueue: Operation<R, D>
-    syncPreviewGrid: Operation<R, D>
-    validatePreviewGrids: Operation<R, D>
     recordTick: Operation<R, D>
     rotate: CoreOperations.Rotate<R, D>
     move: CoreOperations.Move<R, D>
@@ -53,9 +52,9 @@ namespace CoreOperations {
 
     export type Rotate<R, D> = (rotation: Rotation) => Operation<R, D>
     export type Move<R, D> = (dx: number, dy: number) => Operation<R, D>
-    export type Drop<R, D> = (dy: number, scoreType: DropScoreType) => Operation<R, D>
+    export type Drop<R, D> = (dy: number) => Operation<R, D>
     export type Shift<R, D> = (dx: number) => Operation<R, D>
-    export type Spawn<R, D> = (pieceId: number) => Operation<R, D>
+    export type Spawn<R, D> = (pieceId: PieceIdentity) => Operation<R, D>
     export type ClearLines<R, D> = (lines: number[]) => Operation<R, D>
     export type UpdateLockStatus<R, D> = (movementType: MovementType) => Operation<R, D>
     export type SetSDF<R, D> = (softDropInterval: number) => Operation<R, D>

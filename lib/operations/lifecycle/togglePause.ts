@@ -1,16 +1,17 @@
 import Operation from "../../definitions/CoreOperation";
-import { GameStatus, SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
+import GameStatus from "../../definitions/GameStatus";
+import SideEffect from "../../definitions/SideEffect";
 
 export default Operation.Draft(({ state, sideEffectRequests }) => {
-    let initiallyActive = state.meta.status.classifier == GameStatus.Active.classifier;
-    let operation = initiallyActive ? TimerOperation.Pause : TimerOperation.Resume;
-    state.meta.status = initiallyActive ? GameStatus.Suspended : GameStatus.Active;
+    let initiallyActive = state.status.classifier == GameStatus.Active.classifier;
+    let operation = initiallyActive ? SideEffect.TimerOperation.Pause : SideEffect.TimerOperation.Resume;
+    state.status = initiallyActive ? GameStatus.Suspended : GameStatus.Active;
     sideEffectRequests = [
         ...sideEffectRequests,
-        SideEffectRequest.TimerOperation(TimerName.AutoDrop, operation),
-        SideEffectRequest.TimerOperation(TimerName.AutoShift, operation),
-        SideEffectRequest.TimerOperation(TimerName.Clock, operation),
-        SideEffectRequest.TimerOperation(TimerName.DAS, operation),
-        SideEffectRequest.TimerOperation(TimerName.DropLock, operation) 
+        SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoDrop, operation),
+        SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoShift, operation),
+        SideEffect.Request.TimerOperation(SideEffect.TimerName.Clock, operation),
+        SideEffect.Request.TimerOperation(SideEffect.TimerName.DAS, operation),
+        SideEffect.Request.TimerOperation(SideEffect.TimerName.DropLock, operation) 
     ]
 })

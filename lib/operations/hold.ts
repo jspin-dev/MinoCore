@@ -1,64 +1,43 @@
-import { Settings } from "../definitions/settingsDefinitions";
+import Cell from "../definitions/Cell";
 import Operation from "../definitions/CoreOperation";
-import { Grid } from "../definitions/shared/Grid";
-import { copyPreviewGridSettings } from "../util/stateUtils";
 import GameEvent from "../definitions/GameEvent";
 
 export default Operation.Util.requireActiveGame(
-    Operation.Provide(({ state }, { operations }) => {
-        if (state.hold.enabled) {
-            return Operation.Sequence(
-                operations.validatePreviewGrids,
-                holdActivePiece,
-                syncGrid,
-                clearActivePiece,
-                /**
-                 * Note: Unlike most cases, here we are intentionally referncing the 
-                 * original hold state rather than using the provider's state
-                 */
-                replaceActivePiece(state.hold.pieceId)
-            )
-        } else {
-            return Operation.None;
-        }
+    Operation.Provide(({ state }) => {
+        /**
+         * Note: Unlike most cases, here we are intentionally referncing the 
+         * original hold state rather than using the provider's state
+         */
+        let replaceActivePiece = Operation.Provide((_, { operations }) => {
+            return state.holdPieceId ? operations.spawn(state.holdPieceId) : operations.next;
+        })
+        
+        let operations = Operation.Sequence(holdActivePiece, clearActivePiece, replaceActivePiece);
+        return operations.applyIf(state.holdEnabled);
     })
 )
 
 let holdActivePiece = Operation.Draft(({ state, events }) => {
-    let previousHoldPiece = state.hold.pieceId;
-    let holdPiece = state.playfield.activePiece.id;
-    state.hold.pieceId = holdPiece;
-    state.hold.enabled = false;
+    let previousHoldPiece = state.holdPieceId;
+    let holdPiece = state.activePiece.id;
+    state.holdPieceId = holdPiece;
+    state.holdEnabled = false;
     events.push(GameEvent.Hold(previousHoldPiece, holdPiece));
 })
 
-let createHoldGrid = (pieceId: number, settings: Settings): Grid => {
-    let grid = copyPreviewGridSettings(settings)[pieceId];
-    let bufferSpace = new Array(grid[0].length).fill(0);
-    return [...grid, bufferSpace];
-}
-
-let syncGrid = Operation.Provide(({ state }) =>{
-    let grid = createHoldGrid(state.hold.pieceId || 0, state.settings);
-    return Operation.Draft(({ state }) => { state.hold.grid = grid })
-})
-
-let replaceActivePiece = (previousHoldPiece: number) => Operation.Provide((_, { operations }) => {
-    return previousHoldPiece > 0 ? operations.spawn(previousHoldPiece) : operations.next;
-})
 
 let clearActivePiece = Operation.Draft(({ state }) => {
-    let playfield = state.playfield;
     // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
-    playfield.activePiece.ghostCoordinates.forEach(c => {
-        if (playfield.grid[c.y][c.x] < 0) {
-            playfield.grid[c.y][c.x] = 0;
+    state.activePiece.ghostCoordinates.forEach(c => {
+        let cell = state.playfieldGrid[c.y][c.x]
+        if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
+            state.playfieldGrid[c.y][c.x] = Cell.Empty;
         }
     });
-    playfield.activePiece.coordinates.forEach(c => {
-        playfield.grid[c.y][c.x] = 0;
+    state.activePiece.coordinates.forEach(c => {
+        state.playfieldGrid[c.y][c.x] = Cell.Empty;
     });
-    playfield.activePiece = {
+    state.activePiece = {
         id: null,
         location: null,
         coordinates: [],

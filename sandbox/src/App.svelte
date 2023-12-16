@@ -1,18 +1,17 @@
 <script lang="ts">
     import Game from "./Game.svelte";
 	import Form from "./Form.svelte";
-	import { SettingsPresets } from "../../build/definitions/settingsDefinitions";
 	import { defaultSettings } from "./ui";
 	import { presets as userPrefPresets } from "./config/userPrefs";
     import { UserPrefsAssociatedKey, userPrefsForm as baseUserPrefsForm } from "./form/userPrefsForm";
     import { produce } from "immer";
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
-    import type { State } from "../../build/definitions/stateTypes";
-    import type { OverallState } from "../../build/execStats";
+    import type MinoGame from "../../build/MinoGame";
+    import Settings from "../../build/definitions/Settings";
 
 	let userPrefs = userPrefPresets.alternate;
-	let gameState: OverallState<State>;
+	let gameState: MinoGame.State;
 
 	let onUserPrefsChanged = (
 		value: string | boolean | number, 
@@ -77,7 +76,7 @@
 	{/if}
 
 	<Game 
-		gameSettings={SettingsPresets.Guideline} 
+		gameSettings={Settings.Presets.Guideline} 
 		uiSettings={defaultSettings} 
 		userPrefs={userPrefs}
 		reportState={state => gameState = state}

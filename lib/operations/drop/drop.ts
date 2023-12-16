@@ -1,22 +1,11 @@
 import Operation from "../../definitions/CoreOperation";
-import { MovementType } from "../../definitions/inputDefinitions";
-import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
-import { findInstantShiftDistance, shouldContinueInstantShift } from "../../util/stateUtils";
+import MovementType from "../../definitions/MovementType";
+import continueInstantShift from "../shift/continueInstantShift";
 
-export default (dy: number, dropScoreType: DropScoreType) => Operation.Util.requireActiveGame(
+export default (dy: number) => Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
         operations.move(0, dy),
         operations.updateLockStatus(MovementType.Drop),
-        continueInstantShiftIfActive
+        continueInstantShift
     ))
 )
-
-/**
- * Note that ghost coordinates NEVER depend on y coordinate position. If the ghost and active piece 
- * both share coordinates, the active piece will be the one displayed on the playfield grid. This will give the 
- * effect of the ghost being partially "behind" the active piece
- */
-
-let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.Util.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
-})

@@ -1,6 +1,4 @@
-import Dependencies from "../definitions/CoreDependencies";
-import { Randomization, Settings } from "../definitions/settingsDefinitions";
-import State from "../definitions/CoreState";
+import Settings from "../definitions/Settings";
 import clearLines from "../operations/clearLines";
 import drop from "../operations/drop/drop";
 import hardDrop from "../operations/drop/hardDrop";
@@ -23,8 +21,6 @@ import addRns from "../operations/next/addRns";
 import next from "../operations/next/next";
 import prepareQueue from "../operations/next/prepareQueue";
 import removeRns from "../operations/next/removeRns";
-import syncPreviewGrid from "../operations/next/syncPreviewGrid";
-import validatePreviewGrids from "../operations/next/validatePreviewGrids";
 import rotate from "../operations/rotation/rotate";
 import validateRotationSettings from "../operations/rotation/validateRotationSettings";
 import cancelAutoShift from "../operations/shift/cancelAutoShift";
@@ -39,22 +35,14 @@ import startShiftLeftInput from "../operations/shift/startShiftLeftInput";
 import startShiftRightInput from "../operations/shift/startShiftRightInput";
 import spawn from "../operations/spawn";
 import recordTick from "../operations/lifecycle/recordTick";
-import { PresetRandomizers } from "./randomizers";
-import CoreDependencies from "../definitions/CoreDependencies";
+import PresetRandomizers from "./randomizers";
 
-export default function(settings: Settings): CoreDependencies {
-    let queueOperations;
-    switch(settings.randomization) {
-        case Randomization.Classic:
-            queueOperations = PresetRandomizers.Classic.operations;
-        case Randomization.Bag:
-            queueOperations = PresetRandomizers.NBag.operations;
-    }
+export default (settings: Settings) => {
     return { 
         defaultSettings: settings,
         operations: { 
-            enqueueFull: queueOperations.enqueueFull,
-            enqueueNext: queueOperations.enqueueNext, 
+            enqueueFull: PresetRandomizers.NBag.operations.enqueueFull,
+            enqueueNext: PresetRandomizers.NBag.operations.enqueueNext, 
             startDAS,
             startAutoShift,
             cancelAutoShift,
@@ -75,8 +63,6 @@ export default function(settings: Settings): CoreDependencies {
             endShiftLeftInput,
             endShiftRightInput, 
             prepareQueue,
-            syncPreviewGrid,
-            validatePreviewGrids,
             recordTick,
             spawn,
             rotate,

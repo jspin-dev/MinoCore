@@ -1,4 +1,5 @@
-import { LockScoreAction, Lines } from "../../../build/definitions/scoring/scoringDefinitions";
+import LockScoreAction from "../../../build/addons/guidelineStatistics/definitions/LockScoreAction";
+import Lines from "../../../build/addons/guidelineStatistics/definitions/Lines";
 import { BasicStat } from "../types";
 
 export default {

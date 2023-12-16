@@ -1,12 +1,15 @@
-import { Input } from "./inputDefinitions";
-import { ActivePiece, ShiftDirection } from "./playfieldDefinitions";
-import { Rotation } from "./rotationDefinitions";
-import { Grid } from "./shared/Grid";
-import { Step } from "./steps";
+import Input from "./Input";
+import Grid from "./Grid";
+import Step from "./Step";
+import ActivePiece from "./ActivePiece";
+import ShiftDirection from "./ShiftDirection";
+import Rotation from "./Rotation";
+import Cell from "./Cell";
+import PieceIdentifier from "./PieceIdentifier";
 
-type GameEvent = GameEvent.InputStartType | GameEvent.InputEndType | GameEvent.ClockTickType | GameEvent.DequeueType 
-    | GameEvent.EnqueueType | GameEvent.LockType | GameEvent.ShiftType | GameEvent.RotateType | GameEvent.DropType 
-    | GameEvent.HoldType | GameEvent.SpawnType
+type GameEvent = GameEvent.InputStartType | GameEvent.InputEndType | GameEvent.ClockTickType 
+    | GameEvent.DequeueType | GameEvent.EnqueueType | GameEvent.LockType | GameEvent.ShiftType 
+    | GameEvent.RotateType | GameEvent.DropType | GameEvent.HoldType | GameEvent.SpawnType
 
 namespace GameEvent {
 
@@ -26,37 +29,70 @@ namespace GameEvent {
 
     }
 
-    export type InputStartType = { classifier: Classifier.InputStart, input: Input.ActiveGame }
+    export interface InputStartType { 
+        classifier: Classifier.InputStart
+        input: Input.ActiveGame 
+    }
 
-    export type InputEndType = { classifier: Classifier.InputEnd, input: Input.ActiveGame }
+    export interface InputEndType { 
+        classifier: Classifier.InputEnd 
+        input: Input.ActiveGame 
+    }
 
-    export type ClockTickType = { classifier: Classifier.ClockTick }
+    export interface ClockTickType { 
+        classifier: Classifier.ClockTick 
+    }
 
-    export type DequeueType = { classifier: Classifier.Dequeue, dequeuedPiece: number, preview: number[] }
+    export interface DequeueType { 
+        classifier: Classifier.Dequeue
+        dequeuedPiece: PieceIdentifier
+        preview: PieceIdentifier[] 
+    }
 
-    export type EnqueueType = { classifier: Classifier.Enqueue, enqueuedPieces: number[], preview: number[] }
+    export interface EnqueueType { 
+        classifier: Classifier.Enqueue
+        enqueuedPieces: PieceIdentifier[]
+        preview: PieceIdentifier[] 
+    }
 
-    export type LockType = { classifier: Classifier.Lock, activePiece: ActivePiece, linesCleared: number[], playfield: Grid }
+    export interface LockType { 
+        classifier: Classifier.Lock 
+        activePiece: ActivePiece
+        linesCleared: number[]
+        playfield: Grid<Cell>
+    }
 
-    export type ShiftType = { classifier: Classifier.Shift, direction: ShiftDirection, dx: number, dasToWall: boolean }
+    export interface ShiftType { 
+        classifier: Classifier.Shift
+        direction: ShiftDirection
+        dx: number
+        dasToWall: boolean 
+    }
 
-    export type RotateType = { 
-        classifier: Classifier.Rotate, 
-        rotation: Rotation, 
-        previousPlayfield: Grid, 
-        playfield: Grid,
+    export interface RotateType { 
+        classifier: Classifier.Rotate
+        rotation: Rotation
+        previousPlayfield: Grid<Cell>
+        playfield: Grid<Cell>
         activePiece: ActivePiece
     }
 
-    export type DropType = { classifier: Classifier.Drop, dy: number, dropType: Step.DropStep }
-
-    export type HoldType = { 
-        classifier: Classifier.Hold,
-        previousHoldPiece: number,
-        holdPiece: number
+    export interface DropType { 
+        classifier: Classifier.Drop
+        dy: number
+        dropType: Step.DropStep 
     }
 
-    export type SpawnType = { classifier: Classifier.Spawn, activePiece: ActivePiece }
+    export interface HoldType { 
+        classifier: Classifier.Hold
+        previousHoldPiece: PieceIdentifier
+        holdPiece: PieceIdentifier
+    }
+
+    export interface SpawnType { 
+        classifier: Classifier.Spawn
+        activePiece: ActivePiece 
+    }
 
     export let InputStart = (input: Input.ActiveGame): InputStartType => {
         return { classifier: Classifier.InputStart, input }
@@ -70,15 +106,19 @@ namespace GameEvent {
         return { classifier: Classifier.ClockTick }
     }   
 
-    export let Dequeue = (dequeuedPiece: number, preview: number[]): DequeueType => {
+    export let Dequeue = (dequeuedPiece: PieceIdentifier, preview: PieceIdentifier[]): DequeueType => {
         return { classifier: Classifier.Dequeue, dequeuedPiece, preview }
     }   
     
-    export let Enqueue = (enqueuedPieces: number[], preview: number[]): EnqueueType => {
+    export let Enqueue = (enqueuedPieces: PieceIdentifier[], preview: PieceIdentifier[]): EnqueueType => {
         return { classifier: Classifier.Enqueue, enqueuedPieces, preview }
     }   
 
-    export let Lock = (activePiece: ActivePiece, linesCleared: number[], playfield: Grid): LockType => { 
+    export let Lock = (
+        activePiece: ActivePiece, 
+        linesCleared: number[], 
+        playfield: Grid<Cell>
+    ): LockType => { 
         return { classifier: Classifier.Lock, activePiece, linesCleared, playfield }
     }
 
@@ -88,8 +128,8 @@ namespace GameEvent {
 
     export let Rotate = (
         rotation: Rotation,  
-        previousPlayfield: Grid, 
-        playfield: Grid, 
+        previousPlayfield:  Grid<Cell>, 
+        playfield: Grid<Cell>, 
         activePiece: ActivePiece
     ): RotateType => {
         return { classifier: Classifier.Rotate, rotation, previousPlayfield, playfield, activePiece }
@@ -99,7 +139,7 @@ namespace GameEvent {
         return { classifier: Classifier.Drop, dy, dropType }
     }
 
-    export let Hold = (previousHoldPiece: number, holdPiece: number): HoldType => {
+    export let Hold = (previousHoldPiece: PieceIdentifier, holdPiece: PieceIdentifier): HoldType => {
         return { classifier: Classifier.Hold, previousHoldPiece, holdPiece }
     }   
     

@@ -1,25 +1,24 @@
+import ActivePiece from "../../definitions/ActivePiece";
 import Operation from "../../definitions/CoreOperation";
-import { MovementType } from "../../definitions/inputDefinitions";
-import { LockdownReset, LockdownStatus } from "../../definitions/lockdownDefinitions";
-import {  SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
-import { Settings } from "../../definitions/settingsDefinitions";
-import { Playfield } from "../../definitions/stateTypes";
+import LockdownInfo from "../../definitions/LockdownInfo";
+import LockdownReset from "../../definitions/LockdownReset";
+import LockdownStatus from "../../definitions/LockdownStatus";
+import MovementType from "../../definitions/MovementType";
+import Settings from "../../definitions/Settings";
+import SideEffect from "../../definitions/SideEffect";
 import { onFloor } from "../../util/stateUtils";
 
 export default (movementType: MovementType) => Operation.Util.requireActiveGame(
     Operation.Sequence(
         resetOnMoveProvider(movementType),
+        decrementMovesRemaining.applyIf( movementType == MovementType.Shift || movementType == MovementType.Rotate),
         onFloorProvider,
-        Operation.Util.applyIf(
-            movementType == MovementType.Shift || movementType == MovementType.Rotate, 
-            decrementMovesRemaining
-        ),
         setLargestY
     )
 )
 
 let resetLockdownStatus = Operation.Draft(({ state }) => { 
-    state.playfield.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(state.settings)) 
+    state.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(state.settings)) 
 })
 
 let getMoveLimit = (settings: Settings): number => {
@@ -33,17 +32,17 @@ let getMoveLimit = (settings: Settings): number => {
 }
 
 let decrementMovesRemaining = Operation.Draft(({ state }) => {
-    let lockdownStatus = state.playfield.lockdownInfo.status;
+    let lockdownStatus = state.lockdownInfo.status;
     if (lockdownStatus.classifier == LockdownStatus.Classifier.TimerActive) {
         let status = lockdownStatus as LockdownStatus.TimerActiveType;
         if (status.movesRemaining) {
-            state.playfield.lockdownInfo.status = LockdownStatus.TimerActive(status.movesRemaining - 1);
+            state.lockdownInfo.status = LockdownStatus.TimerActive(status.movesRemaining - 1);
         }
     }
 })
 
-let shouldResetTimerOnMove = (playfield: Playfield, settings: Settings): boolean => {
-    let lockdownStatus = playfield.lockdownInfo.status;
+let shouldResetTimerOnMove = (lockdownInfo: LockdownInfo, settings: Settings): boolean => {
+    let lockdownStatus = lockdownInfo.status;
     if (lockdownStatus.classifier == LockdownStatus.Classifier.TimerActive) {
         let taStatus = lockdownStatus as LockdownStatus.TimerActiveType;
         let resetMethod = settings.lockdownConfig.resetMethod;
@@ -57,11 +56,11 @@ let shouldResetTimerOnMove = (playfield: Playfield, settings: Settings): boolean
     return false;
 }
 
-let shouldResetTimerAndStatusOnDrop = (playfield: Playfield): boolean => {
-    let lockdownStatus = playfield.lockdownInfo.status;
+let shouldResetTimerAndStatusOnDrop = (lockdownInfo: LockdownInfo, activePiece: ActivePiece): boolean => {
+    let lockdownStatus = lockdownInfo.status;
     if (lockdownStatus.classifier != LockdownStatus.Classifier.NoLockdown) {
-        let y = playfield.activePiece.location.y;
-        if (y > playfield.lockdownInfo.largestY) {
+        let y = activePiece.location.y;
+        if (y > lockdownInfo.largestY) {
             return true;
         }
     }
@@ -69,12 +68,14 @@ let shouldResetTimerAndStatusOnDrop = (playfield: Playfield): boolean => {
 }
 
 let resetTimer = Operation.Draft(({ sideEffectRequests }) => {
-    sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.DropLock, TimerOperation.Start))
+    sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.DropLock, SideEffect.TimerOperation.Start))
 })
 
-let onFloorProvider = Operation.Provide(({ state }, { operations }) => {
-    if (onFloor(state)) {
-        let lockdownStatus = state.playfield.lockdownInfo.status;
+let onFloorProvider = Operation.Provide(({ state }, { operations, schema }) => {
+    let { activePiece, playfieldGrid } = state;
+    let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
+    if (onFloor(collisionPrereqisites)) {
+        let lockdownStatus = state.lockdownInfo.status;
         switch (lockdownStatus.classifier) {
             case LockdownStatus.Classifier.NoLockdown:
                 return Operation.Sequence(resetLockdownStatus, resetTimer);
@@ -89,12 +90,12 @@ let resetOnMoveProvider = (movementType: MovementType) => Operation.Provide(({ s
     switch (movementType) {
         case MovementType.Shift:
         case MovementType.Rotate:
-            if (shouldResetTimerOnMove(state.playfield, state.settings)) {
+            if (shouldResetTimerOnMove(state.lockdownInfo, state.settings)) {
                 return resetTimer;
             }
             break;
         case MovementType.Drop:
-            if (shouldResetTimerAndStatusOnDrop(state.playfield)) {
+            if (shouldResetTimerAndStatusOnDrop(state.lockdownInfo, state.activePiece)) {
                 return Operation.Sequence(resetTimer, resetLockdownStatus);
             }
     }
@@ -102,10 +103,8 @@ let resetOnMoveProvider = (movementType: MovementType) => Operation.Provide(({ s
 })
 
 let setLargestY = Operation.Draft(({ state }) => { 
-    let { activePiece, lockdownInfo } = state.playfield;
-    let y = activePiece.location.y;
-    if (y > lockdownInfo.largestY) {
-        state.playfield.lockdownInfo.largestY = y;
+    let y = state.activePiece.location.y;
+    if (y > state.lockdownInfo.largestY) {
+        state.lockdownInfo.largestY = y;
     }
 })
-

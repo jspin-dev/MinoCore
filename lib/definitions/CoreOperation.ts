@@ -1,10 +1,10 @@
 import CoreDependencies from "./CoreDependencies"
 import Operation from "./Operation"
-import { GameStatus } from "./metaDefinitions";
 import CoreState from "./CoreState";
-import { CoreOperationResult as OperationResult } from "./CoreOperationResult";
+import OperationResult from "./CoreOperationResult";
 
-import { produce, type Draft } from "immer";
+import { type Draft } from "immer";
+import GameStatus from "./GameStatus";
 
 namespace CoreOperation {
 
@@ -34,17 +34,10 @@ namespace CoreOperation {
 
     export namespace Util {
 
-        export let applyIf = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
-            condition: boolean, 
-            operation: Operation<R, D>
-        ): Operation<R, D> => {
-            return condition ? operation : Operation.None();
-        }
-    
         export let requireActiveGame = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
             operation: Operation<R, D>
         ): Operation<R, D> => Operation.Provide(({ state }) => {
-            return state.meta?.status != GameStatus.Active ? Operation.None() : operation;
+            return state.status == GameStatus.Active ? operation : Operation.None();
         })
 
     }

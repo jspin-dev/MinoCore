@@ -1,6 +1,4 @@
-import type { Input as GameInputType } from "../../../build/definitions/inputDefinitions";
-import { Input as GameInput } from "../../../build/definitions/inputDefinitions";
-import { EditorAssociatedValue } from "./editorForm";
+import GameInput from "../../../build/definitions/Input";
 import { InputField, Checkbox, Dropdown, FormEntry } from "./forms";
 
 export namespace UserPrefsAssociatedKey {
@@ -15,7 +13,7 @@ export namespace UserPrefsAssociatedKey {
     
     export type GameInputType = {
         classifier: Classifier.GameInput,
-        value: GameInputType.Any
+        value: GameInput
     }
 
     export type GameInputPresetType = {
@@ -27,7 +25,7 @@ export namespace UserPrefsAssociatedKey {
         value: string
     }
 
-    export let GameInput = (value: GameInputType.Any): GameInputType => {
+    export let GameInput = (value: GameInput): GameInputType => {
         return { classifier: Classifier.GameInput, value }
     }
 
@@ -44,7 +42,7 @@ namespace Entry {
 
     export let Keybinding = (
         label: string, 
-        gameInput: GameInput.Any, 
+        gameInput: GameInput, 
         options: FormEntry.Options = FormEntry.DefaultOptions
     ) => {
         return { 

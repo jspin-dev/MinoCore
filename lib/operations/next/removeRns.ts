@@ -5,7 +5,6 @@ export default (n: number) => {
         throw "Number of items to remove from the list must be an integer greater than 0"
     }
     return Operation.Draft(({ state }) => { 
-        let randomNumbers = state.preview.randomNumbers;
-        randomNumbers.splice(randomNumbers.length - n, n);
+        state.randomNumbers.splice(state.randomNumbers.length - n, n);
     })
 }   

@@ -1,11 +1,14 @@
 import GameEvent from "../../definitions/GameEvent";
 import Operation from "../../definitions/CoreOperation";
-import { GameOverCondition, GameStatus } from "../../definitions/metaDefinitions";
-import { Playfield } from "../../definitions/stateTypes";
+import Grid from "../../definitions/Grid";
+import ActivePiece from "../../definitions/ActivePiece";
+import GameOverCondition from "../../definitions/GameOverCondition";
+import GameStatus from "../../definitions/GameStatus";
+import Cell from "../../definitions/Cell";
 
 export default Operation.Util.requireActiveGame(
     Operation.Provide(({ state }, { operations }) => {
-        let linesToClear = getLinesToClear(state.playfield);
+        let linesToClear = getLinesToClear(state.activePiece, state.playfieldGrid);
         return Operation.Sequence(
             recordLockEvent(linesToClear),
             operations.clearLines(linesToClear),
@@ -16,25 +19,24 @@ export default Operation.Util.requireActiveGame(
 )
 
 let recordLockEvent = (linesToClear: number[]) => Operation.Draft(({ state, events }) => { 
-    events.push(GameEvent.Lock(state.playfield.activePiece, linesToClear, state.playfield.grid)) 
+    events.push(GameEvent.Lock(state.activePiece, linesToClear, state.playfieldGrid)) 
 })
 
-let nextProvider = Operation.Provide(({ state }, { operations }) => {
-    let { playfield, settings } = state;
-    if (playfield.activePiece.coordinates.every(c => c.y < settings.ceilingRow)) {
+let nextProvider = Operation.Provide(({ state }, { operations, schema }) => {
+    let { settings, activePiece } = state;
+    if (activePiece.coordinates.every(c => c.y < schema.playfield.ceiling)) {
         return gameOverClearActivePiece;
     } else {
         return operations.next;
     }
 })
 
-let enableHold = Operation.Draft(({ state }) => { state.hold.enabled = true })
+let enableHold = Operation.Draft(({ state }) => { state.holdEnabled = true })
 
-let getLinesToClear = (playfield: Playfield): number[] => {
-    let { activePiece, grid } = playfield;
+let getLinesToClear = (activePiece: ActivePiece, playfieldGrid: Grid<Cell>): number[] => {
     return activePiece.coordinates.reduce((accum, c) => {
         if (!accum.includes(c.y)) {
-            let rowFull = grid[c.y].every(block => block > 0);
+            let rowFull = playfieldGrid[c.y].every(block => block.classifier != Cell.Classifier.Empty);
             if (rowFull) {
                 return [...accum, c.y];
             }
@@ -44,16 +46,16 @@ let getLinesToClear = (playfield: Playfield): number[] => {
 }   
 
 let gameOverClearActivePiece = Operation.Draft(({ state }) => {
-    state.meta.status = GameStatus.GameOver(GameOverCondition.Lockout)
+    state.status = GameStatus.GameOver(GameOverCondition.Lockout)
 
-    let playfield = state.playfield;
     // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
-    playfield.activePiece.ghostCoordinates.forEach(c => {
-        if (playfield.grid[c.y][c.x] < 0) {
-            playfield.grid[c.y][c.x] = 0;
+    state.activePiece.ghostCoordinates.forEach(c => {
+        let cell = state.playfieldGrid[c.y][c.x];
+        if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
+            state.playfieldGrid[c.y][c.x] = Cell.Empty;
         }
     });
-    playfield.activePiece = {
+    state.activePiece = {
         id: null,
         location: null,
         coordinates: [],

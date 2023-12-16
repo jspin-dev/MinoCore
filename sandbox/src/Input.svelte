@@ -1,6 +1,6 @@
 <script lang="ts">
     import { InputField, getKeycodeDisplayValue } from "./form/forms";
-    export let field: InputField.Any;
+    export let field: InputField;
     export let disabled: boolean = false;
     export let onChange: (value: string | boolean | number) => void
 

@@ -1,25 +1,36 @@
 <script lang="ts">
-    import type { Grid } from "../../build/types/sharedTypes";
+    import Cell from "../../build/definitions/Cell";
+    import type Grid from "../../build/definitions/Grid";
 
     export let blockSize = 30;
     export let dimmed = false;
-    export let gridData: Grid = [];
+    export let gridData: Grid<Cell> = [];
     export let colors: String[] = [];
     export let borderlessHeight = 0;
     export let showBorders = true;
     export let concealBlocks = false;
+
+    let colorFor = (cell: Cell): String => {
+        if (concealBlocks) { return colors[0] }
+        switch (cell.classifier) {
+            case Cell.Classifier.Mino:
+                return colors[cell.piece as number];
+            case Cell.Classifier.Empty:
+                return colors[0];
+        }
+    }
 </script>
 
 <div class='grid' class:dimmed={dimmed}>
     {#each gridData as row, i}
     <div class='row'>
-        {#each row as pieceId}
+        {#each row as cell}
             <div class='block' 
                 class:game-block-bordered="{showBorders && i >= borderlessHeight}"
                 class:game-block-bottom-bordered="{showBorders && i == borderlessHeight-1}"
                 class:blank-border="{showBorders && i < borderlessHeight}"
-                class:dimmed="{pieceId < 0}" 
-                style="--block-color: {colors[concealBlocks ? 0 : Math.abs(pieceId)]}; 
+                class:dimmed="{cell.classifier == Cell.Classifier.Mino && cell.ghost}" 
+                style="--block-color: {colorFor(cell)}; 
                        --block-size: {blockSize}px"/>
         {/each}
     </div>

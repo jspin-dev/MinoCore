@@ -1,23 +1,23 @@
 import GameEvent from "../../definitions/GameEvent";
 import Operation from "../../definitions/CoreOperation";
-import { Input } from "../../definitions/inputDefinitions";
-import { Rotation } from "../../definitions/rotationDefinitions";
+import Input from "../../definitions/Input";
 import completePendingMovement from "./completePendingMovement";
 import CoreDependencies from "../../definitions/CoreDependencies";
+import Rotation from "../../definitions/Rotation";
 
 export default (input: Input.ActiveGame) => Operation.Provide(({ state }, depencencies) => {
-    if (state.meta.activeInputs.includes(input)) {
+    if (state.activeInputs.includes(input)) {
         return Operation.None;
     }
     return Operation.Sequence(
-        completePendingMovement,
+        completePendingMovement(depencencies.schema),
         recordInputStart(input),
         performInputAction(input, depencencies)
     );
 })
 
 let recordInputStart = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => { 
-    state.meta.activeInputs.push(input);
+    state.activeInputs.push(input);
     events.push(GameEvent.InputStart(input));
 })
 

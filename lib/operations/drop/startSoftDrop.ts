@@ -1,22 +1,23 @@
 import Operation from "../../definitions/CoreOperation";
 import PendingMovement from "../../definitions/PendingMovement";
-import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions";
-import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
+import SideEffect from "../../definitions/SideEffect";
 import { findInstantDropDistance } from "../../util/stateUtils";
 
 export default Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
-        Operation.Draft(({ state }) => { state.meta.pendingMovement = PendingMovement.SoftDrop(0) }),
-        operations.drop(1, DropScoreType.Soft), 
-        Operation.Draft(({ state }) => { state.meta.softDropActive = true }),
+        Operation.Draft(({ state }) => { state.pendingMovement = PendingMovement.SoftDrop(0) }),
+        operations.drop(1), 
+        Operation.Draft(({ state }) => { state.softDropActive = true }),
         autoOrInstantDrop
     ))
 )
 
-let autoOrInstantDrop = Operation.Provide(({ state }, { operations }) => {
+let autoOrInstantDrop = Operation.Provide(({ state }, { operations, schema }) => {
+    let { activePiece, playfieldGrid } = state;
+    let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     let autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
-        sideEffectRequests.push(SideEffectRequest.TimerInterval(TimerName.AutoDrop, state.settings.softDropInterval))
+        sideEffectRequests.push(SideEffect.Request.TimerInterval(SideEffect.TimerName.AutoDrop, state.settings.softDropInterval))
     })
-    return state.settings.softDropInterval == 0 ? operations.drop(findInstantDropDistance(state), DropScoreType.Soft) : autoDrop;
+    return state.settings.softDropInterval == 0 ? operations.drop(findInstantDropDistance(collisionPrereqisites)) : autoDrop;
 })
 

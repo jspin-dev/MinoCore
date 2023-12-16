@@ -1,7 +1,7 @@
 import Operation from "../../definitions/CoreOperation";
-import { SideEffectRequest, TimerName, TimerOperation } from "../../definitions/metaDefinitions";
+import SideEffect from "../../definitions/SideEffect";
 
 export default Operation.Draft(({ sideEffectRequests }) => {
-    sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.DAS, TimerOperation.Cancel))
-    sideEffectRequests.push(SideEffectRequest.TimerOperation(TimerName.AutoShift, TimerOperation.Cancel))
+    sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.DAS, SideEffect.TimerOperation.Cancel))
+    sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoShift, SideEffect.TimerOperation.Cancel))
 })

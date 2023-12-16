@@ -1,40 +1,37 @@
-import { Settings } from "../../definitions/settingsDefinitions";
-import { Offset, Rotation } from "../../definitions/rotationDefinitions";
 import { gridToList } from "../../util/sharedUtils";
-import { 
-    willCollide, 
-    findInstantShiftDistance, 
-    shouldContinueInstantSoftDrop, 
-    shouldContinueInstantShift, 
-    findInstantDropDistance 
-} from "../../util/stateUtils";
-import { MovementType } from "../../definitions/inputDefinitions";
-import { KickInfo, Playfield } from "../../definitions/stateTypes";
+import MovementType from "../../definitions/MovementType";
 import Operation from "../../definitions/CoreOperation";
-import { DropScoreType } from "../../definitions/scoring/scoringDefinitions";
 import GameEvent from "../../definitions/GameEvent";
+import continueInstantSoftDrop from "../drop/continueInstantSoftDrop";
+import continueInstantShift from "../shift/continueInstantShift";
+import CoreState from "../../definitions/CoreState";
+import Rotation from "../../definitions/Rotation";
+import Cell from "../../definitions/Cell";
+import Orientation from "../../definitions/Orientation";
+import Coordinate from "../../definitions/Coordinate";
+import GameSchema from "../../definitions/GameSchema";
 
 export default (rotation: Rotation) => Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => Operation.Sequence(
         operations.validateRotationSettings,
         rotate(rotation),
-        continueIntantSoftDropIfActive,
-        continueInstantShiftIfActive
+        continueInstantSoftDrop,
+        continueInstantShift
     ))
 )
 
-let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations }) => {
-    let previousPlayfield = [...state.playfield.grid.map(row => [...row])];
-    let kickInfo = getKickInfo(rotation, state.playfield, state.settings);
+let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations, schema }) => {
+    let previousPlayfield = [...state.playfieldGrid.map(row => [...row])];
+    let kickInfo = getKickInfo(rotation, state, schema);
     if (kickInfo == null) {
         return Operation.None;
     } else {
         return Operation.Sequence(
             applyKickInfo(kickInfo),
-            Operation.Util.applyIf(kickInfo.unadjustedCoordinates != null, operations.refreshGhost),
+            operations.refreshGhost.applyIf(kickInfo.unadjustedCoordinates != null),
             operations.updateLockStatus(MovementType.Rotate),
             Operation.Draft(({ state, events }) => { 
-                events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfield.grid, state.playfield.activePiece)) 
+                events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfieldGrid, state.activePiece)) 
             })
         )
     }
@@ -42,20 +39,18 @@ let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations 
 
 let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo) => {
     return Operation.Draft(({ state }) => {
-        let playfield = state.playfield;
-        let { coordinates, location, id } = playfield.activePiece;
+        let { coordinates, location, id } = state.activePiece;
     
         if (newOrientation != undefined) {
-            playfield.activePiece.orientation = newOrientation;
+            state.activePiece.orientation = newOrientation;
         }
         if (matchingOffset && unadjustedCoordinates) {
-            playfield.activePiece.activeRotation = true;
-            playfield.spinSnapshot = playfield.grid.map(row => [...row]);
-            coordinates.forEach(c => playfield.grid[c.y][c.x] = 0);
+            state.activePiece.activeRotation = true;
+            coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Empty);
             coordinates.forEach((c, i) => {
                 coordinates[i].x = unadjustedCoordinates[i].x + matchingOffset[0];
                 coordinates[i].y = unadjustedCoordinates[i].y + matchingOffset[1];
-                playfield.grid[c.y][c.x] = id;
+                state.playfieldGrid[c.y][c.x] = Cell.Mino(id);
             });
         
             location.x += matchingOffset[0];
@@ -64,38 +59,36 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
     })
 }
 
-let continueIntantSoftDropIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.Util.applyIf(shouldContinueInstantSoftDrop(state), operations.drop(findInstantDropDistance(state), DropScoreType.Soft))
-})
+let getKickInfo = (n: Rotation, state: CoreState, schema: GameSchema): KickInfo | null => {
+    let { activePiece, generatedRotationGrids } = state;
 
-let continueInstantShiftIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.Util.applyIf(shouldContinueInstantShift(state), operations.shift(findInstantShiftDistance(state)));
-})
+    let newOrientation: Orientation = (n + activePiece.orientation + 4) % 4; // + 4 results cocerces non-negative before mod
 
-let getKickInfo = (n: Rotation, playfield: Playfield, settings: Settings): KickInfo => {
-    let { activePiece } = playfield;
-    let { kickTables, rotationGrids } = settings.rotationSystem;
-
-    let newOrientation = (n + activePiece.orientation + 4) % 4; // + 4 results cocerces non-negative before mod
-
-    let kickTableInfo = kickTables.find(info => info.pieces.includes(activePiece.id));
-    if (!kickTableInfo) {
-        return { newOrientation }
-    }
-
-    let offsetList: Offset[] = kickTableInfo.tables[activePiece.orientation][newOrientation].map(it => [...it]);
-    let newMatrix = rotationGrids[activePiece.id-1][newOrientation].map(it => [...it])
+    let pieceDefinition = schema.pieces[activePiece.id];
+    let offsetList = pieceDefinition.kickTable[activePiece.orientation][newOrientation];
+    let newMatrix = generatedRotationGrids[activePiece.id][newOrientation].map(it => [...it])
     let unadjustedCoordinates = gridToList(newMatrix, activePiece.location.x, activePiece.location.y, 1);
-    let matchingOffset = offsetList.find(offsetPair => {
-        return !willCollide(unadjustedCoordinates, offsetPair[0], offsetPair[1], playfield, settings);
+    let matchingOffset = offsetList.find(offset => {
+        return pieceDefinition.rotationValidator.isValid(
+            activePiece, 
+            state.playfieldGrid, 
+            schema.playfield, 
+            unadjustedCoordinates,
+             offset
+        );
     });
     if (!matchingOffset) {
         return null;
     }
-
     return {
         newOrientation,
         matchingOffset,
         unadjustedCoordinates
     }
+}
+
+interface KickInfo {
+    newOrientation: Orientation
+    matchingOffset?: GameSchema.Offset
+    unadjustedCoordinates?: Coordinate[]
 }

@@ -1,4 +1,3 @@
-
 import { produce, type Draft } from "immer";
 
 type Operation<S, D> = Operation.Drafter<S> | Operation.Provider<S, D>
@@ -7,14 +6,15 @@ namespace Operation {
 
     export enum Classifier { Provider, Drafter }
 
-
     export interface Drafter<S> { 
-        classifier: Classifier.Drafter
+        classifier: Classifier.Drafter,
+        applyIf: (condition: boolean) => Drafter<S>
         execute: (state: S) => S
     }
 
     export interface Provider<S, D> { 
-        classifier: Classifier.Provider
+        classifier: Classifier.Provider,
+        applyIf: (condition: boolean) => Provider<S, D>
         execute: (state: S, dependencies: D) => S
     }
 
@@ -30,6 +30,7 @@ namespace Operation {
     export function Draft<S>(draft: (draft: Draft<S>) => void): Drafter<S> {
         return { 
             classifier: Classifier.Drafter, 
+            applyIf: (condition) => { return  Draft(condition ? draft : () => {}) },
             execute: state => produce(state, draft)
         }
     }
@@ -41,16 +42,18 @@ namespace Operation {
     export function Provide<S, D>(provide: (state: S, dependencies: D) => Operation<S, D>): Provider<S, D> {
         return { 
             classifier: Classifier.Provider, 
+            applyIf: (condition) => { return condition ? Provide(provide) : Operation.None() },
             execute: (state, dependencies) => executeOperation(state, dependencies, provide(state, dependencies))
         }
     }
 
     /**
-     * Sequence is an operation which is composed of a list of other operations which will be performed sequentally 
+     * Sequence pesudo operation (technically it is a Provider) which is composed of operations meant to be performed sequentally 
      */
     export function Sequence<S, D>(...operations: Operation<S, D>[]): Provider<S, D> {
         return { 
             classifier: Classifier.Provider, 
+            applyIf: (condition) => { return condition ? Sequence(...operations) : Operation.None() },
             execute: (state, dependencies) => {
                 return operations.reduce((current, operation) => executeOperation(current, dependencies, operation), state); 
             }
@@ -67,7 +70,7 @@ namespace Operation {
                 return operation.execute(state);
         }
     }
-    
+
 }
 
 export default Operation

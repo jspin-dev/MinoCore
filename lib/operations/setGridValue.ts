@@ -1,6 +1,7 @@
+import Cell from "../definitions/Cell";
+import Coordinate from "../definitions/Coordinate";
 import Operation from "../definitions/CoreOperation";
-import { Coordinate } from "../definitions/playfieldDefinitions";
 
-export default (coordinate: Coordinate, value: number) => Operation.Draft(({ state }) => {
-    state.playfield.grid[coordinate.y][coordinate.x] = value;
+export default (coordinate: Coordinate, value: Cell) => Operation.Draft(({ state }) => {
+    state.playfieldGrid[coordinate.y][coordinate.x] = value;
 })

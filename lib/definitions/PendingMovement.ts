@@ -8,11 +8,20 @@ namespace PendingMovement {
         SoftDrop
     }
 
-    export type RightShiftType = { classifier: Classifier.RightShift, dx: number }
+    export interface RightShiftType {
+        classifier: Classifier.RightShift
+        dx: number 
+    }
 
-    export type LeftShiftType = { classifier: Classifier.LeftShift, dx: number }
+    export interface LeftShiftType { 
+        classifier: Classifier.LeftShift
+        dx: number 
+    }
 
-    export type SoftDropType = { classifier: Classifier.SoftDrop, dy: number }
+    export interface SoftDropType { 
+        classifier: Classifier.SoftDrop
+        dy: number 
+    }
 
     export let RightShift = (dx: number): RightShiftType => {
         return { classifier: Classifier.RightShift, dx }

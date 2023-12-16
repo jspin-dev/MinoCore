@@ -1,24 +1,21 @@
 <script lang="ts">
-    import { onMount } from 'svelte'
-	import MinoGame from "../../build/MinoGame";
-	import type { Settings } from "../../build/definitions/settingsDefinitions";
-    import { Input } from "../../build/definitions/inputDefinitions";
+    import { onMount } from 'svelte';
     
-	import Grid from "./Grid.svelte";
-    import { GameStatus } from "../../build/definitions/metaDefinitions";
-    import { getKeycodeDisplayValue } from "./form/forms";
-
-    import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
-    import type CoreState from '../../build/definitions/CoreState';
+	import MinoGame from "../../build/MinoGame";
+	import type Settings from "../../build/definitions/Settings";
+    import Input from "../../build/definitions/Input";
+    import GameStatus from "../../build/definitions/GameStatus";
     import guidelineDependencies from "../../build/dependencies/guidelineDependencies";
-    import type { OverallState } from '../../build/execStats';
-    import type { Statistics } from '../../build/definitions/Statistics';
+
+    import { getKeycodeDisplayValue } from "./form/forms";
+    import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
+    import Grid from "./Grid.svelte";
 
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
     export let gameSettings: Settings;
-    export let state: OverallState<CoreState, Statistics>;
-    export let reportState: (state: OverallState<CoreState, Statistics>) => void;
+    export let state: MinoGame.State;
+    export let reportState: (state: MinoGame.State) => void;
 
 	let game = new MinoGame(guidelineDependencies(gameSettings));
 	game.onStateChanged = reportState;
@@ -45,15 +42,15 @@
     let onFocus = () => containerInFocus = true
     let onBlur = () => containerInFocus = false
 
-    let getDisplayValueForInput = (input: Input.Any) => {
+    let getDisplayValueForInput = (input: Input) => {
         let keycode = Object.entries(userPrefs.keybindings).find(entry => entry[1] == input)[0];
         return getKeycodeDisplayValue(keycode)
     }
 
-	$: playfieldGrid = state.core.playfield.grid;
+	$: playfieldGrid = state.core.playfieldGrid;
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
-	$: inactiveGame = state.core.meta.status != GameStatus.Active;
-    $: isPaused = state.core.meta.status === GameStatus.Suspended;
+	$: inactiveGame = state.core.status != GameStatus.Active;
+    $: isPaused = state.core.status === GameStatus.Suspended;
     
     $: game.run(ops => ops.setSDF(userPrefs.sdf));
     $: game.run(ops => ops.setDAS(userPrefs.das));
@@ -62,7 +59,6 @@
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-
 <div class='main-container' 
     tabindex="0" 
     bind:this={container}
@@ -71,15 +67,15 @@
     on:focus={onFocus}
     on:blur={onBlur}>
     <div class='game-container'>
-        <Grid
-            gridData={state.core.hold.grid} 
+        <!-- <Grid
+            gridData={state.previewGrids.holdPreview} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={state.core.hold.grid.length}
+            borderlessHeight={state.previewGrids.holdPreview.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
-            concealBlocks={isPaused}/>
-        {#key state.core.playfield}
+            concealBlocks={isPaused}/> -->
+        {#key state.core.playfieldGrid}
             <Grid 
                 gridData={visiblePlayfieldGrid} 
                 colors={uiSettings.blockColors} 
@@ -89,14 +85,14 @@
                 showBorders={userPrefs.showGrid}
                 concealBlocks={isPaused}/>
         {/key}
-        <Grid
-            gridData={state.core.preview.grid} 
+        <!-- <Grid
+            gridData={state.previewGrids.nextPreview} 
             colors={uiSettings.blockColors} 
-            borderlessHeight={state.core.preview.grid.length}
+            borderlessHeight={state.previewGrids.nextPreview.length}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
-            concealBlocks={isPaused}/>
+            concealBlocks={isPaused}/> -->
     </div>  
     <div class='banner-container'>
         {#if !containerInFocus && userPrefs.showFocusBanner}
@@ -105,7 +101,7 @@
             <div class='banner'>
                 {bannerPauseMessage.replace("%%", getDisplayValueForInput(Input.Pause))}
             </div>
-        {:else if state.core.meta.status.classifier === GameStatus.Classifier.GameOver}
+        {:else if state.core.status.classifier === GameStatus.Classifier.GameOver}
             <div class='banner'>
                 {bannerGameOverMessage.replace("%%", getDisplayValueForInput(Input.Restart))}
             </div>  

@@ -1,17 +1,17 @@
 import GameEvent from "../../definitions/GameEvent";
 import Operation from "../../definitions/CoreOperation";
-import { Input } from "../../definitions/inputDefinitions";
-import { SideEffectRequest, TimerName } from "../../definitions/metaDefinitions";
+import Input from "../../definitions/Input";
 import completePendingMovement from "./completePendingMovement";
+import SideEffect from "../../definitions/SideEffect";
 
 /**
  * Called when a user input ends. Usually this would be the release of a keypress
  */
-export default (input: Input.ActiveGame) => Operation.Sequence(
-    completePendingMovement,
+export default (input: Input.ActiveGame) => Operation.Provide((_, { schema }) => Operation.Sequence(
+    completePendingMovement(schema),
     recordInputEnd(input),
     provideInputEndAction(input)
-)
+))
 
 let provideInputEndAction = (input: Input.ActiveGame) => Operation.Provide((_, { operations }) => {
     switch(input) {
@@ -27,12 +27,11 @@ let provideInputEndAction = (input: Input.ActiveGame) => Operation.Provide((_, {
 })
 
 let recordInputEnd = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => {
-    state.meta.activeInputs = state.meta.activeInputs.filter(i => i != input)
+    state.activeInputs = state.activeInputs.filter(i => i != input)
     events.push(GameEvent.InputEnd(input));
 })
 
 let cancelSoftDrop = Operation.Draft(({ state, sideEffectRequests }) => {
-    let { meta, settings } = state;
-    meta.softDropActive = false;
-    sideEffectRequests.push(SideEffectRequest.TimerInterval(TimerName.AutoDrop, settings.dropInterval))
+    state.softDropActive = false;
+    sideEffectRequests.push(SideEffect.Request.TimerInterval(SideEffect.TimerName.AutoDrop, state.settings.dropInterval))
 })

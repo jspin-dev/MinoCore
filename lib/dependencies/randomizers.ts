@@ -1,35 +1,36 @@
 import GameEvent from "../definitions/GameEvent";
 import Operation from "../definitions/CoreOperation";
-import { SideEffectRequest } from "../definitions/metaDefinitions";
-import { shuffle } from "../util/sharedUtils";
+import SideEffect from "../definitions/SideEffect";
+import PieceIdentifier from "../definitions/PieceIdentifier";
 
-export namespace PresetRandomizers {
+namespace PresetRandomizers {
 
-    let enqueue = (...pieceIds: number[]) => Operation.Draft(({ state, events }) => { 
-        state.preview.queue.push(...pieceIds);
-        events.push(GameEvent.Enqueue(pieceIds, state.preview.queue)) ;
+    let enqueue = (...pieces: PieceIdentifier[]) => Operation.Draft(({ state, events }) => { 
+        state.previewQueue.push(...pieces);
+        events.push(GameEvent.Enqueue(pieces, state.previewQueue)) ;
     })
 
     export namespace NBag {
 
-        let insertBag = Operation.Provide(({ state }, { operations }) => {
-            let { preview, settings } = state;
-            if (preview.queue.length >= settings.nextPreviewSize) {
+        let insertBag = Operation.Provide(({ state }, { operations, schema }) => {
+            let { previewQueue, settings } = state;
+            if (previewQueue.length >= settings.nextPreviewSize) {
                 return Operation.None;
             }
-            let n = settings.rotationSystem.shapes.length;  
-            if (preview.randomNumbers.length < n-1) {
+            
+            let pieces = Object.values(schema.pieces).map(def => def.id);
+
+            if (state.randomNumbers.length < pieces.length-1) {
                 throw "Insufficient random numbers to queue a new bag";
             }
         
-            let randomNumbers = preview.randomNumbers.slice(1-n); // Takes the last n-1 numbers
+            let randomNumbers = state.randomNumbers.slice(1-pieces.length); // Takes the last n-1 numbers
         
             // [1, 2, 3, ...n]
-            let unshuffled = Array.from(Array(n).keys()).map(i => i + 1);
-            let shuffled = shuffle(unshuffled, randomNumbers);
+            let shuffled = shuffle(pieces, randomNumbers);
             
             let addRnsRequest = Operation.Draft(({ sideEffectRequests }) => {
-                sideEffectRequests.push(SideEffectRequest.Rng(randomNumbers.length))
+                sideEffectRequests.push(SideEffect.Request.Rng(randomNumbers.length))
             })
             return Operation.Sequence(
                 enqueue(...shuffled),
@@ -38,14 +39,13 @@ export namespace PresetRandomizers {
             )
         })
     
-        let enqueueFull = Operation.Provide(({ state }, { operations }) => {
+        let enqueueFull = Operation.Provide(({ state }, { schema }) => {
             let previewSize = state.settings.nextPreviewSize;
-            let n = state.settings.rotationSystem.shapes.length;
+            let n = Object.values(schema.pieces).length;
             let bagCount = Math.ceil(previewSize / n);
             return Operation.Sequence(
-                Operation.Draft(({ state }) => { state.preview.queue = [] }),
-                ...[...Array(bagCount)].map(() => insertBag),
-                operations.syncPreviewGrid
+                Operation.Draft(({ state }) => { state.previewQueue = [] }),
+                ...[...Array(bagCount)].map(() => insertBag)
             );
         })
     
@@ -58,27 +58,29 @@ export namespace PresetRandomizers {
 
     export namespace Classic {
 
-        let enqueueNext = Operation.Provide(({ state }) => {
-            if (state.preview.randomNumbers.length == 0) {
+        let enqueueNext = Operation.Provide(({ state }, { schema }) => {
+            if (state.randomNumbers.length == 0) {
                 throw "Insufficient random numbers to queue a new piece";
             }
-            let randomNumber = state.preview.randomNumbers[0];
-            let numberOfPieces = state.settings.rotationSystem.shapes.length;
-            let randomPiece = Math.floor(randomNumber * numberOfPieces) + 1;
+            let randomNumber = state.randomNumbers[0];
+            let pieces = Object.values(schema.pieces).map(def => def.id);
+            let randomPiece = pieces[Math.floor(randomNumber * pieces.length)];
             return enqueue(randomPiece);
         })
     
-        let enqueueFull = Operation.Provide(({ state }, { operations }) => {
+        let enqueueFull = Operation.Provide(({ state }, { operations, schema }) => {
             let previewSize = state.settings.nextPreviewSize;
-            let n = state.settings.rotationSystem.shapes.length;
+            let pieces = Object.values(schema.pieces).map(def => def.id);
+            let randomNumbers = state.randomNumbers.slice(1 - pieces.length); // Takes the last n-1 numbers
             let queue = [];
             for (let i = 0; i < previewSize; i++) {
-                queue.push(Math.floor(Math.random() *  n) + 1);
+                let rndNum = Math.floor(randomNumbers[i] * pieces.length)
+                queue.push(pieces[rndNum]);
             }
             return Operation.Sequence(
-                Operation.Draft(({ state }) => { state.preview.queue = [] }),
+                Operation.Draft(({ state }) => { state.previewQueue = [] }),
                 enqueue(...queue),
-                operations.syncPreviewGrid
+                operations.removeRns(randomNumbers.length)
             );
         })
     
@@ -90,3 +92,22 @@ export namespace PresetRandomizers {
     }
 
 }
+
+let shuffle = <T>(
+    unshuffledBag: readonly T[], 
+    randomNumbers: readonly number[]
+): T[] => {
+    if (unshuffledBag.length != randomNumbers.length + 1) {
+        throw "Bag length must be rns length + 1";
+    }
+    let bag = [...unshuffledBag];
+    return [
+        ...randomNumbers.map(randomNum => {
+            var randomPieceIndex = Math.floor(randomNum * bag.length);
+            return bag.splice(randomPieceIndex, 1)[0];
+        }),
+        bag[0]
+    ]
+}
+
+export default PresetRandomizers;

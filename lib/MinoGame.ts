@@ -1,78 +1,86 @@
-import { Input } from "./definitions/inputDefinitions";
-import { TimerName, SideEffectRequest } from "./definitions/metaDefinitions";
+import Input from "./definitions/Input";
 import BasePausableTimer from "./util/async/BasePausableTimer";
 import PausableInterval from "./util/async/PausableInterval";
 import PausableTimeout from "./util/async/PausableTimeout";
-import { DropScoreType } from "./definitions/scoring/scoringDefinitions";
-import GenericOperation from "./definitions/Operation";
-import { Settings } from "./definitions/settingsDefinitions";
-import { OverallState, executeStats as execute } from "./execStats";
-import { Statistics } from "./definitions/Statistics";
+import Operation from "./definitions/Operation";
+import Settings from "./definitions/Settings";
+import Statistics from "./addons/guidelineStatistics/definitions/GuidelineStatistics";
 import CoreDependencies from "./definitions/CoreDependencies";
 import CoreState from "./definitions/CoreState";
 import GenericCoreOperations from "./definitions/CoreOperations";
-import { CoreOperationResult as OperationResult } from "./definitions/CoreOperationResult";
+import OperationResult from "./definitions/CoreOperationResult";
+import PreviewGridState from "./addons/gridBuilder/definitions.ts/GridState";
+import updateStatistics from "./addons/guidelineStatistics/guidelineStatsAddon";
+// import syncPreviewGrids from "./addons/gridBuilder/gridBuilderAddon";
+import SideEffect from "./definitions/SideEffect";
+import schema from "./schemas/srsSchema";
 
-type AllOperations = GenericCoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>
-type Operation = GenericOperation<OperationResult<CoreState>, CoreDependencies>
-type State = OverallState<CoreState, Statistics>
+type AllCoreOperations = GenericCoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>
+type CoreOperation = Operation<OperationResult<CoreState>, CoreDependencies>
+type StatisticsOperation = Operation<Statistics, void>
 
-export default class MinoGame {
+class MinoGame {
 
-    timers: Map<TimerName, BasePausableTimer>
-    state: State;
+    timers: Map<SideEffect.TimerName, BasePausableTimer>
+    state: MinoGame.State;
     defaultSettings: Settings;
-    operations: AllOperations;
-    onStateChanged: (state: State) => void;
+    operations: AllCoreOperations;
+    onStateChanged: (state: MinoGame.State) => void;
 
     constructor({ defaultSettings, operations }: CoreDependencies) {
         this.defaultSettings = defaultSettings;
         this.operations = operations;
     }
 
-    init(): State {
+    init(): MinoGame.State {
         let runTick = () => this.run(ops => ops.recordTick);
         let runLock = () => this.run(ops => ops.triggerLockdown);
         let runAutoShift = () => this.run(ops => ops.startAutoShift);
-        let runDrop = () => this.run(ops => ops.drop(1, DropScoreType.Auto));
+        let runDrop = () => this.run(ops => ops.drop(1));
         let runShift = () => this.run(ops => ops.shift(1));
-        this.timers = new Map<TimerName, PausableTimeout>()
-            .set(TimerName.Clock, new PausableInterval(1000, runTick))
-            .set(TimerName.DropLock, new PausableTimeout(this.defaultSettings.lockdownConfig.delay, runLock))
-            .set(TimerName.DAS, new PausableTimeout(this.defaultSettings.das, runAutoShift))
-            .set(TimerName.AutoDrop, new PausableInterval(this.defaultSettings.dropInterval, runDrop))
-            .set(TimerName.AutoShift, new PausableInterval(this.defaultSettings.arr, runShift));
+        this.timers = new Map<SideEffect.TimerName, PausableTimeout>([
+            [SideEffect.TimerName.Clock, new PausableInterval(1000, runTick)],
+            [SideEffect.TimerName.DropLock, new PausableTimeout(this.defaultSettings.lockdownConfig.delay, runLock)],
+            [SideEffect.TimerName.DAS, new PausableTimeout(this.defaultSettings.das, runAutoShift)],
+            [SideEffect.TimerName.AutoDrop, new PausableInterval(this.defaultSettings.dropInterval, runDrop)],
+            [SideEffect.TimerName.AutoShift, new PausableInterval(this.defaultSettings.arr, runShift)]
+        ]);
         this.run(ops => ops.initialize);
         return this.state;
     }
 
-    run(getOperation: (operations: AllOperations) => Operation) {
-        let dependencies = { defaultSettings: this.defaultSettings, operations: this.operations }
-        let operation = getOperation(this.operations);
-        let initialState = { core: CoreState.initial, statistics: Statistics.initial }
-        let result = execute(this.state, initialState, dependencies, operation);
-        this.state = result.state;
-        result.sideEffectRequests.forEach(request => this.executeSideEffect(request));
+    run(getOperation: (operations: AllCoreOperations) => CoreOperation) {
+        let dependencies = { defaultSettings: this.defaultSettings, operations: this.operations, schema };
+        let rootOperation = getOperation(this.operations);
+        let coreState = this.state?.core ?? CoreState.initial;
+        let initialResult: OperationResult<CoreState> = { state: coreState, sideEffectRequests: [], events: [] };
+        let coreResult = rootOperation.execute(initialResult, dependencies);
+        let statsOperation = updateStatistics(coreResult) as StatisticsOperation;
+        let statistics = statsOperation.execute(this.state?.statistics ?? Statistics.initial);
+        // let previewGridsOperation = syncPreviewGrids(coreResult) as PreviewGridOperation;
+        // let previewGrids = previewGridsOperation.execute(this.state?.previewGrids ?? PreviewGridState.initial);
+        this.state = { core: coreResult.state, statistics, previewGrids: null };
+        coreResult.sideEffectRequests.forEach(request => this.executeSideEffect(request));
         if (this.onStateChanged) {
             this.onStateChanged(this.state);
         }
     }
 
-    executeSideEffect(request: SideEffectRequest.Any) {
+    executeSideEffect(request: SideEffect.Request) {
         switch (request.classifier) {
-            case SideEffectRequest.Classifier.TimerInterval:
+            case SideEffect.Request.Classifier.TimerInterval:
                 this.timers.get(request.timerName).delayInMillis = request.delay;
                 break;
-            case SideEffectRequest.Classifier.TimerOperation:
+            case SideEffect.Request.Classifier.TimerOperation:
                 this.timers.get(request.timerName)[request.operation]();
                 break;
-            case SideEffectRequest.Classifier.Rng:
+            case SideEffect.Request.Classifier.Rng:
                 let rns = Array.from(Array(request.quantity)).map(() => Math.random());
                 this.run(ops => ops.addRns(rns));
         }
     }
 
-    startInput(input: Input.Any) {
+    startInput(input: Input) {
         if (!input) { return }
         switch (input.classifier) {
             case Input.Classifier.ActiveGameInput:
@@ -92,7 +100,7 @@ export default class MinoGame {
         }
     }
 
-    endInput(input: Input.Any) {
+    endInput(input: Input) {
         if (input && input.classifier === Input.Classifier.ActiveGameInput) {
             this.run(ops => ops.endInput(input.input));
         }
@@ -105,3 +113,15 @@ export default class MinoGame {
     }
 
 }
+
+namespace MinoGame {
+
+    export interface State {
+        core: CoreState
+        statistics: Statistics
+        previewGrids: PreviewGridState
+    }
+
+}
+
+export default MinoGame

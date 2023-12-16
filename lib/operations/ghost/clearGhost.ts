@@ -1,13 +1,15 @@
+import Cell from "../../definitions/Cell";
 import Operation from "../../definitions/CoreOperation";
 
 export default Operation.Util.requireActiveGame(
     Operation.Draft(({ state }) => {
-        let { activePiece, grid } = state.playfield;
-        activePiece.ghostCoordinates.forEach(c => {
-            if (grid[c.y][c.x] < 0) {
-                grid[c.y][c.x] = 0;
+        console.log("clear ghost?")
+        state.activePiece.ghostCoordinates.forEach(c => {
+            let cell = state.playfieldGrid[c.y][c.x]
+            if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
+                state.playfieldGrid[c.y][c.x] = Cell.Empty;
             }
         });
-        activePiece.ghostCoordinates = [];
+        state.activePiece.ghostCoordinates = [];
     })
 )

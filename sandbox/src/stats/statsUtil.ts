@@ -1,7 +1,6 @@
-import { getFormattedTime } from "../../../build/util/statUtil";
 import { BasicStat } from "../types";
 import statsTableConfig from "../config/statsConfig";
-import type { Statistics } from "../../../build/definitions/stateTypes";
+import type Statistics from "../../../build/addons/guidelineStatistics/definitions/GuidelineStatistics";
 
 export let buildStatsSection = (statistics: Statistics) => {
     return {
@@ -26,7 +25,7 @@ let buildBasicStatsTable = (statistics: Statistics): StatsEntry[] => {
         let value: string;
         switch (entryValue.type) {
             case BasicStat.Classifier.FormattedTime:
-                value = getFormattedTime(statistics);
+                value = statistics.time.toString();
                 break;
             case BasicStat.Classifier.Number:
                 value = String(statistics[entryValue.key].toFixed(entryValue.decimalPlaces));

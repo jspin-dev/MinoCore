@@ -1,8 +1,8 @@
 import GameEvent from "./GameEvent"
-import { SideEffectRequest } from "./metaDefinitions"
+import SideEffect from "./SideEffect"
 
-export interface CoreOperationResult<S> {
+export default interface CoreOperationResult<S> {
     state: S
-    sideEffectRequests: SideEffectRequest.Any[]
+    sideEffectRequests: SideEffect.Request[]
     events: GameEvent[]
 }

@@ -26,9 +26,10 @@ export namespace Dropdown {
 
 }
 
-export namespace InputField {
+export type InputField = InputField.TextType | InputField.KeybindingType | InputField.CheckboxType 
+    | InputField.NumericRangeType | InputField.DropdownType;
 
-    export type Any = TextType | KeybindingType | CheckboxType | NumericRangeType | DropdownType
+export namespace InputField {
 
     export enum Classifier {
         Text,

@@ -1,15 +1,17 @@
+import Cell from "../../definitions/Cell";
+import Coordinate from "../../definitions/Coordinate";
 import Operation from "../../definitions/CoreOperation";
-import { Coordinate } from "../../definitions/playfieldDefinitions";
 import { findInstantDropDistance } from "../../util/stateUtils";
 
 export default Operation.Util.requireActiveGame(
-    Operation.Provide(({ state }, { operations }) => {
-        let { settings, playfield } = state;
+    Operation.Provide(({ state }, { operations, schema }) => {
+        let { settings, activePiece, playfieldGrid } = state;
         if (!settings.ghostEnabled) {
-            return playfield.activePiece.ghostCoordinates.length > 0 ? operations.clearGhost : Operation.None
+            return activePiece.ghostCoordinates.length > 0 ? operations.clearGhost : Operation.None
         }
-        let dy = findInstantDropDistance(state);
-        let activePieceCoordinates = playfield.activePiece.coordinates;
+        let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
+        let dy = findInstantDropDistance(collisionPrereqisites);
+        let activePieceCoordinates = activePiece.coordinates;
         let ghostCoordinates = activePieceCoordinates
             .map(c => { return { x: c.x, y: c.y + dy } })
             .filter(c => !activePieceCoordinates.some(coord => coord.x === c.x && coord.y === c.y));
@@ -19,10 +21,11 @@ export default Operation.Util.requireActiveGame(
 )
 
 let setGhost = (coordinates: Coordinate[]) => Operation.Draft(({ state }) => {
-    let { activePiece, grid } = state.playfield;
+    let { activePiece, playfieldGrid } = state;
     activePiece.ghostCoordinates.forEach(c => {
-        if (grid[c.y][c.x] < 0) {
-            grid[c.y][c.x] = 0;
+        let cell = state.playfieldGrid[c.y][c.x]
+        if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
+            state.playfieldGrid[c.y][c.x] = Cell.Empty;
         }
     });
     activePiece.ghostCoordinates = coordinates;
@@ -31,8 +34,8 @@ let setGhost = (coordinates: Coordinate[]) => Operation.Draft(({ state }) => {
      * active piece coordinate already in that cell.
      */
     coordinates.forEach(c => {
-        if (grid[c.y][c.x] <= 0) {
-            grid[c.y][c.x] = -activePiece.id
+        if (playfieldGrid[c.y][c.x].classifier != Cell.Classifier.Mino) {
+            playfieldGrid[c.y][c.x] = Cell.Mino(activePiece.id, true);
         }
     });
 })

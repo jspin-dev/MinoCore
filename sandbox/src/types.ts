@@ -1,4 +1,4 @@
-import type { Input } from "../../build/definitions/inputDefinitions";
+import type Input from "../../build/definitions/Input";
 import type { InputField, FormEntry } from "./form/forms";
 
 declare global {
@@ -6,7 +6,7 @@ declare global {
     export type BasicStat = BasicStat.ScoreStateType | BasicStat.NumberType | BasicStat.FormattedTimeType
 
     export type UserPreferences = {
-        keybindings: { [key: string]: Input.Any },
+        keybindings: { [key: string]: Input },
         das: number,
         arr: number,
         sdf: number,
@@ -25,7 +25,7 @@ declare global {
     export type FormEntry<K> = {
         label: string,
         associatedKey: K,
-        field: InputField.Any,
+        field: InputField,
         options: FormEntry.Options
     }
 

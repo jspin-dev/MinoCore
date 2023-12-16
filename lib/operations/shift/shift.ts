@@ -1,7 +1,6 @@
 import Operation from "../../definitions/CoreOperation"
-import { MovementType } from "../../definitions/inputDefinitions"
-import { DropScoreType } from "../../definitions/scoring/scoringDefinitions"
-import { findInstantDropDistance, shouldContinueInstantSoftDrop } from "../../util/stateUtils"
+import MovementType from "../../definitions/MovementType"
+import continueInstantSoftDrop from "../drop/continueInstantSoftDrop"
 
 export default (dx: number) => Operation.Util.requireActiveGame(
     Operation.Provide((_, { operations }) => {
@@ -12,15 +11,12 @@ export default (dx: number) => Operation.Util.requireActiveGame(
             shiftBy(dx),
             operations.refreshGhost,
             operations.updateLockStatus(MovementType.Shift),
-            continueInstantSoftDropIfActive
+            continueInstantSoftDrop
         )
     })
 )
 
 let shiftBy = (dx: number) => Operation.Provide(({ state }, { operations }) => {
-    return operations.move(dx * state.meta.direction, 0)
+    return operations.move(dx * state.direction, 0)
 })
 
-let continueInstantSoftDropIfActive = Operation.Provide(({ state }, { operations }) => {
-    return Operation.Util.applyIf(shouldContinueInstantSoftDrop(state), operations.drop(findInstantDropDistance(state), DropScoreType.Soft))
-})
