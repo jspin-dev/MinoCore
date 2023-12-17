@@ -18,7 +18,7 @@ import PieceIdentifier from "../definitions/PieceIdentifier";
  */ 
 
 export default (pieceId: PieceIdentifier) => {
-    return Operation.Provide(({ state }, { operations, schema }) => {
+    return Operation.Resolve(({ state }, { operations, schema }) => {
         let { startLocation, spawnOrientation } = schema.pieces[pieceId];
         let initialGrid = state.generatedRotationGrids[pieceId][spawnOrientation]
         let coordinates = gridToList(initialGrid, startLocation.x, startLocation.y, 1)
@@ -27,35 +27,35 @@ export default (pieceId: PieceIdentifier) => {
         if (coordinates.some(c => Cell.isLocked(state.playfieldGrid[c.y][c.x]))) {
             return Operation.Draft(({ state }) => { state.status = GameStatus.GameOver(GameOverCondition.Blockout) })
         }
-        let resetLockdown = Operation.Draft(({ state }) => { 
+        let draftLockdownReset = Operation.Draft(({ state }) => { 
             state.lockdownInfo = { status: LockdownStatus.NoLockdown, largestY: 0 }
         })    
         return Operation.Sequence(
-            resetLockdown,
-            setActivePiece(coordinates, pieceId, startLocation, spawnOrientation),
+            draftLockdownReset,
+            draftActivePiece(coordinates, pieceId, startLocation, spawnOrientation),
             operations.refreshGhost,
             //operations.drop(1),
-            conditionalShift,
-            conditionalDrop
+            resolveShiftContinuation,
+            resolveDropContinuation
         )
     })
 }
 
-let conditionalDrop = Operation.Provide(({ state }, { operations, schema }) => {
+let resolveDropContinuation = Operation.Resolve(({ state }, { operations, schema }) => {
     let { softDropActive, activePiece, playfieldGrid } = state;
     let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     if (!softDropActive) {
         return Operation.None;
     }
-    let timerOperation = Operation.Draft(({ sideEffectRequests }) => {
+    let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoDrop, SideEffect.TimerOperation.Start))
     })
     return shouldContinueInstantSoftDrop(state, schema.playfield) 
         ? operations.drop(findInstantDropDistance(collisionPrereqisites)) 
-        : timerOperation;
+        : draftTimerChange;
 })
 
-let conditionalShift = Operation.Provide(({ state }, { operations }) => {
+let resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => {
     if (!state.dasRightCharged && !state.dasLeftCharged) {
         return Operation.None;
     }
@@ -70,7 +70,7 @@ let conditionalShift = Operation.Provide(({ state }, { operations }) => {
     }
 })
 
-let setActivePiece = (
+let draftActivePiece = (
     coordinates: Coordinate[], 
     pieceId: PieceIdentifier, 
     location: Coordinate, 

@@ -1,10 +1,10 @@
 import { produce, type Draft } from "immer";
 
-type Operation<S, D> = Operation.Drafter<S> | Operation.Provider<S, D>
+type Operation<S, D> = Operation.Drafter<S> | Operation.Resolver<S, D>
 
 namespace Operation {
 
-    export enum Classifier { Provider, Drafter }
+    export enum Classifier { Resolver, Drafter }
 
     export interface Drafter<S> { 
         classifier: Classifier.Drafter,
@@ -12,9 +12,9 @@ namespace Operation {
         execute: (state: S) => S
     }
 
-    export interface Provider<S, D> { 
-        classifier: Classifier.Provider,
-        applyIf: (condition: boolean) => Provider<S, D>
+    export interface Resolver<S, D> { 
+        classifier: Classifier.Resolver,
+        applyIf: (condition: boolean) => Resolver<S, D>
         execute: (state: S, dependencies: D) => S
     }
 
@@ -36,23 +36,23 @@ namespace Operation {
     }
 
     /**
-     * Provide operations form more complex logic by chaining together Drafters and other Providers.
+     * Resolve operations form more complex logic by chaining together Drafters and other Resolvers.
      * They have access to a read-only copy of the state and return some other operation. To modify the state, use Draft instead 
      */
-    export function Provide<S, D>(provide: (state: S, dependencies: D) => Operation<S, D>): Provider<S, D> {
+    export function Resolve<S, D>(resolve: (state: S, dependencies: D) => Operation<S, D>): Resolver<S, D> {
         return { 
-            classifier: Classifier.Provider, 
-            applyIf: (condition) => { return condition ? Provide(provide) : Operation.None() },
-            execute: (state, dependencies) => executeOperation(state, dependencies, provide(state, dependencies))
+            classifier: Classifier.Resolver, 
+            applyIf: (condition) => { return condition ? Resolve(resolve) : Operation.None() },
+            execute: (state, dependencies) => executeOperation(state, dependencies, resolve(state, dependencies))
         }
     }
 
     /**
-     * Sequence pesudo operation (technically it is a Provider) which is composed of operations meant to be performed sequentally 
+     * Sequence pesudo operation (technically it is a Resolver) which is composed of operations meant to be performed sequentally 
      */
-    export function Sequence<S, D>(...operations: Operation<S, D>[]): Provider<S, D> {
+    export function Sequence<S, D>(...operations: Operation<S, D>[]): Resolver<S, D> {
         return { 
-            classifier: Classifier.Provider, 
+            classifier: Classifier.Resolver, 
             applyIf: (condition) => { return condition ? Sequence(...operations) : Operation.None() },
             execute: (state, dependencies) => {
                 return operations.reduce((current, operation) => executeOperation(current, dependencies, operation), state); 
@@ -64,7 +64,7 @@ namespace Operation {
 
     let executeOperation = <S, D>(state: S, depencencies: D, operation: Operation<S, D>): S => {
         switch (operation.classifier) {
-            case Operation.Classifier.Provider:
+            case Operation.Classifier.Resolver:
                 return operation.execute(state, depencencies);
             case Operation.Classifier.Drafter:
                 return operation.execute(state);

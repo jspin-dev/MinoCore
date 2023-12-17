@@ -5,7 +5,7 @@ import Grid from "../../definitions/Grid";
 import Orientation from "../../definitions/Orientation";
 import { createEmptyGrid, gridToList } from "../../util/sharedUtils";
 
-export default Operation.Provide(({ state }, { schema }) => {
+export default Operation.Resolve(({ state }, { schema }) => {
     if (state.generatedRotationGrids != null) {
         return Operation.None;
     }

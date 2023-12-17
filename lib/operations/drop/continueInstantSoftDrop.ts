@@ -1,7 +1,7 @@
 import Operation from "../../definitions/CoreOperation"
 import { findInstantDropDistance, shouldContinueInstantSoftDrop } from "../../util/stateUtils"
 
-export default Operation.Provide(({ state }, { operations, schema }) => {
+export default Operation.Resolve(({ state }, { operations, schema }) => {
     let { activePiece, playfieldGrid } = state;
     let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     if (shouldContinueInstantSoftDrop(state, schema.playfield)) {

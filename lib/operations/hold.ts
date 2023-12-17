@@ -3,21 +3,21 @@ import Operation from "../definitions/CoreOperation";
 import GameEvent from "../definitions/GameEvent";
 
 export default Operation.Util.requireActiveGame(
-    Operation.Provide(({ state }) => {
+    Operation.Resolve(({ state }) => {
         /**
          * Note: Unlike most cases, here we are intentionally referncing the 
-         * original hold state rather than using the provider's state
+         * original hold state rather than using the resolver's state
          */
-        let replaceActivePiece = Operation.Provide((_, { operations }) => {
+        let resolveNextOp = Operation.Resolve((_, { operations }) => {
             return state.holdPieceId ? operations.spawn(state.holdPieceId) : operations.next;
         })
         
-        let operations = Operation.Sequence(holdActivePiece, clearActivePiece, replaceActivePiece);
+        let operations = Operation.Sequence(draftHold, draftActivePiece, resolveNextOp);
         return operations.applyIf(state.holdEnabled);
     })
 )
 
-let holdActivePiece = Operation.Draft(({ state, events }) => {
+let draftHold = Operation.Draft(({ state, events }) => {
     let previousHoldPiece = state.holdPieceId;
     let holdPiece = state.activePiece.id;
     state.holdPieceId = holdPiece;
@@ -26,7 +26,7 @@ let holdActivePiece = Operation.Draft(({ state, events }) => {
 })
 
 
-let clearActivePiece = Operation.Draft(({ state }) => {
+let draftActivePiece = Operation.Draft(({ state }) => {
     [...state.activePiece.ghostCoordinates, ... state.activePiece.coordinates].forEach(c => {
         state.playfieldGrid[c.y][c.x] = Cell.Empty;
     })

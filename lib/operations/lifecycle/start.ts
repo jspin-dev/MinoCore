@@ -2,7 +2,7 @@ import Operation from "../../definitions/CoreOperation";
 import GameStatus from "../../definitions/GameStatus";
 import SideEffect from "../../definitions/SideEffect";
 
-export default Operation.Provide((_, { operations }) => Operation.Sequence(
+export default Operation.Resolve((_, { operations }) => Operation.Sequence(
     operations.next,
     Operation.Draft(({ state, sideEffectRequests }) => { 
         state.status = GameStatus.Active;

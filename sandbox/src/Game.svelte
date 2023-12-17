@@ -75,16 +75,14 @@
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
             concealBlocks={isPaused}/> -->
-        {#key state.core.playfieldGrid}
-            <Grid 
-                gridData={visiblePlayfieldGrid} 
-                colors={uiSettings.blockColors} 
-                borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
-                blockSize={uiSettings.playfieldBlockSize}
-                dimmed={inactiveGame}
-                showBorders={userPrefs.showGrid}
-                concealBlocks={isPaused}/>
-        {/key}
+        <Grid 
+            gridData={visiblePlayfieldGrid} 
+            colors={uiSettings.blockColors} 
+            borderlessHeight={uiSettings.ceilingRow-uiSettings.startingRow}
+            blockSize={uiSettings.playfieldBlockSize}
+            dimmed={inactiveGame}
+            showBorders={userPrefs.showGrid}
+            concealBlocks={isPaused}/>
         <!-- <Grid
             gridData={state.previewGrids.nextPreview} 
             colors={uiSettings.blockColors} 

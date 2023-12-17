@@ -97,6 +97,11 @@ namespace GameSchema {
     
     }
 
+    export interface KickInfo {
+        newOrientation: Orientation
+        matchingOffset?: GameSchema.Offset
+        unadjustedCoordinates?: Coordinate[]
+    }
 
 }
 

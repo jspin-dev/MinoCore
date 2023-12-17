@@ -7,17 +7,17 @@ import Cell from "../definitions/Cell";
  * Moves the active piece by the specified x/y offset if the new coordinates are unoccupied and within the playfield
  */
 export default (dx: number, dy: number) => Operation.Util.requireActiveGame(
-    Operation.Provide(({ state }, { schema }) => {
+    Operation.Resolve(({ state }, { schema }) => {
         if (dx == 0 && dy == 0) {
             return Operation.None;
         }
         let { activePiece, playfieldGrid } = state;
         let collision = willCollide(playfieldGrid, schema.playfield, activePiece.coordinates, dx, dy);
-        return move(dx, dy).applyIf(!collision);
+        return draftMovement(dx, dy).applyIf(!collision);
     })
 )
 
-let move = (dx: number, dy: number) => Operation.Draft(({ state }) => {
+let draftMovement = (dx: number, dy: number) => Operation.Draft(({ state }) => {
     let { activePiece, playfieldGrid } = state;
     activePiece.coordinates.forEach(c => playfieldGrid[c.y][c.x] = Cell.Empty);
     activePiece.location.x += dx;

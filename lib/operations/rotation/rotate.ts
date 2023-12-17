@@ -8,26 +8,25 @@ import CoreState from "../../definitions/CoreState";
 import Rotation from "../../definitions/Rotation";
 import Cell from "../../definitions/Cell";
 import Orientation from "../../definitions/Orientation";
-import Coordinate from "../../definitions/Coordinate";
 import GameSchema from "../../definitions/GameSchema";
 
 export default (rotation: Rotation) => Operation.Util.requireActiveGame(
-    Operation.Provide((_, { operations }) => Operation.Sequence(
+    Operation.Resolve((_, { operations }) => Operation.Sequence(
         operations.validateRotationSettings,
-        rotate(rotation),
+        resolveRotation(rotation),
         continueInstantSoftDrop,
         continueInstantShift
     ))
 )
 
-let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations, schema }) => {
+let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, { operations, schema }) => {
     let previousPlayfield = [...state.playfieldGrid.map(row => [...row])];
     let kickInfo = getKickInfo(rotation, state, schema);
     if (kickInfo == null) {
         return Operation.None;
     } else {
         return Operation.Sequence(
-            applyKickInfo(kickInfo),
+            draftPieceKick(kickInfo),
             operations.refreshGhost.applyIf(kickInfo.unadjustedCoordinates != null),
             operations.updateLockStatus(MovementType.Rotate),
             Operation.Draft(({ state, events }) => { 
@@ -37,7 +36,7 @@ let rotate = (rotation: Rotation) => Operation.Provide(({ state }, { operations,
     }
 })
 
-let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: KickInfo) => {
+let draftPieceKick = ({ matchingOffset, unadjustedCoordinates, newOrientation }: GameSchema.KickInfo) => {
     return Operation.Draft(({ state }) => {
         let { coordinates, location, id } = state.activePiece;
     
@@ -57,7 +56,7 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
     })
 }
 
-let getKickInfo = (n: Rotation, state: CoreState, schema: GameSchema): KickInfo | null => {
+let getKickInfo = (n: Rotation, state: CoreState, schema: GameSchema): GameSchema.KickInfo | null => {
     let { activePiece, generatedRotationGrids } = state;
     let newOrientation: Orientation = (n + activePiece.orientation + 4) % 4; // + 4 results cocerces non-negative before mod
     let pieceDefinition = schema.pieces[activePiece.id];
@@ -77,8 +76,3 @@ let getKickInfo = (n: Rotation, state: CoreState, schema: GameSchema): KickInfo 
     }
 }
 
-interface KickInfo {
-    newOrientation: Orientation
-    matchingOffset?: GameSchema.Offset
-    unadjustedCoordinates?: Coordinate[]
-}

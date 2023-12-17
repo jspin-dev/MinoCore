@@ -3,7 +3,7 @@ import Operation from "../../definitions/CoreOperation";
 import { findInstantDropDistance } from "../../util/stateUtils";
 
 export default Operation.Util.requireActiveGame(
-    Operation.Provide(({ state }, { operations, schema }) => {
+    Operation.Resolve(({ state }, { operations, schema }) => {
         let { settings, activePiece, playfieldGrid } = state;
         if (!settings.ghostEnabled) {
             return activePiece.ghostCoordinates.length > 0 ? operations.clearGhost : Operation.None

@@ -1,7 +1,7 @@
 import Operation from "../../definitions/CoreOperation";
 import { findInstantShiftDistance, shouldContinueInstantShift } from "../../util/stateUtils";
 
-export default Operation.Provide(({ state }, { operations, schema }) => {
+export default Operation.Resolve(({ state }, { operations, schema }) => {
     let { activePiece, playfieldGrid, direction } = state;
     let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     if (shouldContinueInstantShift(state, schema.playfield)) {

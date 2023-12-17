@@ -17,7 +17,7 @@ If you need a high level of customization, you can manage this lifecycle yoursel
 
 The majority of MinoCore logic is handled through higher order pure functions (ie their results are only dependent on their inputs and do not cause side effects).
 - Drafters - functions which provide new state based on their inputs. They are the 'end of the road' so to speak for all logic paths. MinoCore uses [immerjs](https://github.com/immerjs/immer) under the hood for this.
-- Providers - recieve a read-only copy of the state and can return Drafters, other Providers, or (in most cases) a list of Drafters and Providers which are to be executed in sequential order. They do not modify the state.
+- Resolvers - recieve a read-only copy of the state and can return Drafters, other Resolvers, or (in most cases) a list of Drafters and Resolvers which are to be executed in sequential order. They do not modify the state.
 
 ## Sandbox
 

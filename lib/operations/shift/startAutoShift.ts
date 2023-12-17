@@ -3,7 +3,7 @@ import ShiftDirection from "../../definitions/ShiftDirection";
 import SideEffect from "../../definitions/SideEffect";
 import { findInstantShiftDistance } from "../../util/stateUtils";
 
-let charge = Operation.Draft(({ state }) => { 
+let draftCharge = Operation.Draft(({ state }) => { 
     if (state.direction == ShiftDirection.Right) {
         state.dasRightCharged = true;
     } else if (state.direction == ShiftDirection.Left) {
@@ -11,16 +11,16 @@ let charge = Operation.Draft(({ state }) => {
     }
 })
 
-let requestStartAutoShiftTimer = Operation.Draft(({ sideEffectRequests }) => {
+let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
     sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoShift, SideEffect.TimerOperation.Start))
 })
 
-let shift = Operation.Provide (({ state }, { operations, schema }) => {
+let resolveMovement = Operation.Resolve (({ state }, { operations, schema }) => {
     let { activePiece, playfieldGrid, direction } = state;
     let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     return state.settings.arr == 0 
         ? operations.shift(findInstantShiftDistance(direction, collisionPrereqisites)) 
-        : requestStartAutoShiftTimer;
+        : draftTimerChange;
 })
 
-export default Operation.Util.requireActiveGame(Operation.Sequence(charge, shift));
+export default Operation.Util.requireActiveGame(Operation.Sequence(draftCharge, resolveMovement));

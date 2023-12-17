@@ -10,14 +10,14 @@ import { onFloor } from "../../util/stateUtils";
 
 export default (movementType: MovementType) => Operation.Util.requireActiveGame(
     Operation.Sequence(
-        resetOnMoveProvider(movementType),
-        decrementMovesRemaining.applyIf( movementType == MovementType.Shift || movementType == MovementType.Rotate),
-        onFloorProvider,
+        resolveMovementReset(movementType),
+        draftMovesCount.applyIf( movementType == MovementType.Shift || movementType == MovementType.Rotate),
+        lockOnFloor,
         setLargestY
     )
 )
 
-let resetLockdownStatus = Operation.Draft(({ state }) => { 
+let draftLockdownStatus = Operation.Draft(({ state }) => { 
     state.lockdownInfo.status = LockdownStatus.TimerActive(getMoveLimit(state.settings)) 
 })
 
@@ -31,7 +31,7 @@ let getMoveLimit = (settings: Settings): number => {
     }
 }
 
-let decrementMovesRemaining = Operation.Draft(({ state }) => {
+let draftMovesCount = Operation.Draft(({ state }) => {
     let lockdownStatus = state.lockdownInfo.status;
     if (lockdownStatus.classifier == LockdownStatus.Classifier.TimerActive) {
         let status = lockdownStatus as LockdownStatus.TimerActiveType;
@@ -67,18 +67,18 @@ let shouldResetTimerAndStatusOnDrop = (lockdownInfo: LockdownInfo, activePiece: 
     return false;
 }
 
-let resetTimer = Operation.Draft(({ sideEffectRequests }) => {
+let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
     sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.DropLock, SideEffect.TimerOperation.Start))
 })
 
-let onFloorProvider = Operation.Provide(({ state }, { operations, schema }) => {
+let lockOnFloor = Operation.Resolve(({ state }, { operations, schema }) => {
     let { activePiece, playfieldGrid } = state;
     let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
     if (onFloor(collisionPrereqisites)) {
         let lockdownStatus = state.lockdownInfo.status;
         switch (lockdownStatus.classifier) {
             case LockdownStatus.Classifier.NoLockdown:
-                return Operation.Sequence(resetLockdownStatus, resetTimer);
+                return Operation.Sequence(draftLockdownStatus, draftTimerChange);
             case LockdownStatus.Classifier.Triggered:
                 return operations.lock;
         }
@@ -86,17 +86,17 @@ let onFloorProvider = Operation.Provide(({ state }, { operations, schema }) => {
     return Operation.None;
 })
 
-let resetOnMoveProvider = (movementType: MovementType) => Operation.Provide(({ state }) => {
+let resolveMovementReset = (movementType: MovementType) => Operation.Resolve(({ state }) => {
     switch (movementType) {
         case MovementType.Shift:
         case MovementType.Rotate:
             if (shouldResetTimerOnMove(state.lockdownInfo, state.settings)) {
-                return resetTimer;
+                return draftTimerChange;
             }
             break;
         case MovementType.Drop:
             if (shouldResetTimerAndStatusOnDrop(state.lockdownInfo, state.activePiece)) {
-                return Operation.Sequence(resetTimer, resetLockdownStatus);
+                return Operation.Sequence(draftTimerChange, draftLockdownStatus);
             }
     }
     return Operation.None;

@@ -6,13 +6,13 @@ import validateRotationSettings from "../rotation/validateRotationSettings"
 import SideEffect from "../../definitions/SideEffect"
 import Cell from "../../definitions/Cell"
 
-export default Operation.Provide((_, { defaultSettings, schema }) => {
-    let requestRns = Operation.Draft(({ sideEffectRequests }) => {
+export default Operation.Resolve((_, { defaultSettings, schema }) => {
+    let draftRnsRequest = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.Request.Rng(Object.values(schema.pieces).length - 1))
     })
-    let initializeState = Operation.Draft(({ state }) => {
+    let draftStateInitialization = Operation.Draft(({ state }) => {
         state.playfieldGrid = createEmptyGrid(schema.playfield.rows, schema.playfield.columns, Cell.Empty);
         state.settings = defaultSettings as WritableDraft<Settings>;
     })
-    return Operation.Sequence(initializeState, validateRotationSettings, requestRns)    
+    return Operation.Sequence(draftStateInitialization, validateRotationSettings, draftRnsRequest)    
 })

@@ -5,18 +5,18 @@ import completePendingMovement from "./completePendingMovement";
 import CoreDependencies from "../../definitions/CoreDependencies";
 import Rotation from "../../definitions/Rotation";
 
-export default (input: Input.ActiveGame) => Operation.Provide(({ state }, depencencies) => {
+export default (input: Input.ActiveGame) => Operation.Resolve(({ state }, depencencies) => {
     if (state.activeInputs.includes(input)) {
         return Operation.None;
     }
     return Operation.Sequence(
         completePendingMovement(depencencies.schema),
-        recordInputStart(input),
+        draftInputStartRecord(input),
         performInputAction(input, depencencies)
     );
 })
 
-let recordInputStart = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => { 
+let draftInputStartRecord = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => { 
     state.activeInputs.push(input);
     events.push(GameEvent.InputStart(input));
 })

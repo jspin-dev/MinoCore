@@ -12,7 +12,7 @@ namespace PresetRandomizers {
 
     export namespace NBag {
 
-        let insertBag = Operation.Provide(({ state }, { operations, schema }) => {
+        let insertBag = Operation.Resolve(({ state }, { operations, schema }) => {
             let { previewQueue, settings } = state;
             if (previewQueue.length >= settings.nextPreviewSize) {
                 return Operation.None;
@@ -39,7 +39,7 @@ namespace PresetRandomizers {
             )
         })
     
-        let enqueueFull = Operation.Provide(({ state }, { schema }) => {
+        let enqueueFull = Operation.Resolve(({ state }, { schema }) => {
             let previewSize = state.settings.nextPreviewSize;
             let n = Object.values(schema.pieces).length;
             let bagCount = Math.ceil(previewSize / n);
@@ -58,7 +58,7 @@ namespace PresetRandomizers {
 
     export namespace Classic {
 
-        let enqueueNext = Operation.Provide(({ state }, { schema }) => {
+        let enqueueNext = Operation.Resolve(({ state }, { schema }) => {
             if (state.randomNumbers.length == 0) {
                 throw "Insufficient random numbers to queue a new piece";
             }
@@ -68,7 +68,7 @@ namespace PresetRandomizers {
             return enqueue(randomPiece);
         })
     
-        let enqueueFull = Operation.Provide(({ state }, { operations, schema }) => {
+        let enqueueFull = Operation.Resolve(({ state }, { operations, schema }) => {
             let previewSize = state.settings.nextPreviewSize;
             let pieces = Object.values(schema.pieces).map(def => def.id);
             let randomNumbers = state.randomNumbers.slice(1 - pieces.length); // Takes the last n-1 numbers
