@@ -1,7 +1,7 @@
 import type Coordinate from "../definitions/Coordinate";
 import Grid from "../definitions/Grid";
 
-export let gridToList = (grid: Grid<number>, dx: number, dy: number, n: number): Coordinate[] => {
+export let gridToList = <T>(grid: Grid<T>, dx: number, dy: number, n: number): Coordinate[] => {
     var blockArray = <Coordinate[]>[];
     grid.forEach((row, y) => {
         row.forEach((block, x) => {

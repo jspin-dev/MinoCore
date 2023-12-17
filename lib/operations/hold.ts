@@ -27,22 +27,8 @@ let holdActivePiece = Operation.Draft(({ state, events }) => {
 
 
 let clearActivePiece = Operation.Draft(({ state }) => {
-    // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
-    state.activePiece.ghostCoordinates.forEach(c => {
-        let cell = state.playfieldGrid[c.y][c.x]
-        if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
-            state.playfieldGrid[c.y][c.x] = Cell.Empty;
-        }
-    });
-    state.activePiece.coordinates.forEach(c => {
+    [...state.activePiece.ghostCoordinates, ... state.activePiece.coordinates].forEach(c => {
         state.playfieldGrid[c.y][c.x] = Cell.Empty;
-    });
-    state.activePiece = {
-        id: null,
-        location: null,
-        coordinates: [],
-        ghostCoordinates: [],
-        orientation: null,
-        activeRotation: false
-    };
+    })
+    state.activePiece = null;
 })

@@ -1,8 +1,6 @@
-import ActivePiece from "./ActivePiece"
 import BinaryGrid from "./BinaryGrid"
-import Cell from "./Cell"
 import Coordinate from "./Coordinate"
-import Grid from "./Grid"
+import CoreState from "./CoreState"
 import Orientation from "./Orientation"
 import PieceIdentifier from "./PieceIdentifier"
 
@@ -21,10 +19,9 @@ namespace GameSchema {
 
     export interface RotationValidator {
         isValid: (
-            activePiece: ActivePiece,
-            playfieldGrid: Grid<Cell>,
-            playfieldSpec: GameSchema.PlayfieldSpec,
-            coordinates: Readonly<Coordinate[]>, 
+            state: CoreState,
+            gameSchema: GameSchema,
+            coordinates: readonly Coordinate[], 
             offset: GameSchema.Offset
         ) => boolean
     }

@@ -42,7 +42,6 @@ export let presets = {
       ghostEnabled: true,
       dasPreservationEnabled: true,
       dasInteruptionEnabled: true,
-      showGrid: false,
       showFocusBanner: false
   }
 

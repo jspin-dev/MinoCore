@@ -8,7 +8,7 @@ export default (linesToClear: number[]) => Operation.Provide(({ state }, { schem
     let lowestRowToClear = Math.max(...linesToClear);
 
     let linesToShift = state.playfieldGrid.reduce((accum, row, i) => {
-        let isLineToClear = !linesToClear.includes(i) && i < lowestRowToClear && row.some(block => block.classifier != Cell.Classifier.Empty)
+        let isLineToClear = !linesToClear.includes(i) && i < lowestRowToClear && row.some(cell => !Cell.isEmpty(cell))
         return isLineToClear ? [...accum, row] : accum;
     }, [] as Cell[][]);
 

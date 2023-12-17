@@ -103,7 +103,7 @@ let getScoreAction = (
     playfieldGrid: Grid<Cell>, 
     rotationReferenceGrid?: Grid<Cell>
 ): LockScoreAction => {
-    if (detectPC(playfieldGrid)) {
+    if (lines > 0 && detectPC(playfieldGrid)) {
         return LockScoreAction.PC(lines);
     }
     if (rotationReferenceGrid != null) {

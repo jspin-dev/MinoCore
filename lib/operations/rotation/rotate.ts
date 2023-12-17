@@ -45,14 +45,12 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
             state.activePiece.orientation = newOrientation;
         }
         if (matchingOffset && unadjustedCoordinates) {
-            state.activePiece.activeRotation = true;
             coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Empty);
             coordinates.forEach((c, i) => {
                 coordinates[i].x = unadjustedCoordinates[i].x + matchingOffset[0];
                 coordinates[i].y = unadjustedCoordinates[i].y + matchingOffset[1];
-                state.playfieldGrid[c.y][c.x] = Cell.Mino(id);
+                state.playfieldGrid[c.y][c.x] = Cell.Active(id);
             });
-        
             location.x += matchingOffset[0];
             location.y += matchingOffset[1];
         }
@@ -61,21 +59,13 @@ let applyKickInfo = ({ matchingOffset, unadjustedCoordinates, newOrientation }: 
 
 let getKickInfo = (n: Rotation, state: CoreState, schema: GameSchema): KickInfo | null => {
     let { activePiece, generatedRotationGrids } = state;
-
     let newOrientation: Orientation = (n + activePiece.orientation + 4) % 4; // + 4 results cocerces non-negative before mod
-
     let pieceDefinition = schema.pieces[activePiece.id];
     let offsetList = pieceDefinition.kickTable[activePiece.orientation][newOrientation];
     let newMatrix = generatedRotationGrids[activePiece.id][newOrientation].map(it => [...it])
     let unadjustedCoordinates = gridToList(newMatrix, activePiece.location.x, activePiece.location.y, 1);
     let matchingOffset = offsetList.find(offset => {
-        return pieceDefinition.rotationValidator.isValid(
-            activePiece, 
-            state.playfieldGrid, 
-            schema.playfield, 
-            unadjustedCoordinates,
-             offset
-        );
+        return pieceDefinition.rotationValidator.isValid(state, schema, unadjustedCoordinates, offset);
     });
     if (!matchingOffset) {
         return null;

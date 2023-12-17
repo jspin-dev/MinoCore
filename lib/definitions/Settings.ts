@@ -18,7 +18,7 @@ namespace Settings {
     export namespace Presets {
 
         export const Guideline = {
-            ghostEnabled: false,
+            ghostEnabled: true,
             dasPreservationEnabled: true,
             nextPreviewSize: 5,
             softDropInterval: 10,

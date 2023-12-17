@@ -9,58 +9,33 @@ import Cell from "../../definitions/Cell";
 export default Operation.Util.requireActiveGame(
     Operation.Provide(({ state }, { operations }) => {
         let linesToClear = getLinesToClear(state.activePiece, state.playfieldGrid);
-        return Operation.Sequence(
-            recordLockEvent(linesToClear),
-            operations.clearLines(linesToClear),
-            enableHold,
-            nextProvider
-        )
+        return Operation.Sequence(lock(linesToClear), operations.clearLines(linesToClear), nextProvider);
     })
 )
 
-let recordLockEvent = (linesToClear: number[]) => Operation.Draft(({ state, events }) => { 
-    events.push(GameEvent.Lock(state.activePiece, linesToClear, state.playfieldGrid)) 
-})
-
 let nextProvider = Operation.Provide(({ state }, { operations, schema }) => {
-    let { settings, activePiece } = state;
-    if (activePiece.coordinates.every(c => c.y < schema.playfield.ceiling)) {
-        return gameOverClearActivePiece;
-    } else {
-        return operations.next;
-    }
+    let gameOver = state.activePiece.coordinates.every(c => c.y < schema.playfield.ceiling);
+    let setLockoutStatus = Operation.Draft(({ state }) => {
+        state.status = GameStatus.GameOver(GameOverCondition.Lockout);
+    });
+    let resetActivePiece = Operation.Draft(({ state }) => { state.activePiece = null });
+    return Operation.Sequence(resetActivePiece, gameOver ? setLockoutStatus : operations.next);
 })
 
-let enableHold = Operation.Draft(({ state }) => { state.holdEnabled = true })
+let lock = (linesToClear: number[]) => Operation.Draft(({ state, events }) => {
+    events.push(GameEvent.Lock(state.activePiece, linesToClear, state.playfieldGrid));
+    state.activePiece.ghostCoordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Empty);
+    state.activePiece.coordinates.forEach(c => { state.playfieldGrid[c.y][c.x] = Cell.Locked(state.activePiece.id) });
+    state.holdEnabled = true;
+})
 
 let getLinesToClear = (activePiece: ActivePiece, playfieldGrid: Grid<Cell>): number[] => {
     return activePiece.coordinates.reduce((accum, c) => {
         if (!accum.includes(c.y)) {
-            let rowFull = playfieldGrid[c.y].every(block => block.classifier != Cell.Classifier.Empty);
-            if (rowFull) {
+            if (playfieldGrid[c.y].every(cell => !Cell.isEmpty(cell))) {
                 return [...accum, c.y];
             }
         }
         return accum;
     }, [] as number[]);
-}   
-
-let gameOverClearActivePiece = Operation.Draft(({ state }) => {
-    state.status = GameStatus.GameOver(GameOverCondition.Lockout)
-
-    // TODO: Does this do anything? This used to come after the reset of activePiece, when ghostCoordinate is []
-    state.activePiece.ghostCoordinates.forEach(c => {
-        let cell = state.playfieldGrid[c.y][c.x];
-        if (cell.classifier == Cell.Classifier.Mino && cell.ghost) {
-            state.playfieldGrid[c.y][c.x] = Cell.Empty;
-        }
-    });
-    state.activePiece = {
-        id: null,
-        location: null,
-        coordinates: [],
-        ghostCoordinates: [],
-        orientation: null,
-        activeRotation: false
-    };
-})
+}  

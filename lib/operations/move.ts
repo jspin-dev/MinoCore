@@ -12,8 +12,7 @@ export default (dx: number, dy: number) => Operation.Util.requireActiveGame(
             return Operation.None;
         }
         let { activePiece, playfieldGrid } = state;
-        let collisionPrereqisites = { activePiece, playfieldGrid, playfieldSpec: schema.playfield };
-        let collision = willCollide(collisionPrereqisites, activePiece.coordinates, dx, dy);
+        let collision = willCollide(playfieldGrid, schema.playfield, activePiece.coordinates, dx, dy);
         return move(dx, dy).applyIf(!collision);
     })
 )
@@ -26,8 +25,7 @@ let move = (dx: number, dy: number) => Operation.Draft(({ state }) => {
     activePiece.coordinates = activePiece.coordinates.map(c => {
         return { x: c.x + dx, y: c.y + dy }
     });
-    activePiece.coordinates.forEach(c => playfieldGrid[c.y][c.x] = Cell.Mino(activePiece.id));
-    activePiece.activeRotation = false;
+    activePiece.coordinates.forEach(c => { playfieldGrid[c.y][c.x] = Cell.Active(activePiece.id) });
 
     let pendingMovement = state.pendingMovement;
     if (dx > 0 && dy == 0) {

@@ -12,12 +12,7 @@
 
     let colorFor = (cell: Cell): String => {
         if (concealBlocks) { return colors[0] }
-        switch (cell.classifier) {
-            case Cell.Classifier.Mino:
-                return colors[cell.piece as number];
-            case Cell.Classifier.Empty:
-                return colors[0];
-        }
+        return colors[Cell.isEmpty(cell) ? 0 : cell.pieceId as number];
     }
 </script>
 
@@ -29,7 +24,7 @@
                 class:game-block-bordered="{showBorders && i >= borderlessHeight}"
                 class:game-block-bottom-bordered="{showBorders && i == borderlessHeight-1}"
                 class:blank-border="{showBorders && i < borderlessHeight}"
-                class:dimmed="{cell.classifier == Cell.Classifier.Mino && cell.ghost}" 
+                class:dimmed="{Cell.isGhost(cell)}" 
                 style="--block-color: {colorFor(cell)}; 
                        --block-size: {blockSize}px"/>
         {/each}

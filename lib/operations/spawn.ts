@@ -24,7 +24,7 @@ export default (pieceId: PieceIdentifier) => {
         let coordinates = gridToList(initialGrid, startLocation.x, startLocation.y, 1)
 
         // Detect game over
-        if (coordinates.some(c => state.playfieldGrid[c.y][c.x].classifier != Cell.Classifier.Empty)) {
+        if (coordinates.some(c => Cell.isLocked(state.playfieldGrid[c.y][c.x]))) {
             return Operation.Draft(({ state }) => { state.status = GameStatus.GameOver(GameOverCondition.Blockout) })
         }
         let resetLockdown = Operation.Draft(({ state }) => { 
@@ -77,14 +77,13 @@ let setActivePiece = (
     orientation: Orientation
 ) => {
     return Operation.Draft(({ state, events }) => {
-        coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Mino(pieceId));
+        coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Active(pieceId));
         state.activePiece = {
             id: pieceId,
             location: location,
             coordinates: coordinates,
             orientation,
-            ghostCoordinates: [],
-            activeRotation: false
+            ghostCoordinates: []
         }
         events.push(GameEvent.Spawn(state.activePiece));
     })
