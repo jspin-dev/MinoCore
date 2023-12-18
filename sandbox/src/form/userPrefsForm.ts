@@ -1,4 +1,4 @@
-import GameInput from "../../../build/definitions/Input";
+import GameInput from "../../../build/coreOperations/definitions/Input";
 import { InputField, Checkbox, Dropdown, FormEntry } from "./forms";
 
 export namespace UserPrefsAssociatedKey {

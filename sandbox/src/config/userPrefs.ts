@@ -1,4 +1,4 @@
-import Input from "../../../build/definitions/Input";
+import Input from "../../../build/coreOperations/definitions/Input";
 
 export let presets = {
   default: {

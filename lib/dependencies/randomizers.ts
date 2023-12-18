@@ -1,6 +1,6 @@
-import GameEvent from "../definitions/GameEvent";
-import Operation from "../definitions/CoreOperation";
-import SideEffect from "../definitions/SideEffect";
+import GameEvent from "../coreOperations/definitions/GameEvent";
+import Operation from "../coreOperations/definitions/CoreOperation";
+import SideEffect from "../coreOperations/definitions/SideEffect";
 import PieceIdentifier from "../definitions/PieceIdentifier";
 
 namespace PresetRandomizers {

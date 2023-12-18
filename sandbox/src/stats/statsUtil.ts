@@ -1,6 +1,6 @@
 import { BasicStat } from "../types";
 import statsTableConfig from "../config/statsConfig";
-import type Statistics from "../../../build/addons/guidelineStatistics/definitions/GuidelineStatistics";
+import type Statistics from "../../../build/addons/definitions/GuidelineStatistics";
 
 export let buildStatsSection = (statistics: Statistics) => {
     return {

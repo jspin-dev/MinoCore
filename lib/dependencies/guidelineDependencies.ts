@@ -1,41 +1,42 @@
-import Settings from "../definitions/Settings";
-import clearLines from "../operations/clearLines";
-import drop from "../operations/drop/drop";
-import hardDrop from "../operations/drop/hardDrop";
-import setSDF from "../operations/drop/setSDF";
-import startSoftDrop from "../operations/drop/startSoftDrop";
-import clearGhost from "../operations/ghost/clearGhost";
-import refreshGhost from "../operations/ghost/refreshGhost";
-import setGhostEnabled from "../operations/ghost/setGhostEnabled";
-import hold from "../operations/hold";
-import endInput from "../operations/lifecycle/endInput";
-import initialize from "../operations/lifecycle/initialize";
-import start from "../operations/lifecycle/start";
-import startInput from "../operations/lifecycle/startInput";
-import togglePause from "../operations/lifecycle/togglePause";
-import lock from "../operations/lockdown/lock";
-import triggerLockdown from "../operations/lockdown/triggerLockdown";
-import updateLockStatus from "../operations/lockdown/updateLockStatus";
-import move from "../operations/move";
-import addRns from "../operations/next/addRns";
-import next from "../operations/next/next";
-import prepareQueue from "../operations/next/prepareQueue";
-import removeRns from "../operations/next/removeRns";
-import rotate from "../operations/rotation/rotate";
-import validateRotationSettings from "../operations/rotation/validateRotationSettings";
-import cancelAutoShift from "../operations/shift/cancelAutoShift";
-import endShiftLeftInput from "../operations/shift/endShiftLeftInput";
-import endShiftRightInput from "../operations/shift/endShiftRightInput";
-import setARR from "../operations/shift/setARR";
-import setDAS from "../operations/shift/setDAS";
-import shift from "../operations/shift/shift";
-import startAutoShift from "../operations/shift/startAutoShift";
-import startDAS from "../operations/shift/startDAS";
-import startShiftLeftInput from "../operations/shift/startShiftLeftInput";
-import startShiftRightInput from "../operations/shift/startShiftRightInput";
-import spawn from "../operations/spawn";
-import recordTick from "../operations/lifecycle/recordTick";
+import Settings from "../coreOperations/definitions/Settings";
+import clearLines from "../coreOperations/operations/misc/clearLines";
+import drop from "../coreOperations/operations/drop/drop";
+import hardDrop from "../coreOperations/operations/drop/hardDrop";
+import setSDF from "../coreOperations/operations/drop/setSDF";
+import startSoftDrop from "../coreOperations/operations/drop/startSoftDrop";
+import clearGhost from "../coreOperations/operations/ghost/clearGhost";
+import refreshGhost from "../coreOperations/operations/ghost/refreshGhost";
+import setGhostEnabled from "../coreOperations/operations/ghost/setGhostEnabled";
+import hold from "../coreOperations/operations/misc/hold";
+import endInput from "../coreOperations/operations/lifecycle/endInput";
+import initialize from "../coreOperations/operations/lifecycle/initialize";
+import start from "../coreOperations/operations/lifecycle/start";
+import startInput from "../coreOperations/operations/lifecycle/startInput";
+import togglePause from "../coreOperations/operations/lifecycle/togglePause";
+import lock from "../coreOperations/operations/lockdown/lock";
+import triggerLockdown from "../coreOperations/operations/lockdown/triggerLockdown";
+import updateLockStatus from "../coreOperations/operations/lockdown/updateLockStatus";
+import move from "../coreOperations/operations/misc/move";
+import addRns from "../coreOperations/operations/next/addRns";
+import next from "../coreOperations/operations/next/next";
+import prepareQueue from "../coreOperations/operations/next/prepareQueue";
+import removeRns from "../coreOperations/operations/next/removeRns";
+import rotate from "../coreOperations/operations/rotation/rotate";
+import validateRotationSettings from "../coreOperations/operations/rotation/validateRotationSettings";
+import cancelAutoShift from "../coreOperations/operations/shift/cancelAutoShift";
+import endShiftLeftInput from "../coreOperations/operations/shift/endShiftLeftInput";
+import endShiftRightInput from "../coreOperations/operations/shift/endShiftRightInput";
+import setARR from "../coreOperations/operations/shift/setARR";
+import setDAS from "../coreOperations/operations/shift/setDAS";
+import shift from "../coreOperations/operations/shift/shift";
+import startAutoShift from "../coreOperations/operations/shift/startAutoShift";
+import startDAS from "../coreOperations/operations/shift/startDAS";
+import startShiftLeftInput from "../coreOperations/operations/shift/startShiftLeftInput";
+import startShiftRightInput from "../coreOperations/operations/shift/startShiftRightInput";
+import spawn from "../coreOperations/operations/misc/spawn";
+import recordTick from "../coreOperations/operations/lifecycle/recordTick";
 import PresetRandomizers from "./randomizers";
+import refillQueue from "../coreOperations/operations/next/refillQueue";
 
 export default (settings: Settings) => {
     return { 
@@ -64,6 +65,7 @@ export default (settings: Settings) => {
             endShiftRightInput, 
             prepareQueue,
             recordTick,
+            refillQueue,
             spawn,
             rotate,
             move,

@@ -1,5 +1,5 @@
-import LockScoreAction from "../../../build/addons/guidelineStatistics/definitions/LockScoreAction";
-import Lines from "../../../build/addons/guidelineStatistics/definitions/Lines";
+import LockScoreAction from "../../../build/addons/definitions/LockScoreAction";
+import Lines from "../../../build/addons/definitions/Lines";
 import { BasicStat } from "../types";
 
 export default {

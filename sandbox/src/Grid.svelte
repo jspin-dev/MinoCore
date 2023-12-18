@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Cell from "../../build/definitions/Cell";
+    import Cell from "../../build/coreOperations/definitions/Cell";
     import type Grid from "../../build/definitions/Grid";
 
     export let blockSize = 30;

@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     
-	import MinoGame from "../../build/MinoGame";
-	import type Settings from "../../build/definitions/Settings";
-    import Input from "../../build/definitions/Input";
-    import GameStatus from "../../build/definitions/GameStatus";
+	import MinoGame from "./MinoGame";
+	import type Settings from "../../build/coreOperations/definitions/Settings";
+    import Input from "../../build/coreOperations/definitions/Input";
+    import GameStatus from "../../build/coreOperations/definitions/GameStatus";
     import guidelineDependencies from "../../build/dependencies/guidelineDependencies";
 
     import { getKeycodeDisplayValue } from "./form/forms";

@@ -7,8 +7,8 @@
     import { produce } from "immer";
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
-    import type MinoGame from "../../build/MinoGame";
-    import Settings from "../../build/definitions/Settings";
+    import type MinoGame from "./MinoGame";
+    import Settings from "../../build/coreOperations/definitions/Settings";
 
 	let userPrefs = userPrefPresets.alternate;
 	let gameState: MinoGame.State;
