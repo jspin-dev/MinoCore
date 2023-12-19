@@ -1,6 +1,6 @@
 import Operation from "../../definitions/CoreOperation";
-import ShiftDirection from "../../definitions/ShiftDirection";
-import { findInstantShiftDistance } from "../../utils/coreOpStateUtils";
+import ShiftDirection from "../../../definitions/ShiftDirection";
+import { findMaxShiftDistance } from "../../utils/coreOpStateUtils";
 
 let resolveDirection = Operation.Resolve(({ state }) => {
     if (!state.settings.dasInteruptionEnabled || !state.dasLeftCharged) {
@@ -9,7 +9,7 @@ let resolveDirection = Operation.Resolve(({ state }) => {
     let resolveInstantShift = Operation.Resolve(({ state }, { operations, schema }) => {
         let { activePiece, playfieldGrid, direction } = state;
         if (state.settings.arr === 0) {
-            return operations.shift(findInstantShiftDistance(direction, activePiece, playfieldGrid, schema.playfield));
+            return operations.shift(findMaxShiftDistance(direction, activePiece.coordinates, playfieldGrid, schema.playfield));
         } else {
             return Operation.None;
         }

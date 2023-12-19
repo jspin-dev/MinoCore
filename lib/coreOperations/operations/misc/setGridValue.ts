@@ -1,4 +1,4 @@
-import Cell from "../../definitions/Cell";
+import Cell from "../../../definitions/Cell";
 import Coordinate from "../../../definitions/Coordinate";
 import Operation from "../../definitions/CoreOperation";
 

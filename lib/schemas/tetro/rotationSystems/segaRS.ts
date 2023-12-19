@@ -1,10 +1,10 @@
-import Orientation from "../../definitions/Orientation";
-import RotationSystem from "../definitions/RotationSystem";
-import TetroPiece from "../definitions/TetroPiece";
-import RotationProviderPresets from "../presets/rotationProviders";
+import Orientation from "../../../definitions/Orientation";
+import RotationSystem from "../../definitions/RotationSystem";
+import TetroPiece from "../TetroPiece";
+import RotationProviderPresets from "../../providerPresets/rotationProviders";
 
 let rotationSystem: RotationSystem = {
-    featureProvider: RotationProviderPresets.classic,
+    featureProvider: RotationProviderPresets.basic(),
     offsets: { 
         [TetroPiece.O]: RotationSystem.BoundingBoxOffsets.None,
         [TetroPiece.T]: RotationSystem.BoundingBoxOffsets.None,

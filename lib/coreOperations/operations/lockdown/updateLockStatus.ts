@@ -1,4 +1,4 @@
-import ActivePiece from "../../definitions/ActivePiece";
+import ActivePiece from "../../../definitions/ActivePiece";
 import Operation from "../../definitions/CoreOperation";
 import LockdownInfo from "../../definitions/LockdownInfo";
 import LockdownReset from "../../definitions/LockdownReset";
@@ -71,7 +71,7 @@ let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
 })
 
 let lockOnFloor = Operation.Resolve(({ state }, { operations }) => {
-    if (state.activePiece.distanceToFloor == 0) {
+    if (state.activePiece.availableDropDistance == 0) {
         let lockdownStatus = state.lockdownInfo.status;
         switch (lockdownStatus.classifier) {
             case LockdownStatus.Classifier.NoLockdown:

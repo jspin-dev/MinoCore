@@ -1,7 +1,7 @@
-import ActivePiece from "../../../coreOperations/definitions/ActivePiece";
-import Cell from "../../../coreOperations/definitions/Cell";
+import ActivePiece from "../../../definitions/ActivePiece";
+import Cell from "../../../definitions/Cell";
 import Grid from "../../../definitions/Grid";
-import TetroPiece from "../../../schemas/definitions/TetroPiece";
+import TetroPiece from "../../../schemas/tetro/TetroPiece";
 import LockScoreAction from "../../definitions/LockScoreAction";
 
 export let detectPC = (playfieldGrid: Grid<Cell>): boolean => {

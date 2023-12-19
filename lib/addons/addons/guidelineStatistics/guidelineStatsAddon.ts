@@ -11,9 +11,9 @@ import updateCoreStatistics from "../coreStatistics/coreStatsAddon";
 import DropScoreType from "../../definitions/DropScoreType";
 import LockScoreAction from "../../definitions/LockScoreAction";
 import Score from "../../definitions/Score";
-import ActivePiece from "../../../coreOperations/definitions/ActivePiece";
-import Cell from "../../../coreOperations/definitions/Cell";
-import TetroPiece from "../../../schemas/definitions/TetroPiece";
+import ActivePiece from "../../../definitions/ActivePiece";
+import Cell from "../../../definitions/Cell";
+import TetroPiece from "../../../schemas/tetro/TetroPiece";
 
 export default (coreResult: OperationResult<CoreState>) => {
     let operations = coreResult.events.map(event => updateStatisticsFromEvent(event));
@@ -89,6 +89,7 @@ let onLock = (event: GameEvent.LockType) => {
 let calculateFinesseOnLock = (statistics: Statistics, activePiece: ActivePiece): number => {
     let coordinates = activePiece.coordinates;
     let index = coordinates.reduce((a, value) => value.x < a ? value.x : a, coordinates[0].x);
+    return 0
     let idealSteps = finesseSettings
         .find(set => set.pieces.includes(activePiece.id as TetroPiece))
         .info

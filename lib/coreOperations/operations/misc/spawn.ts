@@ -2,16 +2,15 @@ import { gridToList } from "../../../util/sharedUtils";
 import Operation from "../../definitions/CoreOperation";
 import GameEvent from "../../definitions/GameEvent";
 import continueInstantShift from "../shift/continueInstantShift";
-import Coordinate from "../../../definitions/Coordinate";
 import GameOverCondition from "../../definitions/GameOverCondition";
 import GameStatus from "../../definitions/GameStatus";
 import LockdownStatus from "../../definitions/LockdownStatus";
-import Orientation from "../../../definitions/Orientation";
 import SideEffect from "../../definitions/SideEffect";
-import Cell from "../../definitions/Cell";
+import Cell from "../../../definitions/Cell";
 import PieceIdentifier from "../../../definitions/PieceIdentifier";
-import GameSchema from "../../../schemas/definitions/GameSchema";
-import { findInstantDropDistance } from "../../utils/coreOpStateUtils";
+import { findMaxDropDistance, findMaxShiftDistance } from "../../utils/coreOpStateUtils"
+import ShiftDirection from "../../../definitions/ShiftDirection"
+import ActivePiece from "../../../definitions/ActivePiece"
 
 /**
  * Spawns a piece (indicated by pieceId) at the top of the playfield,
@@ -28,9 +27,28 @@ export default (pieceId: PieceIdentifier) => {
         if (coordinates.some(c => Cell.isLocked(state.playfieldGrid[c.y][c.x]))) {
             return Operation.Draft(({ state }) => { state.status = GameStatus.GameOver(GameOverCondition.Blockout) })
         } 
-        let distanceToFloor = findInstantDropDistance(coordinates, state.playfieldGrid, schema.playfield);
+        let newActivePiece: ActivePiece = {
+            id: pieceId,
+            location: startLocation,
+            coordinates: coordinates,
+            orientation: spawnOrientation,
+            ghostCoordinates: [],
+            availableDropDistance: findMaxDropDistance(coordinates, state.playfieldGrid, schema.playfield),
+            availableShiftDistance: {
+                [ShiftDirection.Left]: findMaxShiftDistance(ShiftDirection.Left, coordinates, state.playfieldGrid, schema.playfield),
+                [ShiftDirection.Right]: findMaxShiftDistance(ShiftDirection.Right, coordinates, state.playfieldGrid, schema.playfield)
+            }
+        }
+
+        let draftNewActivePiece = Operation.Draft(({ state, events }) => {
+            state.lockdownInfo = { status: LockdownStatus.NoLockdown, largestY: 0 }
+            state.activePiece = newActivePiece
+            state.activePiece.coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Active(newActivePiece.id))
+            events.push(GameEvent.Spawn(state.activePiece))
+        })
+
         return Operation.Sequence(
-            draftNewActivePiece(coordinates, pieceId, startLocation, spawnOrientation, distanceToFloor),
+            draftNewActivePiece,
             operations.refreshGhost,
             //operations.drop(1),
             resolveShiftContinuation,
@@ -47,8 +65,8 @@ let resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
     let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoDrop, SideEffect.TimerOperation.Start))
     })
-    let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.distanceToFloor > 0 && softDropActive;
-    return shouldInstantDrop ? operations.drop(activePiece.distanceToFloor) : draftTimerChange;
+    let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
+    return shouldInstantDrop ? operations.drop(activePiece.availableDropDistance) : draftTimerChange
 })
 
 let resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => {
@@ -65,25 +83,3 @@ let resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => 
         return Operation.Sequence(operations.cancelAutoShift, unchargeDAS);
     }
 })
-
-let draftNewActivePiece = (
-    coordinates: Coordinate[], 
-    pieceId: PieceIdentifier, 
-    location: Coordinate, 
-    orientation: Orientation,
-    distanceToFloor: number
-) => {
-    return Operation.Draft(({ state, events }) => {
-        state.lockdownInfo = { status: LockdownStatus.NoLockdown, largestY: 0 }
-        coordinates.forEach(c => state.playfieldGrid[c.y][c.x] = Cell.Active(pieceId));
-        state.activePiece = {
-            id: pieceId,
-            location: location,
-            coordinates: coordinates,
-            orientation,
-            ghostCoordinates: [],
-            distanceToFloor
-        }
-        events.push(GameEvent.Spawn(state.activePiece));
-    })
-}

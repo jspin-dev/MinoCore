@@ -16,7 +16,6 @@ import togglePause from "../coreOperations/operations/lifecycle/togglePause";
 import lock from "../coreOperations/operations/lockdown/lock";
 import triggerLockdown from "../coreOperations/operations/lockdown/triggerLockdown";
 import updateLockStatus from "../coreOperations/operations/lockdown/updateLockStatus";
-import move from "../coreOperations/operations/misc/move";
 import addRns from "../coreOperations/operations/next/addRns";
 import next from "../coreOperations/operations/next/next";
 import prepareQueue from "../coreOperations/operations/next/prepareQueue";
@@ -35,15 +34,12 @@ import startShiftLeftInput from "../coreOperations/operations/shift/startShiftLe
 import startShiftRightInput from "../coreOperations/operations/shift/startShiftRightInput";
 import spawn from "../coreOperations/operations/misc/spawn";
 import recordTick from "../coreOperations/operations/lifecycle/recordTick";
-import PresetRandomizers from "./randomizers";
 import refillQueue from "../coreOperations/operations/next/refillQueue";
 
 export default (settings: Settings) => {
     return { 
         defaultSettings: settings,
         operations: { 
-            enqueueFull: PresetRandomizers.NBag.operations.enqueueFull,
-            enqueueNext: PresetRandomizers.NBag.operations.enqueueNext, 
             startDAS,
             startAutoShift,
             cancelAutoShift,
@@ -68,7 +64,6 @@ export default (settings: Settings) => {
             refillQueue,
             spawn,
             rotate,
-            move,
             drop,
             shift,
             clearLines,
@@ -79,8 +74,7 @@ export default (settings: Settings) => {
             setGhostEnabled,
             startInput,
             endInput,
-            addRns,
-            removeRns
+            addRns
         }
     }
 }

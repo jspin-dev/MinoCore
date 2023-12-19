@@ -1,12 +1,11 @@
 import Operation from "../../definitions/CoreOperation";
-import ShiftDirection from "../../definitions/ShiftDirection";
-import { findInstantShiftDistance } from "../../utils/coreOpStateUtils";
+import ShiftDirection from "../../../definitions/ShiftDirection";
 
-export default Operation.Resolve(({ state }, { operations, schema }) => {
-    let { activePiece, playfieldGrid, direction, dasRightCharged, dasLeftCharged, settings } = state;
+export default Operation.Resolve(({ state }, { operations }) => {
+    let { direction, dasRightCharged, dasLeftCharged, settings } = state;
     let shouldAutoShiftRight = dasRightCharged && direction == ShiftDirection.Right;
     let shouldAutoShiftLeft = dasLeftCharged && direction == ShiftDirection.Left;
-    let shiftDistance = findInstantShiftDistance(direction, activePiece, playfieldGrid, schema.playfield);
-    let shouldContinueInstantShift = settings.arr === 0 && shiftDistance > 0 && (shouldAutoShiftRight || shouldAutoShiftLeft);
-    return shouldContinueInstantShift ? operations.shift(shiftDistance) : Operation.None;
+    let availableShiftDistance = state.activePiece.availableShiftDistance[direction];
+    let shouldContinueInstantShift = settings.arr === 0 && availableShiftDistance > 0 && (shouldAutoShiftRight || shouldAutoShiftLeft);
+    return shouldContinueInstantShift ? operations.shift(availableShiftDistance) : Operation.None;
 })

@@ -1,10 +1,10 @@
 import Input from "./Input";
 import Grid from "../../definitions/Grid";
 import Step from "./Step";
-import ActivePiece from "./ActivePiece";
-import ShiftDirection from "./ShiftDirection";
+import ActivePiece from "../../definitions/ActivePiece";
+import ShiftDirection from "../../definitions/ShiftDirection";
 import Rotation from "./Rotation";
-import Cell from "./Cell";
+import Cell from "../../definitions/Cell";
 import PieceIdentifier from "../../definitions/PieceIdentifier";
 
 type GameEvent = GameEvent.InputStartType | GameEvent.InputEndType | GameEvent.ClockTickType 

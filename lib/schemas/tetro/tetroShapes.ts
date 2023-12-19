@@ -1,6 +1,6 @@
 import BinaryGrid from "../../definitions/BinaryGrid";
 import PieceIdentifier from "../../definitions/PieceIdentifier";
-import TetroPiece from "../definitions/TetroPiece";
+import TetroPiece from "./TetroPiece";
 
 let shapes: { [id: PieceIdentifier]: BinaryGrid } = {
     [TetroPiece.I]: [

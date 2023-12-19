@@ -1,4 +1,4 @@
-import Cell from "../../definitions/Cell";
+import Cell from "../../../definitions/Cell";
 import Operation from "../../definitions/CoreOperation";
 import GameEvent from "../../definitions/GameEvent";
 

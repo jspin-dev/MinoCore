@@ -10,7 +10,7 @@ export default (input: Input.ActiveGame) => Operation.Resolve(({ state }, depenc
         return Operation.None;
     }
     return Operation.Sequence(
-        completePendingMovement(depencencies.schema),
+        completePendingMovement,
         draftInputStartRecord(input),
         performInputAction(input, depencencies)
     );

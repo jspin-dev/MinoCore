@@ -8,7 +8,7 @@ import SideEffect from "../../definitions/SideEffect";
  * Called when a user input ends. Usually this would be the release of a keypress
  */
 export default (input: Input.ActiveGame) => Operation.Resolve((_, { schema }) => Operation.Sequence(
-    completePendingMovement(schema),
+    completePendingMovement,
     draftInputEndRecord(input),
     resolveInputEndAction(input)
 ))

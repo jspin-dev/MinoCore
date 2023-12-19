@@ -4,10 +4,15 @@ import GameEvent from "../../definitions/GameEvent";
 import continueInstantSoftDrop from "../drop/continueInstantSoftDrop";
 import continueInstantShift from "../shift/continueInstantShift";
 import Rotation from "../../definitions/Rotation";
-import Cell from "../../definitions/Cell";
+import Cell from "../../../definitions/Cell";
 import CoreDependencies from "../../definitions/CoreDependencies";
 import RotationSystem from "../../../schemas/definitions/RotationSystem";
-import { findInstantDropDistance } from "../../utils/coreOpStateUtils";
+import { findMaxDropDistance, findMaxShiftDistance } from "../../utils/coreOpStateUtils";
+import Orientation from "../../../definitions/Orientation";
+import { gridToList } from "../../../util/sharedUtils";
+import Coordinate from "../../../definitions/Coordinate";
+import Outcome from "../../../definitions/Outcome";
+import ShiftDirection from "../../../definitions/ShiftDirection";
 
 export default (rotation: Rotation) => Operation.Util.requireActiveGame(
     Operation.Resolve((_, { operations }) => Operation.Sequence(
@@ -21,28 +26,52 @@ export default (rotation: Rotation) => Operation.Util.requireActiveGame(
 let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, dependencies: CoreDependencies) => {
     let { operations, schema } = dependencies;
     let previousPlayfield = [...state.playfieldGrid.map(row => [...row])];
-    let rotationResult = schema.rotationSystem.featureProvider.rotate(rotation, state, dependencies);
-    if (rotationResult == null) {
-        return Operation.None;
-    } else {
-        return Operation.Sequence(
-            draftRotationResult(rotationResult),
-            resolveDistanceToFloor,
-            operations.refreshGhost.applyIf(rotationResult.unadjustedCoordinates != null),
-            operations.updateLockStatus(MovementType.Rotate),
-            Operation.Draft(({ state, events }) => { 
-                events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfieldGrid, state.activePiece)) 
-            })
-        )
+
+    let { activePiece, generatedRotationGrids, playfieldGrid } = state;
+    let orientationCount = Object.keys(Orientation).length / 2;
+    let newOrientation: Orientation = (rotation + activePiece.orientation + orientationCount) % orientationCount;
+    let newMatrix = generatedRotationGrids[activePiece.id][newOrientation].map(it => [...it])
+    let unadjustedCoordinates = gridToList(newMatrix, activePiece.location.x, activePiece.location.y, 1);
+    let stateReference = {
+        playfield: playfieldGrid,
+        activePiece,
+        generatedGrids: generatedRotationGrids
+    }
+    let rotationProvider = schema.rotationSystem.featureProvider
+    let rotationResult = rotationProvider.rotate(stateReference, newOrientation, unadjustedCoordinates)
+    switch (rotationResult.classifier) {
+        case Outcome.Classifier.Failure:
+            return Operation.None;
+        case Outcome.Classifier.Success:
+            return Operation.Sequence(
+                draftRotationResult(newOrientation, unadjustedCoordinates, rotationResult.data),
+                resolveDistanceCalculations, // Order matters - This relies on new state from draftRotationResult(...) 
+                operations.refreshGhost.applyIf(unadjustedCoordinates != null),
+                operations.updateLockStatus(MovementType.Rotate),
+                Operation.Draft(({ state, events }) => { 
+                    events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfieldGrid, state.activePiece)) 
+                })
+            )
     }
 })
 
-let resolveDistanceToFloor = Operation.Resolve(({ state }, { schema }) => {
-    let distanceToFloor = findInstantDropDistance(state.activePiece.coordinates, state.playfieldGrid, schema.playfield);
-    return Operation.Draft(({ state }) => { state.activePiece.distanceToFloor = distanceToFloor });
+let resolveDistanceCalculations = Operation.Resolve(({ state }, { schema }) => {
+    let { activePiece, playfieldGrid } = state;
+    let maxDropDistance = findMaxDropDistance(activePiece.coordinates, playfieldGrid, schema.playfield);
+    let maxLeftShiftDistance = findMaxShiftDistance(ShiftDirection.Left, activePiece.coordinates, playfieldGrid, schema.playfield);
+    let maxRightShiftDistance = findMaxShiftDistance(ShiftDirection.Right, activePiece.coordinates, playfieldGrid, schema.playfield);
+    return Operation.Draft(({ state }) => { 
+        state.activePiece.availableDropDistance = maxDropDistance;
+        state.activePiece.availableShiftDistance[ShiftDirection.Left] = maxLeftShiftDistance;
+        state.activePiece.availableShiftDistance[ShiftDirection.Right] = maxRightShiftDistance;
+    });
 })
 
-let draftRotationResult = ({ offset, unadjustedCoordinates, newOrientation }: RotationSystem.Result) => {
+let draftRotationResult = (
+    newOrientation: Orientation,
+    unadjustedCoordinates: Coordinate[],
+    offset: RotationSystem.Offset
+) => {
     return Operation.Draft(({ state }) => {
         let { coordinates, location, id } = state.activePiece;
     

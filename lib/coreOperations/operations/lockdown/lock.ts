@@ -1,10 +1,10 @@
 import GameEvent from "../../definitions/GameEvent";
 import Operation from "../../definitions/CoreOperation";
 import Grid from "../../../definitions/Grid";
-import ActivePiece from "../../definitions/ActivePiece";
+import ActivePiece from "../../../definitions/ActivePiece";
 import GameOverCondition from "../../definitions/GameOverCondition";
 import GameStatus from "../../definitions/GameStatus";
-import Cell from "../../definitions/Cell";
+import Cell from "../../../definitions/Cell";
 
 export default Operation.Util.requireActiveGame(
     Operation.Resolve(({ state }, { operations }) => {

@@ -8,8 +8,6 @@ import Rotation from "./Rotation";
 import PieceIdentity from "../../definitions/PieceIdentifier";
 
 interface CoreOperations<S extends CoreState, D extends Dependencies, R extends OperationResult<S>> {
-    enqueueFull: Operation<R, D>
-    enqueueNext: Operation<R, D>
     startDAS: Operation<R, D>
     startAutoShift: Operation<R, D>
     cancelAutoShift: Operation<R, D>
@@ -26,12 +24,13 @@ interface CoreOperations<S extends CoreState, D extends Dependencies, R extends 
     validateRotationSettings: Operation<R, D>
     next: Operation<R, D>
     startShiftLeftInput: Operation<R, D>
-    startShiftRightInput: Operation<R, D>,
+    startShiftRightInput: Operation<R, D>
     endShiftLeftInput: Operation<R, D>
     endShiftRightInput: Operation<R, D>
     prepareQueue: Operation<R, D>
     recordTick: Operation<R, D>,
     refillQueue: Operation<R, D>,
+    measureDistances: Operation<R, D>
     rotate: CoreOperations.Rotate<R, D>
     move: CoreOperations.Move<R, D>
     drop: CoreOperations.Drop<R, D>
@@ -46,7 +45,6 @@ interface CoreOperations<S extends CoreState, D extends Dependencies, R extends 
     startInput: CoreOperations.StartInput<R, D>
     endInput: CoreOperations.EndInput<R, D>
     addRns: CoreOperations.AddRns<R, D>
-    removeRns: CoreOperations.RemoveRns<R, D>
 }    
 
 namespace CoreOperations {

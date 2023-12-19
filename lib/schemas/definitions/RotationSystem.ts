@@ -1,9 +1,11 @@
-import Coordinate from "../../definitions/Coordinate";
-import CoreDependencies from "../../coreOperations/definitions/CoreDependencies";
-import CoreState from "../../coreOperations/definitions/CoreState";
 import Orientation from "../../definitions/Orientation";
 import PieceIdentifier from "../../definitions/PieceIdentifier";
-import Rotation from "../../coreOperations/definitions/Rotation";
+import Outcome from "../../definitions/Outcome";
+import Coordinate from "../../definitions/Coordinate";
+import Cell from "../../definitions/Cell";
+import Grid from "../../definitions/Grid";
+import BinaryGrid from "../../definitions/BinaryGrid";
+import ActivePiece from "../../definitions/ActivePiece";
 
 interface RotationSystem {
     offsets: { [id: PieceIdentifier]: RotationSystem.BoundingBoxOffsets }
@@ -12,16 +14,15 @@ interface RotationSystem {
 
 namespace RotationSystem {
 
-    export interface FeatureProvider {
-        rotate: (n: Rotation, state: CoreState, dependencies: CoreDependencies) => RotationSystem.Result
+    export type Offset = [number, number]
+
+    export interface GeneratedGrids {
+        [Orientation.North]: BinaryGrid
+        [Orientation.East]: BinaryGrid
+        [Orientation.South]: BinaryGrid
+        [Orientation.West]: BinaryGrid
     }
-    
-    export interface Result {
-        newOrientation: Orientation
-        offset?: Offset
-        unadjustedCoordinates?: Coordinate[]
-    }
-    
+
     export interface BoundingBoxOffsets {
         [Orientation.North]: Offset
         [Orientation.East]: Offset
@@ -40,8 +41,33 @@ namespace RotationSystem {
 
     }
 
-    export type Offset = [number, number]
+}
+
+// Feature provider types
+namespace RotationSystem {
+
+    export interface FeatureProvider {
+        rotate: (
+            stateReference: StateReference,
+            orientation: Orientation, 
+            unadjustedCoordinates: Coordinate[]
+        ) => Outcome<Offset>
+    }
+
+    export interface Validator {
+        isValid: (
+            stateReference: StateReference,
+            coordinates: readonly Coordinate[], 
+            offset: RotationSystem.Offset
+        ) => boolean
+    }
+
+    export interface StateReference {
+        playfield: Grid<Cell>
+        activePiece: ActivePiece,
+        generatedGrids: { [id: PieceIdentifier]: RotationSystem.GeneratedGrids }
+    }
 
 }
 
-export default RotationSystem;
+export default RotationSystem

@@ -11,9 +11,9 @@ export default Operation.Util.requireActiveGame(
     ))
 )
 
-let resolveDrop = Operation.Resolve(({ state }, { operations, schema }) => {
+let resolveDrop = Operation.Resolve(({ state }, { operations }) => {
     let autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.Request.TimerInterval(SideEffect.TimerName.AutoDrop, state.settings.softDropInterval))
     })
-    return state.settings.softDropInterval == 0 ? operations.drop(state.activePiece.distanceToFloor) : autoDrop;
+    return state.settings.softDropInterval == 0 ? operations.drop(state.activePiece.availableDropDistance) : autoDrop
 })

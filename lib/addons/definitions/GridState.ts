@@ -1,5 +1,5 @@
 import BinaryGrid from "../../definitions/BinaryGrid";
-import Cell from "../../coreOperations/definitions/Cell";
+import Cell from "../../definitions/Cell";
 import Grid from "../../definitions/Grid";
 import PieceIdentifier from "../../definitions/PieceIdentifier";
 

@@ -1,11 +1,11 @@
-import KickTableSchema from "../definitions/KickTableSchema";
-import Orientation from "../../definitions/Orientation";
-import RotationSystem from "../definitions/RotationSystem";
-import TetroPiece from "../definitions/TetroPiece";
-import RotationProviderPresets from "../presets/rotationProviders";
-import RotationValidatorPresets from "../presets/rotationValidators";
+import Orientation from "../../../definitions/Orientation";
+import RotationSystem from "../../definitions/RotationSystem";
+import TetroPiece from "../TetroPiece";
+import RotationProviderPresets from "../../providerPresets/rotationProviders";
+import RotationValidatorPresets from "../../providerPresets/rotationValidators";
+import KickTable from "../../definitions/KickTable";
 
-let defaultTable: KickTableSchema.Table = {
+let defaultTable: KickTable = {
     [Orientation.North]: {
         [Orientation.North]: [],
         [Orientation.East]: [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
@@ -32,7 +32,7 @@ let defaultTable: KickTableSchema.Table = {
     }
 }
 
-let iTable: KickTableSchema.Table = {
+let iTable: KickTable = {
     [Orientation.North]: {
         [Orientation.North]: [],
         [Orientation.East]: [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
@@ -59,24 +59,21 @@ let iTable: KickTableSchema.Table = {
     }
 }
 
-let schema: KickTableSchema = {
-    rotationValidator: RotationValidatorPresets.simpleCollision, 
-    tables: { 
-        [TetroPiece.J]: defaultTable,
-        [TetroPiece.L]: defaultTable,
-        [TetroPiece.S]: defaultTable,
-        [TetroPiece.Z]: defaultTable,
-        [TetroPiece.T]: defaultTable,
-        [TetroPiece.O]: defaultTable,
-        [TetroPiece.I]: iTable
-    }
+let kickTables: KickTable.Map = { 
+    [TetroPiece.J]: defaultTable,
+    [TetroPiece.L]: defaultTable,
+    [TetroPiece.S]: defaultTable,
+    [TetroPiece.Z]: defaultTable,
+    [TetroPiece.T]: defaultTable,
+    [TetroPiece.O]: defaultTable,
+    [TetroPiece.I]: iTable
 }
 
 let defaultOffsets = RotationSystem.BoundingBoxOffsets.None;
 
 let rotationSystem: RotationSystem = {
-    featureProvider: RotationProviderPresets.kickTable(schema),
-    offsets: { 
+    featureProvider: RotationProviderPresets.kickTable(kickTables, RotationValidatorPresets.simpleCollision),
+    offsets: {
         [TetroPiece.J]: defaultOffsets,
         [TetroPiece.L]: defaultOffsets,
         [TetroPiece.T]: defaultOffsets,
@@ -87,4 +84,4 @@ let rotationSystem: RotationSystem = {
     }
 }
 
-export default rotationSystem;
+export default rotationSystem

@@ -1,7 +1,5 @@
 import BinaryGrid from "../../definitions/BinaryGrid"
 import Coordinate from "../../definitions/Coordinate"
-import CoreDependencies from "../../coreOperations/definitions/CoreDependencies"
-import CoreState from "../../coreOperations/definitions/CoreState"
 import Orientation from "../../definitions/Orientation"
 import PieceIdentifier from "../../definitions/PieceIdentifier"
 import RotationSystem from "./RotationSystem"
@@ -15,13 +13,8 @@ interface GameSchema {
 
 namespace GameSchema {
 
-    export interface PieceGenerationResult {
-        newPieces: PieceIdentifier[]
-        randomNumbersUsed: number[]
-    }
-
     export interface PieceGenerator {
-        generateToFill: (state: CoreState, dependencies: CoreDependencies) => PieceGenerationResult
+        generate: (minPieceCount: number, schemaPieces: PieceIdentifier[], rns: number[]) => PieceGenerationResult
     }
 
     export interface PlayfieldSpec {
@@ -41,6 +34,15 @@ namespace GameSchema {
         shape: BinaryGrid
         startLocation: Coordinate
         spawnOrientation: Orientation
+    }
+
+}
+
+namespace GameSchema {
+
+    export interface PieceGenerationResult {
+        newPieces: PieceIdentifier[]
+        updatedRns: number[]
     }
 
 }

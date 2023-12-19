@@ -1,7 +1,7 @@
 import CoreStatistics from "./CoreStatistics"
 import Score from "./Score"
 import Grid from "../../definitions/Grid"
-import Cell from "../../coreOperations/definitions/Cell"
+import Cell from "../../definitions/Cell"
 
 interface GuidelineStatistics extends CoreStatistics {
     scoreState: Score.State,

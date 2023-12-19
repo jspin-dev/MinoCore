@@ -1,7 +1,7 @@
-import Orientation from "../../definitions/Orientation";
-import RotationSystem from "../definitions/RotationSystem";
-import TetroPiece from "../definitions/TetroPiece";
-import RotationProviderPresets from "../presets/rotationProviders";
+import Orientation from "../../../definitions/Orientation";
+import RotationSystem from "../../definitions/RotationSystem";
+import TetroPiece from "../TetroPiece";
+import RotationProviderPresets from "../../providerPresets/rotationProviders";
 
 let iszOffsets: RotationSystem.BoundingBoxOffsets = {
     [Orientation.North]: [0, 1],
@@ -13,7 +13,7 @@ let iszOffsets: RotationSystem.BoundingBoxOffsets = {
 let defaultOffsets = RotationSystem.BoundingBoxOffsets.None;
 
 let rotationSystem: RotationSystem = {
-    featureProvider: RotationProviderPresets.classic,
+    featureProvider: RotationProviderPresets.basic(),
     offsets: { 
         [TetroPiece.J]: defaultOffsets,
         [TetroPiece.L]: defaultOffsets,

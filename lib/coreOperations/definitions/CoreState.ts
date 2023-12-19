@@ -2,15 +2,14 @@ import Grid from "../../definitions/Grid"
 import PendingMovement from "./PendingMovement"
 import Input from "./Input"
 import Settings from "./Settings"
-import ActivePiece from "./ActivePiece"
+import ActivePiece from "../../definitions/ActivePiece"
 import LockdownInfo from "./LockdownInfo"
 import GameStatus from "./GameStatus"
-import ShiftDirection from "./ShiftDirection"
-import Cell from "./Cell"
+import ShiftDirection from "../../definitions/ShiftDirection"
+import Cell from "../../definitions/Cell"
 import PieceIdentity from "../../definitions/PieceIdentifier"
 import PieceIdentifier from "../../definitions/PieceIdentifier"
-import Orientation from "../../definitions/Orientation"
-import BinaryGrid from "../../definitions/BinaryGrid"
+import RotationSystem from "../../schemas/definitions/RotationSystem"
 
 interface CoreState {
     previewQueue: PieceIdentity[],
@@ -29,7 +28,7 @@ interface CoreState {
     dasLeftCharged: boolean,
     direction: ShiftDirection,
     randomNumbers: number[],
-    generatedRotationGrids?: { [id: PieceIdentifier]: CoreState.GeneratedGrids } // Optional, generated at runtime
+    generatedRotationGrids?: { [id: PieceIdentifier]: RotationSystem.GeneratedGrids } // Optional, generated at runtime
 }
 
 namespace CoreState {
@@ -50,13 +49,6 @@ namespace CoreState {
         dasLeftCharged: false,
         direction: null,
         randomNumbers: []
-    }
-
-    export interface GeneratedGrids {
-        [Orientation.North]: BinaryGrid
-        [Orientation.East]: BinaryGrid
-        [Orientation.South]: BinaryGrid
-        [Orientation.West]: BinaryGrid
     }
 
 }
