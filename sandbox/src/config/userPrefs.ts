@@ -1,4 +1,4 @@
-import Input from "../../../build/coreOperations/definitions/Input";
+import Input from "../../../build/definitions/Input"
 
 export let presets = {
   default: {
@@ -19,7 +19,7 @@ export let presets = {
       sdf: 15,
       ghostEnabled: true,
       dasPreservationEnabled: true,
-      dasInteruptionEnabled: true,
+      dasInterruptionEnabled: true,
       showGrid: true,
       showFocusBanner: true
   },
@@ -41,8 +41,9 @@ export let presets = {
       sdf: 0,
       ghostEnabled: true,
       dasPreservationEnabled: true,
-      dasInteruptionEnabled: true,
-      showFocusBanner: false
+      dasInterruptionEnabled: true,
+      showFocusBanner: false,
+      showGrid: true
   }
 
 }

@@ -1,4 +1,4 @@
-import PieceIdentifier from "./PieceIdentifier"
+import type PieceIdentifier from "./PieceIdentifier"
 
 type Cell = Cell.Types.Active | Cell.Types.Ghost | Cell.Types.Locked | Cell.Types.Empty
 
@@ -57,14 +57,14 @@ namespace Cell {
 // Type guards
 namespace Cell {
 
-    export let isActive = (cell: Cell): cell is Cell.Types.Active => cell?.classifier == Cell.Classifier.Active
+    export let isActive = (cell: Cell): cell is Cell.Types.Active => cell.classifier == Cell.Classifier.Active
 
-    export let isEmpty = (cell: Cell): cell is Cell.Types.Empty => cell?.classifier == Cell.Classifier.Empty
+    export let isEmpty = (cell: Cell): cell is Cell.Types.Empty => cell.classifier == Cell.Classifier.Empty
     
-    export let isGhost = (cell: Cell): cell is Cell.Types.Ghost => cell?.classifier == Cell.Classifier.Ghost
+    export let isGhost = (cell: Cell): cell is Cell.Types.Ghost => cell.classifier == Cell.Classifier.Ghost
 
-    export let isLocked = (cell: Cell): cell is Cell.Types.Locked => cell?.classifier == Cell.Classifier.Locked
+    export let isLocked = (cell: Cell): cell is Cell.Types.Locked => cell.classifier == Cell.Classifier.Locked
 
 }
 
-export default Cell;
+export default Cell

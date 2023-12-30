@@ -24,4 +24,4 @@ namespace CoreStatistics {
 
 }
 
-export default CoreStatistics;
+export default CoreStatistics

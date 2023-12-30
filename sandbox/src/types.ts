@@ -1,4 +1,4 @@
-import type Input from "../../build/coreOperations/definitions/Input";
+import type Input from "../../build/definitions/Input";
 import type { InputField, FormEntry } from "./form/forms";
 
 declare global {
@@ -12,7 +12,7 @@ declare global {
         sdf: number,
         ghostEnabled: boolean,
         dasPreservationEnabled: boolean,
-        dasInteruptionEnabled: boolean,
+        dasInterruptionEnabled: boolean,
         showGrid: boolean,
         showFocusBanner: boolean
     }

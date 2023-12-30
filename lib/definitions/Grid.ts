@@ -1,2 +1,2 @@
 type Grid<T> = T[][]
-export default Grid;
+export default Grid

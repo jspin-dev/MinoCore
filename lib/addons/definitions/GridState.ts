@@ -1,7 +1,7 @@
-import BinaryGrid from "../../definitions/BinaryGrid";
-import Cell from "../../definitions/Cell";
-import Grid from "../../definitions/Grid";
-import PieceIdentifier from "../../definitions/PieceIdentifier";
+import BinaryGrid from "../../definitions/BinaryGrid"
+import Cell from "../../definitions/Cell"
+import Grid from "../../definitions/Grid"
+import PieceIdentifier from "../../definitions/PieceIdentifier"
 
 interface GridState {
     nextPreview: Grid<Cell>

@@ -1,52 +1,50 @@
-import GameEvent from "../../../coreOperations/definitions/GameEvent";
-import type Statistics from "../../definitions/CoreStatistics";
-import type OperationResult from "../../../coreOperations/definitions/CoreOperationResult";
-import CoreState from "../../../coreOperations/definitions/CoreState";
-import Operation from "../../../definitions/Operation";
+import GameEvent from "../../../definitions/GameEvent"
+import type Statistics from "../../definitions/CoreStatistics"
+import Operation from "../../../definitions/Operation"
 
-export default <S extends CoreState>(coreResult: OperationResult<S>) => {
-    let operations = coreResult.events.map(event => updateStatisticsFromEvent(event));
+export default (gameEvents: GameEvent[]) => {
+    let operations = gameEvents.map(event => updateStatisticsFromEvent(event))
     return Operation.Sequence(...operations)
 }
 
 let updateStatisticsFromEvent = (event: GameEvent) => {
     switch (event.classifier) {
         case GameEvent.Classifier.ClockTick:
-            return onTick;
+            return onTick
         case GameEvent.Classifier.InputStart:
-            return onInputStart;
+            return onInputStart
         case GameEvent.Classifier.Lock:
-            return onLock(event);
+            return onLock(event)
         case GameEvent.Classifier.Hold:
-            return onHold;
+            return onHold
         case GameEvent.Classifier.Spawn:
-            return onSpawn;
+            return onSpawn
         default:
-            return Operation.None();
+            return Operation.None()
     }
 }
 
 let onTick = Operation.Draft<Statistics>(statistics => {
-    statistics.time++;
-    statistics.pps = statistics.time ? statistics.piecesLocked / statistics.time : 0;
+    statistics.time++
+    statistics.pps = statistics.time ? statistics.piecesLocked / statistics.time : 0
 })
 
 let onHold = Operation.Draft<Statistics>(statistics => {
-    statistics.holdCount++;
+    statistics.holdCount++
 })
 
 let onSpawn = Operation.Draft<Statistics>(statistics => {
-    statistics.spawnCount++;
+    statistics.spawnCount++
 })
 
 let onInputStart = Operation.Draft<Statistics>(statistics => {
-    statistics.keysPressed++;
-    statistics.kpp = statistics.piecesLocked ? statistics.keysPressed / statistics.piecesLocked : 0;
+    statistics.keysPressed++
+    statistics.kpp = statistics.piecesLocked ? statistics.keysPressed / statistics.piecesLocked : 0
 })
 
-let onLock = (event: GameEvent.LockType) => Operation.Draft<Statistics>(statistics => {
-    statistics.pps = statistics.time ? statistics.piecesLocked / statistics.time : 0;
-    statistics.lines += event.linesCleared.length;
-    statistics.piecesLocked++;
+let onLock = (event: GameEvent.Types.Lock) => Operation.Draft<Statistics>(statistics => {
+    statistics.pps = statistics.time ? statistics.piecesLocked / statistics.time : 0
+    statistics.lines += event.linesCleared.length
+    statistics.piecesLocked++
 })
 

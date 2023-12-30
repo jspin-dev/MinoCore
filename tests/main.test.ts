@@ -2,7 +2,7 @@ import { State, Meta, Hold, Preview, Settings, Playfield, Grid, ActivePiece } fr
 import { Randomization, GameStatus, Input } from "../lib/enums";
 import LifecycleProviders from "../lib/providers/lifecycleProviders";
 import { execute } from "../lib/exec";
-import srs from "../lib/rotationSystems/srs.json";
+import srs from "../lib/rotation/srs.json";
 import partialSettings from "../lib/settings.json";
 import partialMeta from "./expectedInitialStates/meta.json";
 import expectedPreviewGridSettings from "./expectedInitialStates/previewGridSettings.json";

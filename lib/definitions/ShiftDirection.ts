@@ -3,4 +3,11 @@ enum ShiftDirection {
     Left = -1
 }
 
-export default ShiftDirection;
+namespace ShiftDirection {
+
+    export let opposite = (direction: ShiftDirection): ShiftDirection => {
+        return -direction as ShiftDirection
+    }
+
+}
+export default ShiftDirection

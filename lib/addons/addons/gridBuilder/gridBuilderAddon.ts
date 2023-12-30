@@ -1,16 +1,16 @@
 // import CoreState from "../../definitions/CoreState";
 // import OperationResult from "../../definitions/CoreOperationResult";
 // import Operation from "../../definitions/Operation";
-// import Orientation from "../../schemas/definitions/Orientation";
+// import Orientation from "../../schema/definitions/Orientation";
 // import Grid from "../../definitions/Grid";
 // import { createEmptyGrid } from "../../util/sharedUtils";
 // import Settings from "../../definitions/Settings";
 // import GameEvent from "../../definitions/GameEvent";
 // import GridState from "./definitions.ts/GridState";
 // import Cell from "../../definitions/Cell";
-// import { Draft, WritableDraft } from "immer/dist/internal";
-// import BinaryGrid from "../../schemas/definitions/BinaryGrid";
-// import PieceIdentity from "../../schemas/definitions/PieceIdentifier";
+// import { Draft, WritableDraft } from "immer/dist/member";
+// import BinaryGrid from "../../schema/definitions/BinaryGrid";
+// import PieceIdentity from "../../schema/definitions/PieceIdentifier";
 
 // export default <P extends Identifiable>(coreResult: OperationResult<P, CoreState<P>>): Operation<GridState<P>, void> => {
 //     let validatePreviewGridSettings = Operation.Provide<GridState<P>, void>(state => {

@@ -1,14 +1,15 @@
-import Coordinate from "./Coordinate"
-import PieceIdentitifier from "./PieceIdentifier"
-import Orientation from "./Orientation"
+import type Coordinate from "./Coordinate"
+import type PieceIdentifier from "./PieceIdentifier"
+import type Orientation from "./Orientation"
 import ShiftDirection from "./ShiftDirection"
 
 interface ActivePiece {
-    id: PieceIdentitifier
+    id: PieceIdentifier
     location: Coordinate
     coordinates: Coordinate[]
     ghostCoordinates: Coordinate[]
-    orientation: Orientation
+    orientation: Orientation,
+    maxDepth: number,
     availableDropDistance: number
     availableShiftDistance: {
         [ShiftDirection.Left]: number,
@@ -24,6 +25,7 @@ namespace ActivePiece {
         coordinates: [],
         ghostCoordinates: [],
         orientation: null,
+        maxDepth: 0,
         availableDropDistance: null,
         availableShiftDistance: null
     }

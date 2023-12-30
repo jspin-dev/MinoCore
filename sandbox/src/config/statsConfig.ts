@@ -1,6 +1,6 @@
-import LockScoreAction from "../../../build/addons/definitions/LockScoreAction";
-import Lines from "../../../build/addons/definitions/Lines";
-import { BasicStat } from "../types";
+import LockScoreAction from "../../../build/addons/definitions/LockScoreAction"
+import Lines from "../../../build/addons/definitions/Lines"
+import { BasicStat } from "../types"
 
 export default {
     sectionName: "Statistics",

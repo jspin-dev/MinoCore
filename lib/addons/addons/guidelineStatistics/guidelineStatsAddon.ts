@@ -1,34 +1,28 @@
-import GameEvent from "../../../coreOperations/definitions/GameEvent";
-import Statistics from "../../definitions/GuidelineStatistics";
-import { detectPC, detectTspin } from "./guidelineScoringUtils";
-import Input from "../../../coreOperations/definitions/Input";
-import finesseSettings from "./finesseSettings";
-import Grid from "../../../definitions/Grid";
-import OperationResult from "../../../coreOperations/definitions/CoreOperationResult";
-import CoreState from "../../../coreOperations/definitions/CoreState";
-import Operation from "../../../definitions/Operation";
-import updateCoreStatistics from "../coreStatistics/coreStatsAddon";
-import DropScoreType from "../../definitions/DropScoreType";
-import LockScoreAction from "../../definitions/LockScoreAction";
-import Score from "../../definitions/Score";
-import ActivePiece from "../../../definitions/ActivePiece";
-import Cell from "../../../definitions/Cell";
-import TetroPiece from "../../../schemas/tetro/TetroPiece";
+import GameEvent from "../../../definitions/GameEvent"
+import Statistics from "../../definitions/GuidelineStatistics"
+import Input from "../../../definitions/Input"
+import Grid from "../../../definitions/Grid"
+import Operation from "../../../definitions/Operation"
+import LockScoreAction from "../../definitions/LockScoreAction"
+import ActivePiece from "../../../definitions/ActivePiece"
+import Cell from "../../../definitions/Cell"
+import TetroPiece from "../../../presets/tetro/TetroPiece"
+import ScoreState from "../../definitions/Score"
+import DropType from "../../../definitions/DropType"
+import finesseSettings from "./finesseSettings"
+import {detectPC, detectTspin} from "./guidelineScoringUtils"
+import updateCoreStatistics from "../coreStatistics/coreStatsAddon"
+import Rotation from "../../../definitions/Rotation";
 
-export default (coreResult: OperationResult<CoreState>) => {
-    let operations = coreResult.events.map(event => updateStatisticsFromEvent(event));
-    return Operation.Sequence(updateCoreStatistics(coreResult), ...operations)
+export default (gameEvents: GameEvent[]) => {
+    let operations = gameEvents.map(event => updateStatisticsFromEvent(event));
+    return Operation.Sequence(updateCoreStatistics(gameEvents), ...operations)
 }
 
-let moveCounts = {
-    [Input.ActiveGame.SD]: 0,
-    [Input.ActiveGame.HD]: 0,
-    [Input.ActiveGame.Hold]: 0,
-    [Input.ActiveGame.ShiftLeft]: 1,
-    [Input.ActiveGame.ShiftRight]: 1,
-    [Input.ActiveGame.RotateCW]: 1,
-    [Input.ActiveGame.RotateCCW]: 1,
-    [Input.ActiveGame.Rotate180]: 2
+let dropMultipliers = {
+    [DropType.Auto]: 0,
+    [DropType.Soft]: 1,
+    [DropType.Hard]: 2
 }
 
 let updateStatisticsFromEvent = (event: GameEvent) => {
@@ -40,7 +34,7 @@ let updateStatisticsFromEvent = (event: GameEvent) => {
         case GameEvent.Classifier.Lock:
             return onLock(event);
         case GameEvent.Classifier.Shift:
-            return onShift(event);
+            return onShift();
         case GameEvent.Classifier.Rotate:
             return onRotation(event);
         default:
@@ -48,39 +42,41 @@ let updateStatisticsFromEvent = (event: GameEvent) => {
     }
 }
 
-let onDrop = (event: GameEvent.DropType) => Operation.Draft<Statistics>(statistics => {
-    statistics.scoreState.score += DropScoreType.multipliers[event.dropType] * event.dy;
-    if (event.dy > 0) {
-        statistics.rotationReferenceGrid = null;
+let onDrop = (event: GameEvent.Types.Drop) => Operation.Draft<Statistics>(statistics => {
+    statistics.scoreState.score += dropMultipliers[event.dropType] * event.dy
+    statistics.rotationReferenceGrid = null
+})
+
+let onShift = () => Operation.Draft<Statistics>(statistics => {
+    statistics.rotationReferenceGrid = null
+})
+
+let onRotation = (event: GameEvent.Types.Rotate) => Operation.Draft<Statistics>(statistics => {
+    statistics.rotationReferenceGrid = event.previousPlayfield
+})
+
+let onInputStart = (event: GameEvent.Types.InputStart) => Operation.Draft<Statistics>(statistics => {
+    switch (event.input.classifier) {
+        case Input.ActiveGame.Classifier.Shift:
+            statistics.moveCount += 1
+            break
+        case Input.ActiveGame.Classifier.Rotate:
+            statistics.moveCount += event.input.rotation == Rotation.Degrees180 ? 2 : 1
     }
 })
 
-let onShift = (event: GameEvent.ShiftType) => Operation.Draft<Statistics>(statistics => {
-    if (event.dx > 0) {
-        statistics.rotationReferenceGrid = null;
-    }
-})
-
-let onRotation = (event: GameEvent.RotateType) => Operation.Draft<Statistics>(statistics => {
-    statistics.rotationReferenceGrid = event.previousPlayfield;
-})
-
-let onInputStart = (event: GameEvent.InputStartType) => Operation.Draft<Statistics>(statistics => {
-    statistics.moveCount += moveCounts[event.input];
-})
-
-let onLock = (event: GameEvent.LockType) => {
+let onLock = (event: GameEvent.Types.Lock) => {
     return Operation.Draft<Statistics>(statistics => {
-        let lines = event.linesCleared.length;
+        let lines = event.linesCleared.length
         statistics.finesse += calculateFinesseOnLock(statistics, event.activePiece)
-        let action = getScoreAction(lines, event.activePiece, event.playfield, statistics.rotationReferenceGrid);
-        statistics.scoreState = createNewScoreStateOnLock(action, statistics.scoreState, statistics.level, lines);
-        statistics.moveCount = 0;
+        let action = getScoreAction(lines, event.activePiece, event.playfield, statistics.rotationReferenceGrid)
+        statistics.scoreState = createNewScoreStateOnLock(action, statistics.scoreState, statistics.level, lines)
+        statistics.moveCount = 0
         if (action) {
             if (action.key in statistics.actionTally) {
-                statistics.actionTally[action.key]++;
+                statistics.actionTally[action.key]++
             } else {
-                statistics.actionTally[action.key] = 1;
+                statistics.actionTally[action.key] = 1
             }
         }
     })
@@ -89,7 +85,6 @@ let onLock = (event: GameEvent.LockType) => {
 let calculateFinesseOnLock = (statistics: Statistics, activePiece: ActivePiece): number => {
     let coordinates = activePiece.coordinates;
     let index = coordinates.reduce((a, value) => value.x < a ? value.x : a, coordinates[0].x);
-    return 0
     let idealSteps = finesseSettings
         .find(set => set.pieces.includes(activePiece.id as TetroPiece))
         .info
@@ -105,26 +100,26 @@ let getScoreAction = (
     rotationReferenceGrid?: Grid<Cell>
 ): LockScoreAction => {
     if (lines > 0 && detectPC(playfieldGrid)) {
-        return LockScoreAction.PC(lines);
+        return LockScoreAction.PC(lines)
     }
     if (rotationReferenceGrid != null) {
-        let tspinType = detectTspin(activePiece, rotationReferenceGrid);
+        let tspinType = detectTspin(activePiece, rotationReferenceGrid)
         switch (tspinType) {
             case LockScoreAction.Type.TSpin:
-                return LockScoreAction.TSpin(lines);
+                return LockScoreAction.TSpin(lines)
             case LockScoreAction.Type.TSpinMini:
-                return LockScoreAction.TSpinMini(lines);
+                return LockScoreAction.TSpinMini(lines)
         }
     }
-    return lines > 0 ? LockScoreAction.LineClear(lines) : null;
+    return lines > 0 ? LockScoreAction.LineClear(lines) : null
 }
 
 let createNewScoreStateOnLock = (
     action: LockScoreAction, 
-    previousState: Score.State,
+    previousState: ScoreState,
     level: number,
     lines: number
-): Score.State => {
+): ScoreState => {
     let combo = lines > 0 ? previousState.combo + 1 : -1;
     if (!action) {
         return { ...previousState, combo };
@@ -144,4 +139,4 @@ let createNewScoreStateOnLock = (
         score: previousState.score + (actionInfo.basePointValue * b2bMultiplier) + comboScore,
         combo
     }
-} 
+}

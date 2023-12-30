@@ -1,10 +1,10 @@
 import CoreStatistics from "./CoreStatistics"
-import Score from "./Score"
 import Grid from "../../definitions/Grid"
 import Cell from "../../definitions/Cell"
+import ScoreState from "./Score"
 
 interface GuidelineStatistics extends CoreStatistics {
-    scoreState: Score.State,
+    scoreState: ScoreState,
     level: number,
     actionTally: {[key: string]: number},
     finesse: number,
@@ -26,4 +26,4 @@ namespace GuidelineStatistics {
     
 }
 
-export default GuidelineStatistics;
+export default GuidelineStatistics

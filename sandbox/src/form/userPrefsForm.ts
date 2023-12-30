@@ -1,4 +1,4 @@
-import GameInput from "../../../build/coreOperations/definitions/Input";
+import GameInput from "../../../build/definitions/Input";
 import { InputField, Checkbox, Dropdown, FormEntry } from "./forms";
 
 export namespace UserPrefsAssociatedKey {
@@ -124,8 +124,8 @@ export let userPrefsForm: FormSection[] = [
             Entry.MainNumeric("DAS", "das", { min: 0, max: 500 }),
             Entry.MainNumeric("ARR", "arr", { min: 0, max: 50 }),
             Entry.MainNumeric("SDF", "sdf", { min: 0, max: 50 }),
-            Entry.MainCheckbox("DAS preservation", "dasPreservationEnabled", Checkbox.EnabledDisabledPreset, { disabled: true }),
-            Entry.MainCheckbox("DAS interuption", "dasInteruptionEnabled", Checkbox.EnabledDisabledPreset, { disabled: true })
+            Entry.MainCheckbox("DAS preservation", "dasPreservationEnabled", Checkbox.EnabledDisabledPreset),
+            Entry.MainCheckbox("DAS interruption", "dasInterruptionEnabled", Checkbox.EnabledDisabledPreset)
         ]
     },
     {

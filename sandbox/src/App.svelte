@@ -8,7 +8,7 @@
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
     import type MinoGame from "./MinoGame";
-    import Settings from "../../build/coreOperations/definitions/Settings";
+    import TetroSettingsPresets from "../../build/presets/tetro/tetroSettingsPresets"
 
 	let userPrefs = userPrefPresets.alternate;
 	let gameState: MinoGame.State;
@@ -76,7 +76,7 @@
 	{/if}
 
 	<Game 
-		gameSettings={Settings.Presets.Guideline} 
+		gameSettings={TetroSettingsPresets.guideline}
 		uiSettings={defaultSettings} 
 		userPrefs={userPrefs}
 		reportState={state => gameState = state}

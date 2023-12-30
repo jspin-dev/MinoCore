@@ -1,15 +1,17 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     
-	import MinoGame from "./MinoGame";
-	import type Settings from "../../build/coreOperations/definitions/Settings";
-    import Input from "../../build/coreOperations/definitions/Input";
-    import GameStatus from "../../build/coreOperations/definitions/GameStatus";
-    import guidelineDependencies from "../../build/dependencies/guidelineDependencies";
+	import MinoGame from "./MinoGame"
+	import type Settings from "../../build/core/definitions/Settings"
+    import Input from "../../build/definitions/Input"
+    import GameStatus from "../../build/core/definitions/GameStatus"
 
     import { getKeycodeDisplayValue } from "./form/forms";
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
-    import Grid from "./Grid.svelte";
+    import Grid from "./Grid.svelte"
+    import prepareQueue from "../../build/core/operations/root/lifecycle/prepareQueue"
+    import start from "../../build/core/operations/root/lifecycle/start"
+    import updateSettings from "../../build/core/operations/root/updateSettings"
 
 	export let uiSettings: UiSettings;
     export let userPrefs: UserPreferences;
@@ -17,12 +19,12 @@
     export let state: MinoGame.State;
     export let reportState: (state: MinoGame.State) => void;
 
-	let game = new MinoGame(guidelineDependencies(gameSettings));
+	let game = new MinoGame(gameSettings);
 	game.onStateChanged = reportState;
 	state = game.init();
     reportState(state);
-    game.run(ops => ops.prepareQueue);
-    game.run(ops => ops.start);
+    game.run(prepareQueue);
+    game.run(start);
 
     let container: HTMLElement;
     let containerInFocus = true;
@@ -31,7 +33,8 @@
 
 	let onKeydownEvent = (e: KeyboardEvent) => {
         if (e.repeat) { return }
-        game.startInput(userPrefs.keybindings[e.code]);
+        let input = userPrefs.keybindings[e.code]
+        game.startInput(input);
 	}
 
 	let onKeyupEvent = (e: KeyboardEvent) => {
@@ -47,15 +50,23 @@
         return getKeycodeDisplayValue(keycode)
     }
 
-	$: playfieldGrid = state.core.playfieldGrid;
-	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length);
-	$: inactiveGame = state.core.status != GameStatus.Active;
-    $: isPaused = state.core.status === GameStatus.Suspended;
+	$: playfieldGrid = state.core.playfield
+	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length)
+	$: inactiveGame = state.core.status != GameStatus.Active
+    $: isPaused = state.core.status === GameStatus.Suspended
     
-    $: game.run(ops => ops.setSDF(userPrefs.sdf));
-    $: game.run(ops => ops.setDAS(userPrefs.das));
-    $: game.run(ops => ops.setARR(userPrefs.arr));
-    $: game.run(ops => ops.setGhostEnabled(userPrefs.ghostEnabled));
+    $: game.run(updateSettings({ softDropInterval: userPrefs.sdf }))
+    $: game.run(updateSettings(
+        {
+            das: {
+                delay: userPrefs.das,
+                autoShiftInterval: userPrefs.arr,
+                interruptionEnabled: userPrefs.dasInterruptionEnabled,
+                preservationEnabled: userPrefs.dasPreservationEnabled
+            }
+        }
+    ))
+    $: game.run(updateSettings({ ghostEnabled: userPrefs.ghostEnabled }))
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

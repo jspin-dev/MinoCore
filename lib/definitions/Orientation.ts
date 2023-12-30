@@ -5,4 +5,4 @@ enum Orientation {
     West = 3
 }
 
-export default Orientation;
+export default Orientation

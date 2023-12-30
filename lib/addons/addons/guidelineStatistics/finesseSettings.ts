@@ -1,6 +1,6 @@
-import Orientation from "../../../definitions/Orientation";
-import Step from "../../../coreOperations/definitions/Step";
-import Piece from "../../../schemas/tetro/TetroPiece";
+import Orientation from "../../../definitions/Orientation"
+import Step from "../../definitions/Step"
+import Piece from "../../../presets/tetro/TetroPiece"
 
 export type FinesseSettings = {
     pieces: Piece[],

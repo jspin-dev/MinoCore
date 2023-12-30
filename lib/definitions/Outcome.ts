@@ -1,9 +1,9 @@
-type Outcome<T> = Outcome.SuccessType<T> | Outcome.FailureType;
+type Outcome<T> = Outcome.SuccessType<T> | Outcome.FailureType
 
 namespace Outcome {
 
     export enum Classifier {
-        Success, Failure
+        Failure, Success
     }
 
     export interface SuccessType<T> {
@@ -18,6 +18,7 @@ namespace Outcome {
 
 }
 
+// Builders
 namespace Outcome {
 
     export let Success = <T>(data: T): Outcome.SuccessType<T> => {
@@ -30,4 +31,17 @@ namespace Outcome {
 
 }
 
-export default Outcome;
+// Type guards
+namespace Outcome {
+
+    export let isSuccess = <T>(outcome: Outcome<T>): outcome is Outcome.SuccessType<T> => {
+        return outcome?.classifier == Outcome.Classifier.Success
+    }
+
+    export let isFailure = <T>(outcome: Outcome<T>): outcome is Outcome.FailureType => {
+        return outcome?.classifier == Outcome.Classifier.Failure
+    }
+
+}
+
+export default Outcome
