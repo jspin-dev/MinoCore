@@ -1,9 +1,13 @@
 import Operation from "../../../definitions/CoreOperation"
-import SideEffect from "../../../definitions/SideEffect"
 import CorePreconditions from "../../../utils/CorePreconditions"
+import TimerName from "../../../definitions/TimerName";
+import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
 let rootOperation = Operation.Draft(({ state, sideEffectRequests }) => {
-    sideEffectRequests.push(SideEffect.Request.TimerInterval(SideEffect.TimerName.AutoDrop, state.settings.dropInterval))
+    sideEffectRequests.push(SideEffectRequest.TimerInterval({
+        timerName: TimerName.AutoDrop,
+        delay: state.settings.dropInterval
+    }))
 })
 
 export default Operation.Export({

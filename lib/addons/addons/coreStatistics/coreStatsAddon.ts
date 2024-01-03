@@ -14,7 +14,9 @@ let updateStatisticsFromEvent = (event: GameEvent) => {
         case GameEvent.Classifier.InputStart:
             return onInputStart
         case GameEvent.Classifier.Lock:
-            return onLock(event)
+            return onLock
+        case GameEvent.Classifier.Clear:
+            return onClear(event)
         case GameEvent.Classifier.Hold:
             return onHold
         case GameEvent.Classifier.Spawn:
@@ -42,9 +44,11 @@ let onInputStart = Operation.Draft<Statistics>(statistics => {
     statistics.kpp = statistics.piecesLocked ? statistics.keysPressed / statistics.piecesLocked : 0
 })
 
-let onLock = (event: GameEvent.Types.Lock) => Operation.Draft<Statistics>(statistics => {
+let onLock = Operation.Draft<Statistics>(statistics => {
     statistics.pps = statistics.time ? statistics.piecesLocked / statistics.time : 0
-    statistics.lines += event.linesCleared.length
     statistics.piecesLocked++
 })
 
+let onClear = (event: GameEvent.Types.Clear) => Operation.Draft<Statistics>(statistics => {
+    statistics.lines += event.linesCleared.length
+})

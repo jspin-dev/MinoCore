@@ -13,4 +13,4 @@ namespace LockdownPresets {
 
 }
 
-export default  LockdownPresets
+export default LockdownPresets

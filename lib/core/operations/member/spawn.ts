@@ -1,9 +1,8 @@
 import Operation from "../../definitions/CoreOperation"
 import GameEvent from "../../../definitions/GameEvent"
-import GameOverCondition from "../../definitions/GameOverCondition"
 import GameStatus from "../../definitions/GameStatus"
 import LockdownStatus from "../../definitions/LockdownStatus"
-import SideEffect from "../../definitions/SideEffect"
+import SideEffect from "../../definitions/SideEffectRequest"
 import Cell from "../../../definitions/Cell"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import ShiftDirection from "../../../definitions/ShiftDirection"
@@ -11,12 +10,12 @@ import ActivePiece from "../../../definitions/ActivePiece"
 import CorePreconditions from "../../utils/CorePreconditions"
 import PendingMovement from "../../definitions/PendingMovement"
 import DropType from "../../../definitions/DropType"
+import Input from "../../../definitions/Input"
+import TimerOperation from "../../definitions/TimerOperation"
+import TimerName from "../../definitions/TimerName"
+import SideEffectRequest from "../../definitions/SideEffectRequest"
 import { findAvailableDropDistance, findAvailableShiftDistance } from "../../utils/coreOpStateUtils"
 import { gridToList } from "../../../util/sharedUtils"
-
-import TimerName = SideEffect.TimerName
-import TimerOperation = SideEffect.TimerOperation
-import Input from "../../../definitions/Input";
 
 let resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
     let { activePiece, settings, pendingMovement } = state
@@ -25,7 +24,10 @@ let resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
         return Operation.None
     }
     let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(TimerName.AutoDrop, TimerOperation.Start))
+        sideEffectRequests.push(SideEffect.TimerOperation({
+            timerName: TimerName.AutoDrop,
+            operation: TimerOperation.Start
+        }))
     })
     let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropPending
     return shouldInstantDrop ? operations.drop(DropType.Soft, activePiece.availableDropDistance) : draftTimerChange
@@ -44,14 +46,14 @@ let resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => 
 let rootOperation = (pieceId: PieceIdentifier) => {
     return Operation.Resolve(({ state }, { operations, schema }) => {
         let playfield = state.playfield
-        let { grid, orientation, location } = schema.rotationSystem.getSpawnInfo(pieceId, state)
+        let { grid, orientation, location } = schema.rotationSystem.getSpawnInfo({ pieceId, state })
         let coordinates = gridToList(grid, location.x, location.y, 1)
 
         // Detect game over
         if (coordinates.some(c => Cell.isLocked(playfield[c.y][c.x]))) {
             return Operation.Draft(({ state, sideEffectRequests }) => {
-                state.status = GameStatus.GameOver(GameOverCondition.Blockout)
-                sideEffectRequests.push(...SideEffect.Request.OnAllTimers(TimerOperation.Cancel))
+                state.status = GameStatus.GameOver//(GameOverCondition.Blockout)
+                sideEffectRequests.push(...SideEffectRequest.OnAllTimers(TimerOperation.Cancel))
             })
         }
         let distanceCalculationInfo = { coordinates, playfield, playfieldSpec: schema.playfield }
@@ -74,7 +76,7 @@ let rootOperation = (pieceId: PieceIdentifier) => {
             state.lockdownStatus = LockdownStatus.NoLockdown
             state.activePiece = newActivePiece
             state.activePiece.coordinates.forEach(c => state.playfield[c.y][c.x] = Cell.Active(newActivePiece.id))
-            events.push(GameEvent.Spawn(state.activePiece))
+            events.push(GameEvent.Spawn({ activePiece: state.activePiece }))
         })
 
         return Operation.Sequence(

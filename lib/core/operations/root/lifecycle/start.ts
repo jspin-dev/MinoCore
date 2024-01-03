@@ -1,12 +1,20 @@
 import Operation from "../../../definitions/CoreOperation"
 import GameStatus from "../../../definitions/GameStatus"
-import SideEffect from "../../../definitions/SideEffect"
+import SideEffectRequest from "../../../definitions/SideEffectRequest"
+import TimerName from "../../../definitions/TimerName"
+import TimerOperation from "../../../definitions/TimerOperation"
 
 let rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
     Operation.Draft(({ state, sideEffectRequests }) => { 
         state.status = GameStatus.Active
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.Clock, SideEffect.TimerOperation.Start))
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(SideEffect.TimerName.AutoDrop, SideEffect.TimerOperation.Start))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation({
+            timerName: TimerName.Clock,
+            operation: TimerOperation.Start
+        }))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation({
+            timerName: TimerName.AutoDrop,
+            operation: TimerOperation.Start
+        }))
     }),
     operations.next
 ))

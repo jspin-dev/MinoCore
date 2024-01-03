@@ -28,28 +28,42 @@ namespace PendingMovement {
 
 }
 
-// Builders
+// Convenience
 namespace PendingMovement {
 
-    export let Shift = (direction: ShiftDirection, dx: number): Types.Shift => {
-        return { classifier: Classifier.Shift, direction, dx }
+    export let Shift = (params: { direction: ShiftDirection, dx: number }): Types.Shift => {
+        return { classifier: Classifier.Shift, direction: params.direction, dx: params.dx }
     }
 
-    export let Drop = (type: DropType, dy: number): Types.Drop => {
-        return { classifier: Classifier.Drop, type, dy }
+    export let Drop = (params: { type: DropType, dy: number }): Types.Drop => {
+        return { classifier: Classifier.Drop, type: params.type, dy: params.dy }
     }
 
-}
-
-// Type guards
-namespace PendingMovement {
+    export let equal = (pendingMovement1: PendingMovement, pendingMovement2: PendingMovement) => {
+        if (!pendingMovement1 && !pendingMovement2) {
+            return true
+        }
+        if (!pendingMovement1 || !pendingMovement2) {
+            return false
+        }
+        switch (pendingMovement1.classifier) {
+            case PendingMovement.Classifier.Drop:
+                return pendingMovement2.classifier == PendingMovement.Classifier.Drop
+                    && pendingMovement1.dy == pendingMovement2.dy
+                    && pendingMovement1.type == pendingMovement2.type
+            case PendingMovement.Classifier.Shift:
+                return pendingMovement2.classifier == PendingMovement.Classifier.Shift
+                    && pendingMovement1.dx == pendingMovement2.dx
+                    && pendingMovement1.direction == pendingMovement2.direction
+        }
+    }
 
     export let isShift = (movement?: PendingMovement): movement is PendingMovement.Types.Shift => {
         return movement?.classifier == PendingMovement.Classifier.Shift
     }
 
     export let isDrop = (movement?: PendingMovement): movement is PendingMovement.Types.Drop => {
-        return movement?.classifier == PendingMovement.Classifier.Drop;
+        return movement?.classifier == PendingMovement.Classifier.Drop
     }
 
 }

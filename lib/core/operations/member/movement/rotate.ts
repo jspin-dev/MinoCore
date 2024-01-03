@@ -14,7 +14,7 @@ let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, depe
     let { operations, schema } = dependencies
     let previousPlayfield = [...state.playfield.map(row => [...row])]
 
-    let rotationResult = schema.rotationSystem.rotate(rotation, state)
+    let rotationResult = schema.rotationSystem.rotate({ rotation, state })
 
     switch (rotationResult.classifier) {
         case Outcome.Classifier.Failure:
@@ -26,7 +26,12 @@ let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, depe
                 operations.refreshGhost.applyIf(rotationResult.data.unadjustedCoordinates != null),
                 operations.updateLockStatus(MovementType.Rotate),
                 Operation.Draft(({ state, events }) => { 
-                    events.push(GameEvent.Rotate(rotation, previousPlayfield, state.playfield, state.activePiece))
+                    events.push(GameEvent.Rotate({
+                        rotation,
+                        previousPlayfield,
+                        playfield: state.playfield,
+                        activePiece: state.activePiece
+                    }))
                 })
             )
     }

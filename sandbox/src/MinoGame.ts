@@ -9,8 +9,9 @@ import type CoreDependencies from "../../build/core/definitions/CoreDependencies
 import CoreState from "../../build/core/definitions/CoreState"
 import type OperationResult from "../../build/core/definitions/CoreOperationResult"
 import type PreviewGridState from "../../build/addons/definitions/GridState"
+import TimerName from "../../build/core/definitions/TimerName"
 // import syncPreviewGrids from "./addons/gridBuilder/gridBuilderAddon"
-import SideEffect from "../../build/core/definitions/SideEffect"
+import SideEffectRequest from "../../build/core/definitions/SideEffectRequest"
 import DropType from "../../build/definitions/DropType"
 import defaultCoreOperations from "../../build/core/defaultCoreOperations"
 import recordTick from "../../build/core/operations/root/lifecycle/recordTick"
@@ -27,8 +28,6 @@ import startInput from "../../build/core/operations/root/lifecycle/startInput"
 import endInput from "../../build/core/operations/root/lifecycle/endInput"
 import drop from "../../build/core/operations/member/movement/drop"
 import shift from "../../build/core/operations/member/movement/shift"
-
-import TimerName = SideEffect.TimerName
 
 type CoreOperation = Operation<OperationResult<CoreState>, CoreDependencies>
 type StatisticsOperation = Operation<Statistics, void>
@@ -69,12 +68,19 @@ class MinoGame {
         let statistics = statsOperation.execute(this.state?.statistics ?? Statistics.initial)
         // let previewGridsOperation = syncPreviewGrids(coreResult) as PreviewGridOperation
         // let previewGrids = previewGridsOperation.execute(this.state?.previewGrids ?? PreviewGridState.initial)
-        this.state = { core: coreResult.state, statistics, previewGrids: null }
-        if (coreResult.events.length > 0) {
-            coreResult.events.forEach(event => {
-                console.log(event)
-            })
+
+        let diff = CoreState.diff(this.state?.core, coreResult.state)
+        if (diff) {
+            console.log(JSON.stringify(diff))
         }
+        // console.log(JSON.stringify(coreResult.state))
+
+        this.state = { core: coreResult.state, statistics, previewGrids: null }
+        // if (coreResult.events.length > 0) {
+        //     coreResult.events.forEach(event => {
+        //         console.log(event)
+        //     })
+        // }
         coreResult.sideEffectRequests.forEach(request => this.executeSideEffect(request))
         if (this.onStateChanged) {
             this.onStateChanged(this.state)
@@ -82,15 +88,15 @@ class MinoGame {
         return this.state
     }
 
-    executeSideEffect(request: SideEffect.Request) {
+    executeSideEffect(request: SideEffectRequest) {
         switch (request.classifier) {
-            case SideEffect.Request.Classifier.TimerInterval:
+            case SideEffectRequest.Classifier.TimerInterval:
                 this.timers[request.timerName].delayInMillis = request.delay
                 break
-            case SideEffect.Request.Classifier.TimerOperation:
+            case SideEffectRequest.Classifier.TimerOperation:
                 this.timers[request.timerName][request.operation]()
                 break
-            case SideEffect.Request.Classifier.Rng:
+            case SideEffectRequest.Classifier.Rng:
                 let rns = Array.from(Array(request.quantity)).map(() => Math.random())
                 this.run(addRns(rns))
         }

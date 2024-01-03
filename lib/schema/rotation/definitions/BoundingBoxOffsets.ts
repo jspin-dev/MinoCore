@@ -9,6 +9,7 @@ interface BoundingBoxOffsets {
     [Orientation.West]: Offset
 }
 
+// Convenience
 namespace BoundingBoxOffsets {
 
     export let None: BoundingBoxOffsets = {

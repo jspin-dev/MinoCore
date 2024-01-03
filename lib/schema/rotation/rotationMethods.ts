@@ -12,30 +12,28 @@ namespace RotationMethods {
 
     export let basic = (
         validator: RotationSystem.Validator = RotationSystem.Validator.simpleCollision
-    ): RotationSystem.RotationBehavior => (
-        rotation: Rotation,
-        state: CoreState & GeneratedGrids
-    ): Outcome<RotationSystem.RotateResult> => {
-        let baseInfo = getBaseRotationInfo(rotation, state)
-        let shouldRotate = validator.isValid(state, baseInfo.unadjustedCoordinates, [0, 0])
-        let result: RotationSystem.RotateResult = { offset: [0, 0], ...baseInfo }
-        return shouldRotate ? Outcome.Success(result) : Outcome.Failure()
+    ): RotationSystem.RotationBehavior => {
+        return ({ rotation, state}): Outcome<RotationSystem.RotateResult> => {
+            let baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
+            let shouldRotate = validator.isValid(state, baseInfo.unadjustedCoordinates, [0, 0])
+            let result: RotationSystem.RotateResult = { offset: [0, 0], ...baseInfo }
+            return shouldRotate ? Outcome.Success(result) : Outcome.Failure()
+        }
     }
 
-    export let kickTable = (tables: KickTable.FullInfo): RotationSystem.RotationBehavior => (
-        rotation: Rotation,
-        state: CoreState & GeneratedGrids
-    ): Outcome<RotationSystem.RotateResult> => {
-        let baseInfo = getBaseRotationInfo(rotation, state)
-        let activePiece = state.activePiece
-        let fullInfo = tables[activePiece.id]
-        let offsetList = fullInfo.table[activePiece.orientation][baseInfo.newOrientation]
-        let validator = fullInfo.validator ?? RotationSystem.Validator.simpleCollision
-        let matchingOffset = offsetList.find(offset => {
-            return validator.isValid(state, baseInfo.unadjustedCoordinates, offset)
-        })
-        let result: RotationSystem.RotateResult = { offset: matchingOffset, ...baseInfo }
-        return matchingOffset != null ? Outcome.Success(result) : Outcome.Failure()
+    export let kickTable = (tables: KickTable.FullInfo): RotationSystem.RotationBehavior => {
+        return ({ rotation, state }): Outcome<RotationSystem.RotateResult> => {
+            let baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
+            let activePiece = state.activePiece
+            let fullInfo = tables[activePiece.id]
+            let offsetList = fullInfo.table[activePiece.orientation][baseInfo.newOrientation]
+            let validator = fullInfo.validator ?? RotationSystem.Validator.simpleCollision
+            let matchingOffset = offsetList.find(offset => {
+                return validator.isValid(state, baseInfo.unadjustedCoordinates, offset)
+            })
+            let result: RotationSystem.RotateResult = { offset: matchingOffset, ...baseInfo }
+            return matchingOffset != null ? Outcome.Success(result) : Outcome.Failure()
+        }
     }
 
     let getBaseRotationInfo = (

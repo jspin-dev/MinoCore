@@ -6,7 +6,10 @@ namespace Cell {
 
     export enum Classifier {
 
-        Active, Ghost, Locked, Empty
+        Active = "active",
+        Ghost = "ghost",
+        Locked = "locked",
+        Empty = "empty"
 
     }
 
@@ -35,7 +38,7 @@ namespace Cell {
 
 }
 
-// Builders
+// Convenience
 namespace Cell {
 
     export let Empty: Types.Empty = { classifier: Classifier.Empty }
@@ -52,19 +55,30 @@ namespace Cell {
         return { classifier: Classifier.Locked, pieceId }
     }
 
-}
-
-// Type guards
-namespace Cell {
-
     export let isActive = (cell: Cell): cell is Cell.Types.Active => cell.classifier == Cell.Classifier.Active
 
     export let isEmpty = (cell: Cell): cell is Cell.Types.Empty => cell.classifier == Cell.Classifier.Empty
-    
+
     export let isGhost = (cell: Cell): cell is Cell.Types.Ghost => cell.classifier == Cell.Classifier.Ghost
 
     export let isLocked = (cell: Cell): cell is Cell.Types.Locked => cell.classifier == Cell.Classifier.Locked
 
+    export let equal = (cell1: Cell, cell2: Cell): boolean => {
+        if (!cell1 && !cell2) {
+            return true
+        }
+        if (!cell1 || !cell2) {
+            return false
+        }
+        switch (cell1.classifier) {
+            case Classifier.Active:
+            case Classifier.Ghost:
+            case Classifier.Locked:
+                return cell1.classifier == cell2.classifier && cell1.pieceId == cell2.pieceId
+            case Classifier.Empty:
+                return cell1.classifier == cell2.classifier
+        }
+    }
 }
 
 export default Cell

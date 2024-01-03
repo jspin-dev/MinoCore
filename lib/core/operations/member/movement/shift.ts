@@ -28,7 +28,7 @@ let draftShift = (dx: number) => Operation.Draft(({ state }) => {
     let distance = pendingMovement && PendingMovement.isShift(pendingMovement) && pendingMovement.direction == state.shiftDirection
         ? pendingMovement.dx + dx
         : dx
-    state.pendingMovement = PendingMovement.Shift(state.shiftDirection, distance)
+    state.pendingMovement = PendingMovement.Shift({ direction: state.shiftDirection, dx: distance })
 })
 
 let rootOperation = (dx: number) => Operation.Resolve(({ state }, { operations }) => {

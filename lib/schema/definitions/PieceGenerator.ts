@@ -1,7 +1,7 @@
 import type PieceIdentifier from "../../definitions/PieceIdentifier"
 
 interface PieceGenerator {
-    refill: (pieces: PieceIdentifier[], rns: number[]) => PieceGenerator.Result
+    refill: (params: { pieces: PieceIdentifier[], rns: number[] }) => PieceGenerator.Result
     rnsRequirement: number
 }
 

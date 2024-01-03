@@ -23,6 +23,7 @@ namespace LockdownStatus {
 
 }
 
+// Convenience
 namespace LockdownStatus {
 
     export let Triggered: TriggeredType = {
@@ -33,10 +34,26 @@ namespace LockdownStatus {
         classifier: Classifier.NoLockdown
     }
 
-    export let TimerActive = (movesRemaining: number): TimerActiveType => {
+    export let TimerActive = (params: { movesRemaining: number }): TimerActiveType => {
         return {
             classifier: Classifier.TimerActive,
-            movesRemaining
+            movesRemaining: params.movesRemaining
+        }
+    }
+
+    export let equal = (status1: LockdownStatus, status2: LockdownStatus): boolean => {
+        if (!status1 && !status2) {
+            return true
+        }
+        if (!status1 || !status2) {
+            return false
+        }
+        switch (status1.classifier) {
+            case Classifier.NoLockdown:
+            case Classifier.Triggered:
+                return status1.classifier == status2.classifier
+            case Classifier.TimerActive:
+                return status1.classifier == status2.classifier && status1.movesRemaining == status2.movesRemaining
         }
     }
 

@@ -1,23 +1,28 @@
 import Operation from "../../definitions/CoreOperation"
-import SideEffect from "../../definitions/SideEffect"
+import SideEffectRequest from "../../definitions/SideEffectRequest"
 import Settings from "../../definitions/Settings"
 import PendingMovement from "../../definitions/PendingMovement"
 import DropType from "../../../definitions/DropType"
+import TimerName from "../../definitions/TimerName"
 
-import TimerName = SideEffect.TimerName
-
-let draftMainUpdates = (settings: Settings.Update) => Operation.Draft(({ state, sideEffectRequests }) => {
+let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, sideEffectRequests }) => {
     if (settings.das != undefined) {
         let newAutoRepeat = settings.das.autoShiftInterval
         if (newAutoRepeat != undefined && newAutoRepeat != state.settings.das.autoShiftInterval) {
             state.settings.das.autoShiftInterval = newAutoRepeat
-            sideEffectRequests.push(SideEffect.Request.TimerInterval(TimerName.AutoShift, newAutoRepeat))
+            sideEffectRequests.push(SideEffectRequest.TimerInterval({
+                timerName: TimerName.AutoShift,
+                delay: newAutoRepeat
+            }))
         }
 
         let newDas = settings.das.delay
         if (newDas != undefined && newDas != state.settings.das.delay) {
             state.settings.das.delay = newDas
-            sideEffectRequests.push(SideEffect.Request.TimerInterval(TimerName.DAS, newDas))
+            sideEffectRequests.push(SideEffectRequest.TimerInterval({
+                timerName: TimerName.DAS,
+                delay: newDas
+            }))
         }
 
         let newDasPreservation = settings.das.preservationEnabled
@@ -34,7 +39,10 @@ let draftMainUpdates = (settings: Settings.Update) => Operation.Draft(({ state, 
         state.settings.softDropInterval = settings.softDropInterval
         let pendingMovement = state.pendingMovement
         if (PendingMovement.isDrop(pendingMovement) && pendingMovement.type == DropType.Soft) {
-            sideEffectRequests.push(SideEffect.Request.TimerInterval(TimerName.AutoDrop, state.settings.softDropInterval))
+            sideEffectRequests.push(SideEffectRequest.TimerInterval({
+                timerName: TimerName.AutoDrop,
+                delay: state.settings.softDropInterval
+            }))
         }
     }
 })
@@ -46,7 +54,7 @@ let sequenceGhostUpdates = (enabled: boolean) => Operation.Resolve(({ state }) =
     ).applyIf(enabled != undefined && enabled != state.settings.ghostEnabled)
 })
 
-export default (settings: Settings.Update) => Operation.Sequence(
+export default (settings: Settings.Diff) => Operation.Sequence(
     draftMainUpdates(settings),
     sequenceGhostUpdates(settings.ghostEnabled)
 )

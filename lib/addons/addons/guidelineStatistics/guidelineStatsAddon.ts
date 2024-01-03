@@ -9,13 +9,13 @@ import Cell from "../../../definitions/Cell"
 import TetroPiece from "../../../presets/tetro/TetroPiece"
 import ScoreState from "../../definitions/Score"
 import DropType from "../../../definitions/DropType"
+import Rotation from "../../../definitions/Rotation"
 import finesseSettings from "./finesseSettings"
-import {detectPC, detectTspin} from "./guidelineScoringUtils"
+import { detectPC, detectTspin } from "./guidelineScoringUtils"
 import updateCoreStatistics from "../coreStatistics/coreStatsAddon"
-import Rotation from "../../../definitions/Rotation";
 
 export default (gameEvents: GameEvent[]) => {
-    let operations = gameEvents.map(event => updateStatisticsFromEvent(event));
+    let operations = gameEvents.map(event => updateStatisticsFromEvent(event))
     return Operation.Sequence(updateCoreStatistics(gameEvents), ...operations)
 }
 
@@ -28,17 +28,17 @@ let dropMultipliers = {
 let updateStatisticsFromEvent = (event: GameEvent) => {
     switch (event.classifier) {
         case GameEvent.Classifier.Drop:
-            return onDrop(event);
+            return onDrop(event)
         case GameEvent.Classifier.InputStart:
-            return onInputStart(event);
-        case GameEvent.Classifier.Lock:
-            return onLock(event);
+            return onInputStart(event)
+        case GameEvent.Classifier.Clear:
+            return onClear(event)
         case GameEvent.Classifier.Shift:
-            return onShift();
+            return onShift()
         case GameEvent.Classifier.Rotate:
-            return onRotation(event);
+            return onRotation(event)
         default:
-            return Operation.None();
+            return Operation.None()
     }
 }
 
@@ -65,7 +65,7 @@ let onInputStart = (event: GameEvent.Types.InputStart) => Operation.Draft<Statis
     }
 })
 
-let onLock = (event: GameEvent.Types.Lock) => {
+let onClear = (event: GameEvent.Types.Clear) => {
     return Operation.Draft<Statistics>(statistics => {
         let lines = event.linesCleared.length
         statistics.finesse += calculateFinesseOnLock(statistics, event.activePiece)
@@ -83,13 +83,13 @@ let onLock = (event: GameEvent.Types.Lock) => {
 }
 
 let calculateFinesseOnLock = (statistics: Statistics, activePiece: ActivePiece): number => {
-    let coordinates = activePiece.coordinates;
-    let index = coordinates.reduce((a, value) => value.x < a ? value.x : a, coordinates[0].x);
+    let coordinates = activePiece.coordinates
+    let index = coordinates.reduce((a, value) => value.x < a ? value.x : a, coordinates[0].x)
     let idealSteps = finesseSettings
         .find(set => set.pieces.includes(activePiece.id as TetroPiece))
         .info
         .find(info => info.orientations.includes(activePiece.orientation))
-        .steps[index];
+        .steps[index]
     return Math.max(statistics.moveCount - idealSteps.length, 0)
 }
 
@@ -120,20 +120,17 @@ let createNewScoreStateOnLock = (
     level: number,
     lines: number
 ): ScoreState => {
-    let combo = lines > 0 ? previousState.combo + 1 : -1;
+    let combo = lines > 0 ? previousState.combo + 1 : -1
     if (!action) {
-        return { ...previousState, combo };
+        return { ...previousState, combo }
     }
-    let actionInfo = LockScoreAction.defaultGuidelineScoringTable[action.key];
+    let actionInfo = LockScoreAction.defaultGuidelineScoringTable[action.key]
     let previousActionInfo = previousState.lastLockScoreAction 
         ? LockScoreAction.defaultGuidelineScoringTable[previousState.lastLockScoreAction.key] 
         : null;
-    let b2b = previousActionInfo 
-        && !previousActionInfo.breaksB2b 
-        && previousActionInfo.difficult 
-        && actionInfo.difficult;
-    let b2bMultiplier = b2b ? actionInfo.b2bMultiplyer : 1;
-    let comboScore = combo > 0 ? 50 * combo * level : 0;
+    let b2b = previousActionInfo && !previousActionInfo.breaksB2b && previousActionInfo.difficult && actionInfo.difficult
+    let b2bMultiplier = b2b ? actionInfo.b2bMultiplyer : 1
+    let comboScore = combo > 0 ? 50 * combo * level : 0
     return {
         lastLockScoreAction: action,
         score: previousState.score + (actionInfo.basePointValue * b2bMultiplier) + comboScore,

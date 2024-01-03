@@ -19,6 +19,14 @@ export let createEmptyGrid = <T>(rows: number, columns: number, n: T): Grid<T> =
     }, () => new Array(columns).fill(n))
 }
 
+export let arraysEqual = <T>(
+    t1: T[],
+    t2: T[],
+    equal: (t1: T, t2: T) => boolean = ((t1, t2) => { return t1 == t2 })
+): boolean => {
+    return t1.length == t2.length && t1.every((value, i) => equal(t2[i], value))
+}
+
 export let copyGrid = <T>(grid: Readonly<Grid<T>>) => {
     return grid.map(row => [...row])
 }

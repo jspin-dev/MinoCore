@@ -17,7 +17,7 @@ namespace Settings {
 
     export namespace DasMechanics {
 
-        export interface Update {
+        export interface Diff {
             preservationEnabled?: boolean
             interruptionEnabled?: boolean
             postDelayShiftEnabled?: boolean
@@ -27,15 +27,11 @@ namespace Settings {
 
     }
 
-}
-
-namespace Settings {
-
-    export interface Update {
+    export interface Diff {
         ghostEnabled?: boolean
         softDropInterval?: number
         dropInterval?: number
-        das?: Settings.DasMechanics.Update
+        das?: Settings.DasMechanics.Diff
     }
 
 }

@@ -5,4 +5,4 @@ enum StepType {
     Hold = "hold"
 }
 
-export  default StepType
+export default StepType

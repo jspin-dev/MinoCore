@@ -1,6 +1,6 @@
 enum LockdownResetPolicy {
-    Step,
-    Move
+    Step = "step",
+    Move = "move"
 }
 
 export default LockdownResetPolicy

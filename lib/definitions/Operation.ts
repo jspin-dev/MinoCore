@@ -74,7 +74,7 @@ namespace Operation {
 
 }
 
-// Convenience functions
+// Convenience
 namespace Operation {
 
     export namespace Export {

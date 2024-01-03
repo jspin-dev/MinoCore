@@ -5,6 +5,7 @@ import PendingMovement from "../../../definitions/PendingMovement"
 import ShiftDirection from "../../../../definitions/ShiftDirection"
 import CorePreconditions from "../../../utils/CorePreconditions"
 import DropType from "../../../../definitions/DropType"
+import GameEvent from "../../../../definitions/GameEvent"
 import { findAvailableShiftDistance } from "../../../utils/coreOpStateUtils"
 
 let updateMaxShift = Operation.Resolve(({ state }, { schema }) => {
@@ -20,7 +21,7 @@ let updateMaxShift = Operation.Resolve(({ state }, { schema }) => {
     })
 })
 
-let draftDrop = (type: DropType, dy: number) => Operation.Draft(({ state }) => {
+let draftDrop = (type: DropType, dy: number) => Operation.Draft(({ state, events }) => {
     let { activePiece, playfield, pendingMovement } = state
     activePiece.coordinates.forEach(c => playfield[c.y][c.x] = Cell.Empty)
     activePiece.location.y += dy
@@ -30,10 +31,17 @@ let draftDrop = (type: DropType, dy: number) => Operation.Draft(({ state }) => {
     activePiece.coordinates.forEach(c => { playfield[c.y][c.x] = Cell.Active(activePiece.id) })
     activePiece.availableDropDistance -= dy
     let distance = pendingMovement && PendingMovement.isDrop(pendingMovement) ? pendingMovement.dy + dy : dy
-    state.pendingMovement = PendingMovement.Drop(type, distance)
+    switch (type) {
+        case DropType.Auto:
+            events.push(GameEvent.Drop({ dy: distance, dropType: type }))
+            break
+        case DropType.Hard:
+        case DropType.Soft:
+            state.pendingMovement = PendingMovement.Drop({ type, dy: distance })
+    }
 })
 
-let rootOperation = (type: DropType, dy: number) => Operation.Resolve(({ state }, { operations, schema }) => {
+let rootOperation = (type: DropType, dy: number) => Operation.Resolve(({ state }, { operations }) => {
     if (dy <= 0 || state.activePiece.availableDropDistance < dy) {
         return Operation.None
     }

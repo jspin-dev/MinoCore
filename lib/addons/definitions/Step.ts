@@ -1,6 +1,6 @@
 import StepType from "./StepType"
 
-type Step = Step.ShiftType | Step.DropType | Step.RotateType | typeof Step.Hold
+type Step = Step.Types.Shift | Step.Types.Drop | Step.Types.Rotate | Step.Types.Hold
 
 namespace Step {
 
@@ -22,30 +22,43 @@ namespace Step {
         RotateCW
     }
 
-    export interface ShiftType { 
-        type: StepType.Shift, 
-        step: ShiftStep 
-    }
-    
-    export interface DropType { 
-        type: StepType.Drop, 
-        step: DropStep
+    export namespace Types {
+
+        export interface Shift {
+            type: StepType.Shift,
+            step: ShiftStep
+        }
+
+        export interface Drop {
+            type: StepType.Drop,
+            step: DropStep
+        }
+
+        export interface Rotate {
+            type: StepType.Rotate,
+            step: RotationStep
+        }
+
+        export interface Hold {
+            type: StepType.Hold
+        }
+
     }
 
-    export interface RotateType { 
-        type: StepType.Rotate, 
-        step: RotationStep 
-    }
+}
 
-    let Shift = (step: ShiftStep): ShiftType => {
+// Convenience
+namespace Step {
+
+    let Shift = (step: ShiftStep): Types.Shift => {
         return { type: StepType.Shift, step }
     }
 
-    let Drop = (step: DropStep): DropType => {
+    let Drop = (step: DropStep): Types.Drop => {
         return { type: StepType.Drop, step }
     }
 
-    let Rotate = (step: RotationStep): RotateType => {
+    let Rotate = (step: RotationStep): Types.Rotate => {
         return { type: StepType.Rotate, step }
     }
 
@@ -59,7 +72,7 @@ namespace Step {
     export let DasRight = Shift(ShiftStep.DasRight)
     export let DasLeft = Shift(ShiftStep.DasLeft)
 
-    export let Hold = { type: StepType.Hold }
+    export let Hold: Types.Hold = { type: StepType.Hold }
 
 }
 

@@ -8,7 +8,7 @@ let draftHold = Operation.Draft(({ state, events }) => {
     let holdPiece = state.activePiece.id
     state.holdPiece = holdPiece
     state.holdEnabled = false
-    events.push(GameEvent.Hold(previousHoldPiece, holdPiece))
+    events.push(GameEvent.Hold({ previousHoldPiece, holdPiece }))
 })
 
 let draftActivePiece = Operation.Draft(({ state }) => {

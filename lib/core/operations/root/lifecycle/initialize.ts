@@ -1,13 +1,13 @@
 import type { WritableDraft } from "immer/dist/internal"
 import Operation from "../../../definitions/CoreOperation"
 import type Settings from "../../../definitions/Settings"
-import SideEffect from "../../../definitions/SideEffect"
 import Cell from "../../../../definitions/Cell"
+import SideEffectRequest from "../../../definitions/SideEffectRequest"
 import { createEmptyGrid } from "../../../../util/sharedUtils"
 
 let rootOperation = Operation.Resolve((_, { defaultSettings, schema }) => {
     let draftRnsRequest = Operation.Draft(({ sideEffectRequests }) => {
-        sideEffectRequests.push(SideEffect.Request.Rng(schema.pieceGenerator.rnsRequirement))
+        sideEffectRequests.push(SideEffectRequest.Rng({ quantity: schema.pieceGenerator.rnsRequirement }))
     })
     let draftStateInitialization = Operation.Draft(({ state }) => {
         state.playfield = createEmptyGrid(schema.playfield.rows, schema.playfield.columns, Cell.Empty)

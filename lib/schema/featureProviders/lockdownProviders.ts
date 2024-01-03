@@ -1,4 +1,3 @@
-import ActivePiece from "../../definitions/ActivePiece"
 import LockdownProvider from "../definitions/LockdownProvider"
 import MovementType from "../../definitions/MovementType"
 import LockdownStatus from "../../core/definitions/LockdownStatus"
@@ -9,13 +8,10 @@ namespace LockdownProviders {
 
     export let standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number): LockdownProvider => {
         return {
-            processMovement(
-                movement: MovementType,
-                lockdownStatus: LockdownStatus,
-                activePiece: ActivePiece
-            ): Outcome<LockdownStatus> {
+            processMovement(params): Outcome<LockdownStatus> {
+                let { movement, lockdownStatus, activePiece } = params
                 let onFloor = activePiece.availableDropDistance == 0
-                let resetTimerStatus = LockdownStatus.TimerActive(moveLimit)
+                let resetTimerStatus = LockdownStatus.TimerActive({ movesRemaining: moveLimit })
 
                 if (lockdownStatus.classifier != LockdownStatus.Classifier.NoLockdown && activePiece.location.y > activePiece.maxDepth) {
                     return Outcome.Success(onFloor ? resetTimerStatus : LockdownStatus.NoLockdown)
@@ -33,7 +29,7 @@ namespace LockdownProviders {
                             }
                             if (resetPolicy == LockdownResetPolicy.Move) {
                                 let movesRemaining = moveLimit == null ? null : lockdownStatus.movesRemaining - 1
-                                let newLockStatus = LockdownStatus.TimerActive(movesRemaining)
+                                let newLockStatus = LockdownStatus.TimerActive({ movesRemaining })
                                 return Outcome.Success(newLockStatus)
                             }
                         }

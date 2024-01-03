@@ -5,7 +5,7 @@ namespace PieceGenerators {
 
     export let random = (minQueueLength: number, schemaPieces: PieceIdentifier[]): PieceGenerator => {
         return {
-            refill: (pieces: PieceIdentifier[], rns: number[]): PieceGenerator.Result => {
+            refill: ({ pieces, rns }): PieceGenerator.Result => {
                 let pieceDeficit = minQueueLength - pieces.length
                 if (pieceDeficit <= 0) {
                     return { pieces, rns }
@@ -26,7 +26,7 @@ namespace PieceGenerators {
 
     export let randomBag = (minQueueLength: number, schemaPieces: PieceIdentifier[]): PieceGenerator => {
         return {
-            refill: (pieces: PieceIdentifier[], rns: number[]): PieceGenerator.Result => {
+            refill: ({ pieces, rns }): PieceGenerator.Result => {
                 if (minQueueLength - pieces.length <= 0) {
                     return { pieces, rns }
                 }
@@ -34,7 +34,7 @@ namespace PieceGenerators {
                 let bagCount = Math.ceil(minQueueLength / bagSize)
                 let initialResult: PieceGenerator.Result = { pieces: [...pieces], rns: [...rns] }
                 return Array.from(Array(bagCount)).reduce((result, _) => {
-                    return generateRandomizedBag(result, schemaPieces, bagSize)
+                    return generateRandomizedBag({ cumulativeResult: result, schemaPieces, bagSize })
                 }, initialResult)
             },
             rnsRequirement: Math.ceil(minQueueLength / schemaPieces.length) * (schemaPieces.length - 1)
@@ -42,15 +42,17 @@ namespace PieceGenerators {
     }
 
     let generateRandomizedBag = (
-        cumulativeResult: PieceGenerator.Result,
-        schemaPieces: PieceIdentifier[],
-        bagSize: number
+        params: {
+            cumulativeResult: PieceGenerator.Result,
+            schemaPieces: PieceIdentifier[],
+            bagSize: number
+        }
     ): PieceGenerator.Result => {
-        let rns = [...cumulativeResult.rns]
-        let bag = [...schemaPieces]
-        let randomNumbers = rns.splice(1 - bagSize) // Takes the last n-1 numbers
+        let rns = [...params.cumulativeResult.rns]
+        let bag = [...params.schemaPieces]
+        let randomNumbers = rns.splice(1 - params.bagSize) // Takes the last n-1 numbers
         let pieces = [
-            ...cumulativeResult.pieces,
+            ...params.cumulativeResult.pieces,
             ...randomNumbers.map(randomNum => {
                 let randomPieceIndex = Math.floor(randomNum * bag.length);
                 return bag.splice(randomPieceIndex, 1)[0];

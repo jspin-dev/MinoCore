@@ -110,7 +110,7 @@
             <div class='banner'>
                 {bannerPauseMessage.replace("%%", getDisplayValueForInput(Input.Pause))}
             </div>
-        {:else if state.core.status.classifier === GameStatus.Classifier.GameOver}
+        {:else if state.core.status === GameStatus.GameOver}
             <div class='banner'>
                 {bannerGameOverMessage.replace("%%", getDisplayValueForInput(Input.Restart))}
             </div>  

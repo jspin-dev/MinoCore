@@ -1,14 +1,16 @@
 import Operation from "../../../definitions/CoreOperation"
-import SideEffect from "../../../definitions/SideEffect"
 import CorePreconditions from "../../../utils/CorePreconditions"
-
-import TimerName = SideEffect.TimerName
-import TimerOperation = SideEffect.TimerOperation
+import TimerOperation from "../../../definitions/TimerOperation"
+import TimerName from "../../../definitions/TimerName"
+import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
 let resolveMovement = Operation.Resolve (({ state }, { operations }) => {
     let { activePiece, shiftDirection, settings } = state
     let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(TimerName.AutoShift, TimerOperation.Start))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation({
+            timerName: TimerName.AutoShift,
+            operation: TimerOperation.Start
+        }))
     })
     let applyDasPostIntervalShift = operations.shift(1).applyIf(settings.das.postDelayShiftEnabled)
     return settings.das.autoShiftInterval == 0
@@ -17,7 +19,10 @@ let resolveMovement = Operation.Resolve (({ state }, { operations }) => {
 })
 
 let draftChanges = Operation.Draft(({ state, sideEffectRequests }) => {
-    sideEffectRequests.push(SideEffect.Request.TimerOperation(TimerName.DAS, TimerOperation.Cancel))
+    sideEffectRequests.push(SideEffectRequest.TimerOperation({
+        timerName: TimerName.DAS,
+        operation: TimerOperation.Cancel
+    }))
     state.dasCharged[state.shiftDirection] = true
 })
 

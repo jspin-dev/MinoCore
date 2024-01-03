@@ -28,6 +28,7 @@ namespace LockScoreAction {
  
 }
 
+// Convenience
 namespace LockScoreAction {
 
     export let LineClear = (lines: Lines.ForClear): LockScoreAction => {

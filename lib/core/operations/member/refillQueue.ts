@@ -1,15 +1,15 @@
 import Operation from "../../definitions/CoreOperation"
 import GameEvent from "../../../definitions/GameEvent"
-import SideEffect from "../../definitions/SideEffect"
+import SideEffectRequest from "../../definitions/SideEffectRequest"
 
 let rootOperation = Operation.Resolve(({ state }, { schema }) => {
-    let { pieces, rns } = schema.pieceGenerator.refill(state.previewQueue, state.randomNumbers)
+    let { pieces, rns } = schema.pieceGenerator.refill({ pieces: state.previewQueue, rns: state.randomNumbers })
     let rnsDeficit = state.randomNumbers.length - rns.length
     return Operation.Draft(({ state, events, sideEffectRequests }) => {
         state.previewQueue = pieces
         state.randomNumbers = rns
-        events.push(GameEvent.Enqueue(state.previewQueue))
-        sideEffectRequests.push(SideEffect.Request.Rng(rnsDeficit))
+        events.push(GameEvent.Enqueue({ preview: state.previewQueue }))
+        sideEffectRequests.push(SideEffectRequest.Rng({ quantity: rnsDeficit }))
     })
 })
 

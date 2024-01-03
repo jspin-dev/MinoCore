@@ -3,6 +3,7 @@ import Rotation from "./Rotation"
 
 type Input = Input.Types.ActiveGame | Input.Types.Lifecycle
 
+// Active game inputs
 namespace Input {
 
     export type ActiveGame = ActiveGame.Types.Shift | ActiveGame.Types.Rotate | ActiveGame.Types.HD
@@ -43,6 +44,11 @@ namespace Input {
             }
 
         }
+
+    }
+
+    // Convenience
+    export namespace ActiveGame {
 
         export let Shift = (direction: ShiftDirection): Types.Shift => {
             return { classifier: Classifier.Shift, direction }
@@ -100,6 +106,11 @@ namespace Input {
         }
 
     }
+
+}
+
+// Convenience
+namespace Input {
 
     let activeGame = (input: ActiveGame): Types.ActiveGame => {
         return { classifier: Classifier.ActiveGame, input }

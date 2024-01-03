@@ -4,4 +4,4 @@ enum Rotation {
     Degrees180 = 2
 }
 
-export default Rotation;
+export default Rotation

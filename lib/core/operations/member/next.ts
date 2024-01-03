@@ -4,15 +4,15 @@ import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import CorePreconditions from "../../utils/CorePreconditions"
 
 let rootOperation = Operation.Resolve((_, { operations }) => {
-    let dequeuedPieceId: PieceIdentifier
-    let draftDequeue = Operation.Draft(({ state, events }) => { 
-        dequeuedPieceId = state.previewQueue.shift()
-        events.push(GameEvent.Dequeue(dequeuedPieceId, state.previewQueue))
+    let dequeuedPiece: PieceIdentifier
+    let draftDequeue = Operation.Draft(({ state, events }) => {
+        dequeuedPiece = state.previewQueue.shift()
+        events.push(GameEvent.Dequeue({ dequeuedPiece, preview: state.previewQueue }))
     })
     return Operation.Sequence(            
         draftDequeue,
         operations.refillQueue,
-        Operation.Resolve(() => operations.spawn(dequeuedPieceId))
+        Operation.Resolve(() => operations.spawn(dequeuedPiece))
     )   
 })
 

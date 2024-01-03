@@ -30,9 +30,9 @@ namespace RotationSystem {
 
 namespace RotationSystem {
 
-    export type RotationBehavior = (rotation: Rotation, state: CoreState) => Outcome<RotateResult>
+    export type RotationBehavior = (params: { rotation: Rotation, state: CoreState }) => Outcome<RotateResult>
 
-    export type SpawnInfoProvider = (pieceId: PieceIdentifier, state: CoreState) => PieceSpawnInfo
+    export type SpawnInfoProvider = (params: { pieceId: PieceIdentifier, state: CoreState }) => PieceSpawnInfo
 
 }
 

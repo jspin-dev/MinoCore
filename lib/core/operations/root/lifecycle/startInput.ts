@@ -5,7 +5,6 @@ import type CoreDependencies from "../../../definitions/CoreDependencies"
 import GameStatus from "../../../definitions/GameStatus"
 
 let performInputAction = (input: Input.ActiveGame, { operations }: CoreDependencies) => {
-    console.log(input)
     switch (input.classifier) {
         case Input.ActiveGame.Classifier.Shift:
             return operations.startShiftInput(input.direction)

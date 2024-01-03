@@ -1,11 +1,10 @@
 import Operation from "../../../definitions/CoreOperation"
 import ShiftDirection from "../../../../definitions/ShiftDirection"
 import CorePreconditions from "../../../utils/CorePreconditions"
-import SideEffect from "../../../definitions/SideEffect"
 import Input from "../../../../definitions/Input"
-
-import TimerName = SideEffect.TimerName
-import TimerOperation = SideEffect.TimerOperation
+import TimerName from "../../../definitions/TimerName"
+import TimerOperation from "../../../definitions/TimerOperation"
+import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
 let resolveNewDirection = (direction: ShiftDirection) => Operation.Resolve(({ state }, { operations }) => {
     if (state.shiftDirection != direction) {
@@ -26,8 +25,14 @@ let resolveNewDirection = (direction: ShiftDirection) => Operation.Resolve(({ st
         operations.startDAS
     )
     let cancelDas = Operation.Draft(({ sideEffectRequests }) => {
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(TimerName.DAS, TimerOperation.Cancel))
-        sideEffectRequests.push(SideEffect.Request.TimerOperation(TimerName.AutoShift, TimerOperation.Cancel))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation({
+            timerName: TimerName.DAS,
+            operation: TimerOperation.Cancel
+        }))
+        sideEffectRequests.push(SideEffectRequest.TimerOperation({
+            timerName: TimerName.AutoShift,
+            operation: TimerOperation.Cancel
+        }))
     })
     return activeShiftInput ? startDas : cancelDas
 })
