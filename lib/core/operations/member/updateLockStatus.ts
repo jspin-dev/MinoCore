@@ -30,7 +30,7 @@ let updateLockdownStatus = (newStatus: LockdownStatus) => {
 }
 
 let rootOperation = (movementType: MovementType) => Operation.Resolve(({ state }, { schema, operations }) => {
-    let outcome = schema.lockProvider.processMovement({
+    let outcome = schema.lockdownSystem.processMovement({
         movement: movementType,
         lockdownStatus: state.lockdownStatus,
         activePiece: state.activePiece

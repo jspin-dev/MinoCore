@@ -59,7 +59,7 @@ namespace SideEffectRequest {
     }
 
     export let OnAllTimers = (operation: TimerOp) => [
-        TimerOperation({ timerName: TimerName.AutoDrop, operation }),
+        TimerOperation({ timerName: TimerName.Drop, operation }),
         TimerOperation({ timerName: TimerName.AutoShift, operation }),
         TimerOperation({ timerName: TimerName.Clock, operation }),
         TimerOperation({ timerName: TimerName.DAS, operation }),

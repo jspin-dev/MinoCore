@@ -3,13 +3,10 @@ import Operation from "../../definitions/CoreOperation"
 import GameStatus from "../../definitions/GameStatus"
 import Cell from "../../../definitions/Cell"
 import CorePreconditions from "../../utils/CorePreconditions"
-import Playfield from "../../../definitions/Playfield"
 import ShiftDirection from "../../../definitions/ShiftDirection"
-import Coordinate from "../../../definitions/Coordinate"
 import SideEffectRequest from "../../definitions/SideEffectRequest"
 import TimerName from "../../definitions/TimerName";
 import TimerOperation from "../../definitions/TimerOperation"
-import { createEmptyGrid } from "../../../util/sharedUtils"
 
 let draftLock = Operation.Draft(({ state, sideEffectRequests, events }) => {
     state.activePiece.ghostCoordinates.forEach(c => state.playfield[c.y][c.x] = Cell.Empty)
@@ -21,32 +18,18 @@ let draftLock = Operation.Draft(({ state, sideEffectRequests, events }) => {
     events.push(GameEvent.Lock({ activePiece: state.activePiece }))
 })
 
-let resolveBlockElimination = Operation.Resolve(({ state }, { schema }) => {
+let resolvePlayfieldReduction = Operation.Resolve(({ state }, { schema }) => {
     let { playfield, activePiece } = state
-    let hitList = schema.patternDetector.detectEliminationPattern({ playfield, activePiece })
-    if (hitList.length == 0) {
-        return Operation.None
-    }
-    let shouldClear = (row: Cell[], y: number): boolean => {
-        return row.every((_, x) => hitList.some(c => Coordinate.equal(c, { x, y })))
-    }
-    let rowsToClear = playfield.reduce((accum, row, y) => shouldClear(row, y) ? [...accum, y] : accum, [] as number[])
-    let newPlayfield = clearAndCollapse(playfield, rowsToClear, schema.playfield.columns)
+    let result = schema.playfieldReducer.reduce({ playfield, activePiece, schema })
     return Operation.Draft(({ state, events }) => {
         events.push(GameEvent.Clear({ // Uses playfield pre-elimination
             activePiece: state.activePiece,
-            linesCleared: rowsToClear,
+            linesCleared: result.linesCleared,
             playfield: state.playfield
         }))
-        state.playfield = newPlayfield
+        state.playfield = result.playfield
     })
 })
-
-let clearAndCollapse = (playfield: Playfield, rows: number[], playfieldWidth: number): Playfield => {
-    let reducedPlayfield = playfield.filter((_, y) => !rows.includes(y))
-    let reducedHeight = playfield.length - reducedPlayfield.length
-    return createEmptyGrid(reducedHeight, playfieldWidth, Cell.Empty as Cell).concat(reducedPlayfield)
-}
 
 /**
  * Non-standard gameOver detection used here to avoid the unlikely situation where the player has locked their piece
@@ -87,5 +70,5 @@ let resolveNextPiece = Operation.Resolve(({ state }, { operations, schema }) => 
 export default Operation.Export({
     operationName: "lock",
     preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ],
-    rootOperation: Operation.Sequence(draftLock, resolveBlockElimination, resolveNextPiece)
+    rootOperation: Operation.Sequence(draftLock, resolvePlayfieldReduction, resolveNextPiece)
 })

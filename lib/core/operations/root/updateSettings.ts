@@ -1,9 +1,8 @@
 import Operation from "../../definitions/CoreOperation"
 import SideEffectRequest from "../../definitions/SideEffectRequest"
 import Settings from "../../definitions/Settings"
-import PendingMovement from "../../definitions/PendingMovement"
-import DropType from "../../../definitions/DropType"
 import TimerName from "../../definitions/TimerName"
+import Input from "../../../definitions/Input";
 
 let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, sideEffectRequests }) => {
     if (settings.das != undefined) {
@@ -37,10 +36,9 @@ let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, si
     }
     if (settings.softDropInterval != undefined && settings.softDropInterval != state.settings.softDropInterval) {
         state.settings.softDropInterval = settings.softDropInterval
-        let pendingMovement = state.pendingMovement
-        if (PendingMovement.isDrop(pendingMovement) && pendingMovement.type == DropType.Soft) {
+        if (state.activeInputs.some(input => input.classifier == Input.ActiveGame.Classifier.SD)) {
             sideEffectRequests.push(SideEffectRequest.TimerInterval({
-                timerName: TimerName.AutoDrop,
+                timerName: TimerName.Drop,
                 delay: state.settings.softDropInterval
             }))
         }

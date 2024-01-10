@@ -5,7 +5,7 @@ import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
 let rootOperation = Operation.Draft(({ state, sideEffectRequests }) => {
     sideEffectRequests.push(SideEffectRequest.TimerInterval({
-        timerName: TimerName.AutoDrop,
+        timerName: TimerName.Drop,
         delay: state.settings.dropInterval
     }))
 })

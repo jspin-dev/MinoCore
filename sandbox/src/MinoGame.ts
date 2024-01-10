@@ -54,7 +54,7 @@ class MinoGame {
             [TimerName.Clock]: new PausableInterval(1000, () => this.run(recordTick)),
             [TimerName.DropLock]: new PausableTimeout(5000, () => this.run(triggerLockdown)),
             [TimerName.DAS]: new PausableTimeout(this.defaultSettings.das.delay, () => this.run(startAutoShift)),
-            [TimerName.AutoDrop]: new PausableInterval(this.defaultSettings.dropInterval, () => this.run(drop(DropType.Auto, 1))),
+            [TimerName.Drop]: new PausableInterval(this.defaultSettings.dropInterval, () => this.run(drop(DropType.Soft, 1))),
             [TimerName.AutoShift]: new PausableInterval(this.defaultSettings.das.autoShiftInterval, () => this.run(shift(1)))
         }
         return this.run(initialize)
@@ -69,10 +69,14 @@ class MinoGame {
         // let previewGridsOperation = syncPreviewGrids(coreResult) as PreviewGridOperation
         // let previewGrids = previewGridsOperation.execute(this.state?.previewGrids ?? PreviewGridState.initial)
 
-        let diff = CoreState.diff(this.state?.core, coreResult.state)
-        if (diff) {
-            console.log(JSON.stringify(diff))
+        // let diff = CoreState.diff(this.state?.core, coreResult.state)
+        // if (diff) {
+        //     console.log(JSON.stringify(diff))
+        // }
+        if (coreResult.sideEffectRequests.length > 0) {
+            console.log(coreResult.sideEffectRequests)
         }
+
         // console.log(JSON.stringify(coreResult.state))
 
         this.state = { core: coreResult.state, statistics, previewGrids: null }
@@ -91,7 +95,8 @@ class MinoGame {
     executeSideEffect(request: SideEffectRequest) {
         switch (request.classifier) {
             case SideEffectRequest.Classifier.TimerInterval:
-                this.timers[request.timerName].delayInMillis = request.delay
+                this.timers[request.timerName].setDelay(request.delay)
+                console.log("New delay"+request.timerName+","+request.delay)
                 break
             case SideEffectRequest.Classifier.TimerOperation:
                 this.timers[request.timerName][request.operation]()

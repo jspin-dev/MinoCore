@@ -1,13 +1,13 @@
 import type RotationSystem from "../rotation/definitions/RotationSystem"
 import type PieceGenerator from "./PieceGenerator"
-import LockdownProvider from "./LockdownProvider"
+import LockdownSystem from "./LockdownSystem"
 import PlayfieldSpec from "./PlayfieldSpec"
-import PatternDetector from "./PatternDetector"
+import PlayfieldReducer from "./PlayfieldReducer"
 
 export default interface GameSchema {
     playfield: PlayfieldSpec
     pieceGenerator: PieceGenerator
-    patternDetector: PatternDetector,
-    lockProvider: LockdownProvider
+    playfieldReducer: PlayfieldReducer
+    lockdownSystem: LockdownSystem
     rotationSystem: RotationSystem
 }

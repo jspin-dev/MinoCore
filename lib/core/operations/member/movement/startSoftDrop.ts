@@ -7,7 +7,7 @@ import TimerName from "../../../definitions/TimerName"
 let resolveDrop = Operation.Resolve(({ state }, { operations }) => {
     let autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerInterval({
-            timerName: TimerName.AutoDrop,
+            timerName: TimerName.Drop,
             delay: state.settings.softDropInterval
         }))
     })

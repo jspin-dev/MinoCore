@@ -12,7 +12,7 @@ let rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
             operation: TimerOperation.Start
         }))
         sideEffectRequests.push(SideEffectRequest.TimerOperation({
-            timerName: TimerName.AutoDrop,
+            timerName: TimerName.Drop,
             operation: TimerOperation.Start
         }))
     }),

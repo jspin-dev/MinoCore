@@ -3,7 +3,7 @@ import MovementType from "../../definitions/MovementType"
 import LockdownStatus from "../../core/definitions/LockdownStatus"
 import Outcome from "../../definitions/Outcome"
 
-interface LockdownProvider {
+interface LockdownSystem {
     processMovement: (
         params: {
             movement: MovementType,
@@ -13,4 +13,4 @@ interface LockdownProvider {
     ) => Outcome<LockdownStatus>
 }
 
-export default LockdownProvider
+export default LockdownSystem

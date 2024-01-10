@@ -1,12 +1,12 @@
-import LockdownProvider from "../definitions/LockdownProvider"
+import LockdownSystem from "../definitions/LockdownSystem"
 import MovementType from "../../definitions/MovementType"
 import LockdownStatus from "../../core/definitions/LockdownStatus"
 import Outcome from "../../definitions/Outcome"
 import LockdownResetPolicy from "../definitions/LockdownResetPolicy"
 
-namespace LockdownProviders {
+namespace LockdownSystems {
 
-    export let standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number): LockdownProvider => {
+    export let standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number): LockdownSystem => {
         return {
             processMovement(params): Outcome<LockdownStatus> {
                 let { movement, lockdownStatus, activePiece } = params
@@ -41,4 +41,4 @@ namespace LockdownProviders {
 
 }
 
-export default LockdownProviders
+export default LockdownSystems

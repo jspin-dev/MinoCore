@@ -8,7 +8,6 @@ import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import ShiftDirection from "../../../definitions/ShiftDirection"
 import ActivePiece from "../../../definitions/ActivePiece"
 import CorePreconditions from "../../utils/CorePreconditions"
-import PendingMovement from "../../definitions/PendingMovement"
 import DropType from "../../../definitions/DropType"
 import Input from "../../../definitions/Input"
 import TimerOperation from "../../definitions/TimerOperation"
@@ -18,18 +17,18 @@ import { findAvailableDropDistance, findAvailableShiftDistance } from "../../uti
 import { gridToList } from "../../../util/sharedUtils"
 
 let resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
-    let { activePiece, settings, pendingMovement } = state
-    let softDropPending = PendingMovement.isDrop(pendingMovement) && pendingMovement.type == DropType.Soft
-    if (!softDropPending) {
+    let { activePiece, settings, activeInputs } = state
+    let softDropActive = activeInputs.some(input => input.classifier == Input.ActiveGame.Classifier.SD)
+    if (!softDropActive) {
         return Operation.None
     }
     let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.TimerOperation({
-            timerName: TimerName.AutoDrop,
+            timerName: TimerName.Drop,
             operation: TimerOperation.Start
         }))
     })
-    let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropPending
+    let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
     return shouldInstantDrop ? operations.drop(DropType.Soft, activePiece.availableDropDistance) : draftTimerChange
 })
 

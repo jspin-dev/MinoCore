@@ -2,12 +2,12 @@ import GameSchema from "../../schema/definitions/GameSchema"
 import PieceGenerators from "../universal/pieceGenerators"
 import LockdownPresets from "../universal/lockdownPresets"
 import TetroPiece from "./TetroPiece"
-import PatternDetectors from "../../schema/featureProviders/patternDetectors"
+import PlayfieldReducers from "../../schema/featureProviders/playfieldReducers"
 import nrs from "./rotationSystems/nintendoRS"
 import segaRS from "./rotationSystems/segaRS"
 import superRS from "./rotationSystems/superRS"
 
-let standardPlayfieldSpec = { columns: 10, rows: 40, ceiling: 20 }
+let defaultPlayfieldSpec = { columns: 10, rows: 40, ceiling: 20 }
 let pieces = TetroPiece.identifiers.sort()
 
 interface SchemaPresets {
@@ -18,24 +18,24 @@ interface SchemaPresets {
 
 let schemas: SchemaPresets = {
     guideline: {
-        playfield: standardPlayfieldSpec,
-        pieceGenerator: PieceGenerators.randomBag(15, pieces),
-        patternDetector: PatternDetectors.line,
-        lockProvider: LockdownPresets.extendedPlacement,
+        playfield: defaultPlayfieldSpec,
+        pieceGenerator: PieceGenerators.randomBag(5, pieces),
+        playfieldReducer: PlayfieldReducers.standardCollapse,
+        lockdownSystem: LockdownPresets.extendedPlacement,
         rotationSystem: superRS
     },
     nintendo: {
-        playfield: standardPlayfieldSpec,
+        playfield: defaultPlayfieldSpec,
         pieceGenerator: PieceGenerators.random(5, pieces),
-        patternDetector: PatternDetectors.line,
-        lockProvider: LockdownPresets.classic,
+        playfieldReducer: PlayfieldReducers.standardCollapse,
+        lockdownSystem: LockdownPresets.classic,
         rotationSystem: nrs
     },
     sega: {
-        playfield: standardPlayfieldSpec,
+        playfield: defaultPlayfieldSpec,
         pieceGenerator: PieceGenerators.random(5, pieces),
-        patternDetector: PatternDetectors.line,
-        lockProvider: LockdownPresets.classic,
+        playfieldReducer: PlayfieldReducers.standardCollapse,
+        lockdownSystem: LockdownPresets.classic,
         rotationSystem: segaRS
     }
 }

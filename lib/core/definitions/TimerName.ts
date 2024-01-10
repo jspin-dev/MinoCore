@@ -1,6 +1,6 @@
 enum TimerName {
     Clock = "clock",
-    AutoDrop = "autodrop",
+    Drop = "drop",
     AutoShift = "autoShift",
     DAS = "das",
     DropLock = "dropLock"
