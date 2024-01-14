@@ -38,27 +38,27 @@ namespace SideEffectRequest {
 // Convenience
 namespace SideEffectRequest {
 
-    export let TimerInterval = (params: { timerName: TimerName, delay: number }): Types.TimerInterval => {
+    export const TimerInterval = (params: { timerName: TimerName, delay: number }) => {
         return {
             classifier: Classifier.TimerInterval,
             timerName: params.timerName,
             delay: params.delay
-        }
+        } satisfies Types.TimerInterval
     }
 
-    export let TimerOperation = (params: { timerName: TimerName, operation: TimerOp }): Types.TimerOperation => {
+    export const TimerOperation = (params: { timerName: TimerName, operation: TimerOp }) => {
         return {
             classifier: Classifier.TimerOperation,
             timerName: params.timerName,
             operation: params.operation
-        }
+        } satisfies Types.TimerOperation
     }
 
-    export let Rng = (params: { quantity: number }): Types.Rng => {
-        return { classifier: Classifier.Rng, quantity: params.quantity }
+    export const Rng = (params: { quantity: number }) => {
+        return { classifier: Classifier.Rng, quantity: params.quantity } satisfies Types.Rng
     }
 
-    export let OnAllTimers = (operation: TimerOp) => [
+    export const OnAllTimers = (operation: TimerOp) => [
         TimerOperation({ timerName: TimerName.Drop, operation }),
         TimerOperation({ timerName: TimerName.AutoShift, operation }),
         TimerOperation({ timerName: TimerName.Clock, operation }),

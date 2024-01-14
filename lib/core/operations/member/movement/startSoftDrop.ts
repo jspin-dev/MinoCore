@@ -4,8 +4,8 @@ import DropType from "../../../../definitions/DropType"
 import SideEffectRequest from "../../../definitions/SideEffectRequest"
 import TimerName from "../../../definitions/TimerName"
 
-let resolveDrop = Operation.Resolve(({ state }, { operations }) => {
-    let autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
+const resolveDrop = Operation.Resolve(({ state }, { operations }) => {
+    const autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerInterval({
             timerName: TimerName.Drop,
             delay: state.settings.softDropInterval
@@ -16,7 +16,7 @@ let resolveDrop = Operation.Resolve(({ state }, { operations }) => {
         : autoDrop
 })
 
-let rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
+const rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
     operations.drop(DropType.Soft, 1),
     resolveDrop
 ))
@@ -24,5 +24,5 @@ let rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
 export default Operation.Export({
     operationName: "startSoftDrop",
     preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ],
-    rootOperation: rootOperation
+    rootOperation
 })

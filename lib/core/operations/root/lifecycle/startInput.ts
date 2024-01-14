@@ -4,7 +4,7 @@ import Input from "../../../../definitions/Input"
 import type CoreDependencies from "../../../definitions/CoreDependencies"
 import GameStatus from "../../../definitions/GameStatus"
 
-let performInputAction = (input: Input.ActiveGame, { operations }: CoreDependencies) => {
+const performInputAction = (input: Input.ActiveGame, { operations }: CoreDependencies) => {
     switch (input.classifier) {
         case Input.ActiveGame.Classifier.Shift:
             return operations.startShiftInput(input.direction)
@@ -21,11 +21,11 @@ let performInputAction = (input: Input.ActiveGame, { operations }: CoreDependenc
     }
 }
 
-let rootOperation = (input: Input.ActiveGame) => Operation.Resolve(({ state }, dependencies) => {
+const rootOperation = (input: Input.ActiveGame) => Operation.Resolve(({ state }, dependencies) => {
     if (state.activeInputs.includes(input) || state.status != GameStatus.Active) {
         return Operation.None
     }
-    let draftInputStartRecord = Operation.Draft(({ state, events }) => {
+    const draftInputStartRecord = Operation.Draft(({ state, events }) => {
         state.activeInputs.push(input)
         events.push(GameEvent.InputStart(input))
     })

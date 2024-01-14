@@ -8,7 +8,7 @@ import SideEffectRequest from "../../definitions/SideEffectRequest"
 import TimerName from "../../definitions/TimerName";
 import TimerOperation from "../../definitions/TimerOperation"
 
-let draftLock = Operation.Draft(({ state, sideEffectRequests, events }) => {
+const draftLock = Operation.Draft(({ state, sideEffectRequests, events }) => {
     state.activePiece.ghostCoordinates.forEach(c => state.playfield[c.y][c.x] = Cell.Empty)
     state.activePiece.coordinates.forEach(c => { state.playfield[c.y][c.x] = Cell.Locked(state.activePiece.id) })
     sideEffectRequests.push(SideEffectRequest.TimerOperation({
@@ -18,9 +18,9 @@ let draftLock = Operation.Draft(({ state, sideEffectRequests, events }) => {
     events.push(GameEvent.Lock({ activePiece: state.activePiece }))
 })
 
-let resolvePlayfieldReduction = Operation.Resolve(({ state }, { schema }) => {
-    let { playfield, activePiece } = state
-    let result = schema.playfieldReducer.reduce({ playfield, activePiece, schema })
+const resolvePlayfieldReduction = Operation.Resolve(({ state }, { schema }) => {
+    const { playfield, activePiece } = state
+    const result = schema.playfieldReducer.reduce({ playfield, activePiece, schema })
     return Operation.Draft(({ state, events }) => {
         events.push(GameEvent.Clear({ // Uses playfield pre-elimination
             activePiece: state.activePiece,
@@ -39,14 +39,14 @@ let resolvePlayfieldReduction = Operation.Resolve(({ state }, { schema }) => {
  *      1. All active piece coordinates are above the ceiling
  *      2. At least one of the playfield cells corresponding to the active piece is locked
  */
-let resolveNextPiece = Operation.Resolve(({ state }, { operations, schema }) => {
-    let gameOver = state.activePiece.coordinates.every(c => c.y < schema.playfield.ceiling)
+const resolveNextPiece = Operation.Resolve(({ state }, { operations, schema }) => {
+    const gameOver = state.activePiece.coordinates.every(c => c.y < schema.playfield.ceiling)
         && state.activePiece.coordinates.some(c => state.playfield[c.y][c.x].classifier == Cell.Classifier.Locked)
-    let draftLockoutStatus = Operation.Draft(({ state, sideEffectRequests }) => {
+    const draftLockoutStatus = Operation.Draft(({ state, sideEffectRequests }) => {
         state.status = GameStatus.GameOver //(GameOverCondition.Lockout)
         sideEffectRequests.push(...SideEffectRequest.OnAllTimers(TimerOperation.Cancel))
     })
-    let draftResets = Operation.Draft(({ state, sideEffectRequests }) => {
+    const draftResets = Operation.Draft(({ state, sideEffectRequests }) => {
         state.activePiece = null
         state.holdEnabled = true
         sideEffectRequests.push(SideEffectRequest.TimerOperation({

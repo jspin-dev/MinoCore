@@ -3,9 +3,9 @@ import Operation from "../../definitions/CoreOperation"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import CorePreconditions from "../../utils/CorePreconditions"
 
-let rootOperation = Operation.Resolve((_, { operations }) => {
+const rootOperation = Operation.Resolve((_, { operations }) => {
     let dequeuedPiece: PieceIdentifier
-    let draftDequeue = Operation.Draft(({ state, events }) => {
+    const draftDequeue = Operation.Draft(({ state, events }) => {
         dequeuedPiece = state.previewQueue.shift()
         events.push(GameEvent.Dequeue({ dequeuedPiece, preview: state.previewQueue }))
     })

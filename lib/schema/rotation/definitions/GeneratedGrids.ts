@@ -8,12 +8,7 @@ interface GeneratedGrids {
 
 namespace GeneratedGrids {
 
-    export interface BinaryGridSet {
-        [Orientation.North]: BinaryGrid
-        [Orientation.East]: BinaryGrid
-        [Orientation.South]: BinaryGrid
-        [Orientation.West]: BinaryGrid
-    }
+    export type BinaryGridSet = Record<Orientation, BinaryGrid>
 
 }
 

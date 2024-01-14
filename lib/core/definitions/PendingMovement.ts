@@ -31,15 +31,15 @@ namespace PendingMovement {
 // Convenience
 namespace PendingMovement {
 
-    export let Shift = (params: { direction: ShiftDirection, dx: number }): Types.Shift => {
-        return { classifier: Classifier.Shift, direction: params.direction, dx: params.dx }
+    export const Shift = (params: { direction: ShiftDirection, dx: number }) => {
+        return { classifier: Classifier.Shift, direction: params.direction, dx: params.dx } satisfies Types.Shift
     }
 
-    export let Drop = (params: { type: DropType, dy: number }): Types.Drop => {
-        return { classifier: Classifier.Drop, type: params.type, dy: params.dy }
+    export const Drop = (params: { type: DropType, dy: number }) => {
+        return { classifier: Classifier.Drop, type: params.type, dy: params.dy } satisfies Types.Drop
     }
 
-    export let equal = (pendingMovement1: PendingMovement, pendingMovement2: PendingMovement) => {
+    export const equal = (pendingMovement1: PendingMovement, pendingMovement2: PendingMovement) => {
         if (!pendingMovement1 && !pendingMovement2) {
             return true
         }
@@ -58,11 +58,11 @@ namespace PendingMovement {
         }
     }
 
-    export let isShift = (movement?: PendingMovement): movement is PendingMovement.Types.Shift => {
+    export const isShift = (movement?: PendingMovement): movement is PendingMovement.Types.Shift => {
         return movement?.classifier == PendingMovement.Classifier.Shift
     }
 
-    export let isDrop = (movement?: PendingMovement): movement is PendingMovement.Types.Drop => {
+    export const isDrop = (movement?: PendingMovement): movement is PendingMovement.Types.Drop => {
         return movement?.classifier == PendingMovement.Classifier.Drop
     }
 

@@ -7,14 +7,14 @@ import TimerOperation from "../../definitions/TimerOperation"
 import SideEffectRequest from "../../definitions/SideEffectRequest"
 import TimerName from "../../definitions/TimerName"
 
-let updateLockdownStatus = (newStatus: LockdownStatus) => {
+const updateLockdownStatus = (newStatus: LockdownStatus) => {
     return Operation.Draft(({ state, sideEffectRequests }) => {
         state.lockdownStatus = newStatus
-        let depth = state.activePiece.location.y
+        const depth = state.activePiece.location.y
         if (depth > state.activePiece.maxDepth) {
             state.activePiece.maxDepth = depth
         }
-        let timerRequest = (operation: TimerOperation) => SideEffectRequest.TimerOperation({
+        const timerRequest = (operation: TimerOperation) => SideEffectRequest.TimerOperation({
             timerName: TimerName.DropLock,
             operation
         })
@@ -29,8 +29,8 @@ let updateLockdownStatus = (newStatus: LockdownStatus) => {
     })
 }
 
-let rootOperation = (movementType: MovementType) => Operation.Resolve(({ state }, { schema, operations }) => {
-    let outcome = schema.lockdownSystem.processMovement({
+const rootOperation = (movementType: MovementType) => Operation.Resolve(({ state }, { schema, operations }) => {
+    const outcome = schema.lockdownSystem.processMovement({
         movement: movementType,
         lockdownStatus: state.lockdownStatus,
         activePiece: state.activePiece
@@ -38,7 +38,7 @@ let rootOperation = (movementType: MovementType) => Operation.Resolve(({ state }
     return Operation.Sequence(
         Outcome.isSuccess(outcome) ? updateLockdownStatus(outcome.data) : Operation.None,
         Operation.Resolve(({ state }) => {
-            let shouldLock = state.lockdownStatus.classifier == LockdownStatus.Classifier.Triggered
+            const shouldLock = state.lockdownStatus.classifier == LockdownStatus.Classifier.Triggered
                 && state.activePiece.availableDropDistance == 0
             return operations.lock.applyIf(shouldLock)
         })

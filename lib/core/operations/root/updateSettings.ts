@@ -4,9 +4,9 @@ import Settings from "../../definitions/Settings"
 import TimerName from "../../definitions/TimerName"
 import Input from "../../../definitions/Input";
 
-let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, sideEffectRequests }) => {
+export default (settings: Settings.Diff) => Operation.Draft(({ state, sideEffectRequests }) => {
     if (settings.das != undefined) {
-        let newAutoRepeat = settings.das.autoShiftInterval
+        const newAutoRepeat = settings.das.autoShiftInterval
         if (newAutoRepeat != undefined && newAutoRepeat != state.settings.das.autoShiftInterval) {
             state.settings.das.autoShiftInterval = newAutoRepeat
             sideEffectRequests.push(SideEffectRequest.TimerInterval({
@@ -15,7 +15,7 @@ let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, si
             }))
         }
 
-        let newDas = settings.das.delay
+        const newDas = settings.das.delay
         if (newDas != undefined && newDas != state.settings.das.delay) {
             state.settings.das.delay = newDas
             sideEffectRequests.push(SideEffectRequest.TimerInterval({
@@ -24,12 +24,12 @@ let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, si
             }))
         }
 
-        let newDasPreservation = settings.das.preservationEnabled
+        const newDasPreservation = settings.das.preservationEnabled
         if (newDasPreservation != undefined && newDasPreservation != state.settings.das.preservationEnabled) {
             state.settings.das.preservationEnabled = newDasPreservation
         }
 
-        let newDasInterruption = settings.das.interruptionEnabled
+        const newDasInterruption = settings.das.interruptionEnabled
         if (newDasInterruption != undefined && newDasInterruption != state.settings.das.interruptionEnabled) {
             state.settings.das.interruptionEnabled = newDasInterruption
         }
@@ -44,15 +44,3 @@ let draftMainUpdates = (settings: Settings.Diff) => Operation.Draft(({ state, si
         }
     }
 })
-
-let sequenceGhostUpdates = (enabled: boolean) => Operation.Resolve(({ state }) => {
-    return Operation.Sequence(
-        Operation.Draft(({ state }) => { state.settings.ghostEnabled = enabled }),
-        Operation.Resolve((_, { operations }) => operations.refreshGhost)
-    ).applyIf(enabled != undefined && enabled != state.settings.ghostEnabled)
-})
-
-export default (settings: Settings.Diff) => Operation.Sequence(
-    draftMainUpdates(settings),
-    sequenceGhostUpdates(settings.ghostEnabled)
-)

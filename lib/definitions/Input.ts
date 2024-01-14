@@ -50,21 +50,21 @@ namespace Input {
     // Convenience
     export namespace ActiveGame {
 
-        export let Shift = (direction: ShiftDirection): Types.Shift => {
-            return { classifier: Classifier.Shift, direction }
+        export const Shift = (direction: ShiftDirection) => {
+            return { classifier: Classifier.Shift, direction } satisfies Types.Shift
         }
 
-        export let Rotate = (rotation: Rotation): Types.Rotate => {
-            return { classifier: Classifier.Rotate, rotation }
+        export const Rotate = (rotation: Rotation) => {
+            return { classifier: Classifier.Rotate, rotation } satisfies Types.Rotate
         }
 
-        export let HD: Types.HD = { classifier: Classifier.HD }
+        export const HD = { classifier: Classifier.HD } satisfies Types.HD
 
-        export let SD: Types.SD = { classifier: Classifier.SD }
+        export const SD = { classifier: Classifier.SD } satisfies Types.SD
 
-        export let Hold: Types.Hold = { classifier: Classifier.Hold }
+        export const Hold = { classifier: Classifier.Hold } satisfies Types.Hold
 
-        export let equal = (input1: ActiveGame, input2: ActiveGame): boolean => {
+        export const equal = (input1: ActiveGame, input2: ActiveGame) => {
             switch (input1.classifier) {
                 case Classifier.Shift:
                     return input2.classifier == ActiveGame.Classifier.Shift && input2.direction == input1.direction
@@ -112,30 +112,30 @@ namespace Input {
 // Convenience
 namespace Input {
 
-    let activeGame = (input: ActiveGame): Types.ActiveGame => {
-        return { classifier: Classifier.ActiveGame, input }
+    const activeGame = (input: ActiveGame) => {
+        return { classifier: Classifier.ActiveGame, input } satisfies Types.ActiveGame
     }
 
-    let lifecycle = (input: Lifecycle): Types.Lifecycle => {
-        return { classifier: Classifier.Lifecycle, input }
+    const lifecycle = (input: Lifecycle) => {
+        return { classifier: Classifier.Lifecycle, input } satisfies Types.Lifecycle
     }
 
-    export let ShiftLeft = activeGame(Input.ActiveGame.Shift(ShiftDirection.Left))
-    export let ShiftRight = activeGame(Input.ActiveGame.Shift(ShiftDirection.Right))
-    export let RotateCCW = activeGame(Input.ActiveGame.Rotate(Rotation.CCW))
-    export let RotateCW = activeGame(Input.ActiveGame.Rotate(Rotation.CW))
+    export const ShiftLeft = activeGame(Input.ActiveGame.Shift(ShiftDirection.Left))
+    export const ShiftRight = activeGame(Input.ActiveGame.Shift(ShiftDirection.Right))
+    export const RotateCCW = activeGame(Input.ActiveGame.Rotate(Rotation.CCW))
+    export const RotateCW = activeGame(Input.ActiveGame.Rotate(Rotation.CW))
 
-    export let Rotate180 = activeGame(Input.ActiveGame.Rotate(Rotation.Degrees180))
+    export const Rotate180 = activeGame(Input.ActiveGame.Rotate(Rotation.Degrees180))
 
-    export let HD = activeGame(Input.ActiveGame.HD)
+    export const HD = activeGame(Input.ActiveGame.HD)
 
-    export let SD = activeGame(Input.ActiveGame.SD)
+    export const SD = activeGame(Input.ActiveGame.SD)
 
-    export let Hold = activeGame(Input.ActiveGame.Hold)
+    export const Hold = activeGame(Input.ActiveGame.Hold)
 
-    export let Pause = lifecycle(Input.Lifecycle.Pause)
+    export const Pause = lifecycle(Input.Lifecycle.Pause)
 
-    export let Restart = lifecycle(Input.Lifecycle.Restart)
+    export const Restart = lifecycle(Input.Lifecycle.Restart)
 
 }
 

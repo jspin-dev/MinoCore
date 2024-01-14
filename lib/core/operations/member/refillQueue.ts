@@ -2,9 +2,9 @@ import Operation from "../../definitions/CoreOperation"
 import GameEvent from "../../../definitions/GameEvent"
 import SideEffectRequest from "../../definitions/SideEffectRequest"
 
-let rootOperation = Operation.Resolve(({ state }, { schema }) => {
-    let { pieces, rns } = schema.pieceGenerator.refill({ pieces: state.previewQueue, rns: state.randomNumbers })
-    let rnsDeficit = state.randomNumbers.length - rns.length
+const rootOperation = Operation.Resolve(({ state }, { schema }) => {
+    const { pieces, rns } = schema.pieceGenerator.refill({ pieces: state.previewQueue, rns: state.randomNumbers })
+    const rnsDeficit = state.randomNumbers.length - rns.length
     return Operation.Draft(({ state, events, sideEffectRequests }) => {
         state.previewQueue = pieces
         state.randomNumbers = rns

@@ -10,17 +10,17 @@ import shapes from "../tetroShapes"
 import initializeRs from "../../../schema/rotation/initializeRs"
 import getSpawnInfo from "../../../schema/rotation/getSpawnInfo"
 
-let buildSpec = (id: PieceIdentifier, optionalParams?: PieceSpec.OptionalParams): PieceSpec => {
+const buildSpec = (id: PieceIdentifier, optionalParams?: PieceSpec.OptionalParams) => {
     return {
         id,
         shape: shapes[id],
         startLocation: optionalParams?.startLocation ?? { x: 3, y: 18 },
         spawnOrientation: optionalParams?.spawnOrientation ?? Orientation.North,
         offsets: optionalParams?.offsets ?? BoundingBoxOffsets.None
-    }
+    } satisfies PieceSpec
 }
 
-let defaultTable: KickTable = {
+const defaultTable: KickTable = {
     [Orientation.North]: {
         [Orientation.North]: [],
         [Orientation.East]: [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
@@ -47,7 +47,7 @@ let defaultTable: KickTable = {
     }
 }
 
-let iTable: KickTable = {
+const iTable: KickTable = {
     [Orientation.North]: {
         [Orientation.North]: [],
         [Orientation.East]: [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
@@ -74,7 +74,7 @@ let iTable: KickTable = {
     }
 }
 
-let kickTables: KickTable.FullInfo = {
+const kickTables: KickTable.FullInfo = {
     [TetroPiece.J]: { table: defaultTable },
     [TetroPiece.L]: { table: defaultTable },
     [TetroPiece.S]: { table: defaultTable },
@@ -84,7 +84,7 @@ let kickTables: KickTable.FullInfo = {
     [TetroPiece.I]: { table: iTable }
 }
 
-let pieces: { [id: PieceIdentifier]: PieceSpec } = {
+const pieces: { [id: PieceIdentifier]: PieceSpec } = {
     [TetroPiece.J]: buildSpec(TetroPiece.J),
     [TetroPiece.L]: buildSpec(TetroPiece.L),
     [TetroPiece.S]: buildSpec(TetroPiece.S),
@@ -94,10 +94,8 @@ let pieces: { [id: PieceIdentifier]: PieceSpec } = {
     [TetroPiece.O]: buildSpec(TetroPiece.O, { startLocation: { x: 4, y: 18 } })
 }
 
-let rotationSystem: RotationSystem = {
+export default {
     initialize: initializeRs(pieces),
     rotate: RotationMethods.kickTable(kickTables),
     getSpawnInfo: getSpawnInfo(pieces)
-}
-
-export default rotationSystem
+} satisfies RotationSystem

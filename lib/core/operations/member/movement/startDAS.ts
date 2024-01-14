@@ -4,8 +4,8 @@ import SideEffectRequest from "../../../definitions/SideEffectRequest"
 import TimerName from "../../../definitions/TimerName"
 import TimerOperation from "../../../definitions/TimerOperation"
 
-let resolveMovement = Operation.Resolve(({ state }, { operations }) => {
-    let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
+const resolveMovement = Operation.Resolve(({ state }, { operations }) => {
+    const draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerOperation({
             timerName: TimerName.DAS,
             operation: TimerOperation.Start
@@ -14,7 +14,7 @@ let resolveMovement = Operation.Resolve(({ state }, { operations }) => {
     return state.settings.das.delay === 0 ? operations.startAutoShift : draftTimerChange
 })
 
-let draftAutoShiftCancellation = Operation.Draft(({ sideEffectRequests }) => {
+const draftAutoShiftCancellation = Operation.Draft(({ sideEffectRequests }) => {
     sideEffectRequests.push(SideEffectRequest.TimerOperation({
         timerName: TimerName.DAS,
         operation: TimerOperation.Cancel
@@ -25,7 +25,7 @@ let draftAutoShiftCancellation = Operation.Draft(({ sideEffectRequests }) => {
     }))
 })
 
-let rootOperation = Operation.Sequence(draftAutoShiftCancellation, resolveMovement)
+const rootOperation = Operation.Sequence(draftAutoShiftCancellation, resolveMovement)
 
 export default Operation.Export({
     operationName: "startDAS",

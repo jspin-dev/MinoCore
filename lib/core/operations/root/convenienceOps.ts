@@ -5,15 +5,15 @@ import Cell from "../../../definitions/Cell"
 
 namespace ConvenienceOps {
 
-    export let setPreviewQueue = (pieces: PieceIdentifier[]) => Operation.Draft(({ state }) => {
+    export const setPreviewQueue = (pieces: PieceIdentifier[]) => Operation.Draft(({ state }) => {
         state.previewQueue = pieces
     })
 
-    export let setHoldPiece = (piece: PieceIdentifier) => Operation.Draft(({ state }) => {
+    export const setHoldPiece = (piece: PieceIdentifier) => Operation.Draft(({ state }) => {
         state.holdPiece = piece
     })
 
-    export let setPlayfieldCell = (coordinate: Coordinate, value: Cell) => Operation.Draft(({ state }) => {
+    export const setPlayfieldCell = (coordinate: Coordinate, value: Cell) => Operation.Draft(({ state }) => {
         state.playfield[coordinate.y][coordinate.x] = value
     })
 

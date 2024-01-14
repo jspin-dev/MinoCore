@@ -5,24 +5,22 @@ import { createEmptyGrid } from "../../util/sharedUtils"
 
 namespace PlayfieldReducers {
 
-    export let standardCollapse: PatternDetector = {
-
+    export const standardCollapse = {
         reduce({ playfield, schema }) {
-            let shouldClear = (row: Cell[]) => row.every(cell => cell.classifier == Cell.Classifier.Locked)
-            let rows = playfield.reduce((accum, row, y) => shouldClear(row) ? [...accum, y] : accum, [] as number[])
-            let newPlayfield = clearAndCollapse(playfield, rows, schema.playfield.columns)
+            const shouldClear = (row: Cell[]) => row.every(cell => cell.classifier == Cell.Classifier.Locked)
+            const rows = playfield.reduce((accum, row, y) => shouldClear(row) ? [...accum, y] : accum, [] as number[])
+            const newPlayfield = clearAndCollapse(playfield, rows, schema.playfield.columns)
             return {
                 playfield: newPlayfield,
                 linesCleared: rows
             }
         }
+    } satisfies PatternDetector
 
-    }
-
-    let clearAndCollapse = (playfield: Playfield, rows: number[], playfieldWidth: number): Playfield => {
-        let reducedPlayfield = playfield.filter((_, y) => !rows.includes(y))
-        let lostHeight = playfield.length - reducedPlayfield.length
-        return createEmptyGrid(lostHeight, playfieldWidth, Cell.Empty as Cell).concat(reducedPlayfield)
+    const clearAndCollapse = (playfield: Playfield, rows: number[], playfieldWidth: number) => {
+        const reducedPlayfield = playfield.filter((_, y) => !rows.includes(y))
+        const lostHeight = playfield.length - reducedPlayfield.length
+        return createEmptyGrid(lostHeight, playfieldWidth, Cell.Empty).concat(reducedPlayfield) satisfies Playfield
     }
 
 }

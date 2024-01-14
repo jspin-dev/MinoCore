@@ -18,7 +18,7 @@ interface ActivePiece {
 
 namespace ActivePiece {
 
-    export let initial: ActivePiece = {
+    export const initial: ActivePiece = {
         id: null,
         location: null,
         coordinates: [],
@@ -45,11 +45,11 @@ namespace ActivePiece {
 // Convenience
 namespace ActivePiece {
 
-    export let equal = (before: ActivePiece, after: ActivePiece): boolean => {
+    export const equal = (before: ActivePiece, after: ActivePiece) => {
         return diff(before, after) != null
     }
 
-    export let diff = (before: ActivePiece, after: ActivePiece): Diff => {
+    export const diff = (before: ActivePiece, after: ActivePiece) => {
         let diff: Diff = {}
         if (before.id != after.id) {
             diff.id = after.id
@@ -77,7 +77,8 @@ namespace ActivePiece {
         if (availableShiftDistanceDiff) {
             diff.availableShiftDistance = availableShiftDistanceDiff
         }
-        return Object.keys(diff).length > 0 ? diff : null
+        const returnValue = Object.keys(diff).length > 0 ? diff : null
+        return returnValue satisfies Diff
     }
 
 }

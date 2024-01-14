@@ -5,7 +5,7 @@ interface Coordinate {
 
 namespace Coordinate {
 
-    export let equal = (coordinate1: Coordinate, coordinate2: Coordinate): boolean => {
+    export const equal = (coordinate1: Coordinate, coordinate2: Coordinate) => {
         if (!coordinate1 && !coordinate2) {
             return true
         }

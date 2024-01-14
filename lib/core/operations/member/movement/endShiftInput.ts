@@ -6,25 +6,25 @@ import TimerName from "../../../definitions/TimerName"
 import TimerOperation from "../../../definitions/TimerOperation"
 import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
-let resolveNewDirection = (direction: ShiftDirection) => Operation.Resolve(({ state }, { operations }) => {
+const resolveNewDirection = (direction: ShiftDirection) => Operation.Resolve(({ state }, { operations }) => {
     if (state.shiftDirection != direction) {
         return Operation.None
     }
-    let newDirection = ShiftDirection.opposite(direction)
+    const newDirection = ShiftDirection.opposite(direction)
     if (state.dasCharged[newDirection]) {
         return Operation.Sequence(
             Operation.Draft(({ state }) => { state.shiftDirection = newDirection }),
             operations.startAutoShift
         )
     }
-    let activeShiftInput = state.activeInputs.some(input => {
+    const activeShiftInput = state.activeInputs.some(input => {
         return input.classifier == Input.ActiveGame.Classifier.Shift && input.direction == newDirection
     })
-    let startDas = Operation.Sequence(
+    const startDas = Operation.Sequence(
         Operation.Draft(({ state }) => { state.shiftDirection = newDirection }),
         operations.startDAS
     )
-    let cancelDas = Operation.Draft(({ sideEffectRequests }) => {
+    const cancelDas = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerOperation({
             timerName: TimerName.DAS,
             operation: TimerOperation.Cancel
@@ -37,7 +37,7 @@ let resolveNewDirection = (direction: ShiftDirection) => Operation.Resolve(({ st
     return activeShiftInput ? startDas : cancelDas
 })
 
-let rootOperation = (direction: ShiftDirection) => Operation.Sequence(
+const rootOperation = (direction: ShiftDirection) => Operation.Sequence(
     Operation.Draft(({ state }) => { state.dasCharged[direction] = false }),
     resolveNewDirection(direction)
 )

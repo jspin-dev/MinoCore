@@ -4,7 +4,7 @@ import SideEffectRequest from "../../../definitions/SideEffectRequest"
 import TimerName from "../../../definitions/TimerName"
 import TimerOperation from "../../../definitions/TimerOperation"
 
-let rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
+const rootOperation = Operation.Resolve((_, { operations }) => Operation.Sequence(
     Operation.Draft(({ state, sideEffectRequests }) => { 
         state.status = GameStatus.Active
         sideEffectRequests.push(SideEffectRequest.TimerOperation({

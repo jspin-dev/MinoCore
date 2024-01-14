@@ -6,49 +6,50 @@ import KickTable from "../../../schema/rotation/definitions/KickTable"
 import { centralColumnValidator } from "../tetroRotationValidators"
 import segaRS from "./segaRS"
 
-let defaultKickOffsets: RotationSystem.Offset[] = [[0, 0], [1, 0], [-1, 0]]
+const defaultKickOffsets = [[0, 0], [1, 0], [-1, 0]] satisfies RotationSystem.Offset[]
 
-let simpleKickTable = (offsets: RotationSystem.Offset[]): KickTable => {
+const simpleKickTable = (offsets: RotationSystem.Offset[]) => {
+    const blankOffsets: RotationSystem.Offset[] = []
     return {
         [Orientation.North]: {
-            [Orientation.North]: [],
+            [Orientation.North]: blankOffsets,
             [Orientation.East]: offsets,
             [Orientation.South]: offsets,
             [Orientation.West]: offsets
         },
         [Orientation.East]: {
             [Orientation.North]: offsets,
-            [Orientation.East]: [],
+            [Orientation.East]: blankOffsets,
             [Orientation.South]: offsets,
             [Orientation.West]: offsets
         },
         [Orientation.South]: {
             [Orientation.North]: offsets,
             [Orientation.East]: offsets,
-            [Orientation.South]: [],
+            [Orientation.South]: blankOffsets,
             [Orientation.West]: offsets
         },
         [Orientation.West]: {
             [Orientation.North]: offsets,
             [Orientation.East]: offsets,
             [Orientation.South]: offsets,
-            [Orientation.West]: []
+            [Orientation.West]: blankOffsets
         }
-    }
+    } satisfies KickTable
 }
 
-let jltKickInfo = {
+const jltKickInfo = {
     table: simpleKickTable(defaultKickOffsets),
     validator: centralColumnValidator
 }
-let zsKickInfo = {
+const zsKickInfo = {
     table: simpleKickTable(defaultKickOffsets)
 }
-let ioKickInfo = {
+const ioKickInfo = {
     table: simpleKickTable([[0, 0]])
 }
 
-let kickTables: KickTable.FullInfo = {
+const kickTables = {
     [TetroPiece.J]: jltKickInfo,
     [TetroPiece.L]: jltKickInfo,
     [TetroPiece.S]: zsKickInfo,
@@ -56,12 +57,10 @@ let kickTables: KickTable.FullInfo = {
     [TetroPiece.T]: jltKickInfo,
     [TetroPiece.O]: ioKickInfo,
     [TetroPiece.I]: ioKickInfo
-}
+} satisfies KickTable.FullInfo
 
-let rotationSystem: RotationSystem = {
+export default {
     initialize: segaRS.initialize,
     getSpawnInfo: segaRS.getSpawnInfo,
     rotate: RotationMethods.kickTable(kickTables),
-}
-
-export default rotationSystem
+} satisfies RotationSystem

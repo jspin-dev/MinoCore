@@ -1,43 +1,43 @@
 import Operation from "../definitions/Operation"
 import { Draft, produce } from "immer"
 
-let debugMode = false
+const debugMode = false
 
-export let executeDrafter = <S>(draft: (draft: Draft<S>) => void) => (state: S) => produce(state, draft)
+export const executeDrafter = <S>(draft: (draft: Draft<S>) => void) => (state: S) => produce(state, draft)
 
-export let executeResolver = <S, D>(
+export const executeResolver = <S, D>(
     resolve: (state: S, dependencies: D) => Operation<S, D>,
     optionalParams?: Operation.OptionalParams<S>
-): (state: S, dependencies: D) => S => {
-    return (state, dependencies) => {
-        let operationName = optionalParams?.operationName
+) => {
+    return ((state, dependencies) => {
+        const operationName = optionalParams?.operationName
         if (debugMode && operationName) {
             console.log(`Executing ${operationName}`)
             console.log(state)
         }
-        let shouldProduceState = checkPreconditions(operationName, state, optionalParams?.preconditions ?? [])
+        const shouldProduceState = checkPreconditions(operationName, state, optionalParams?.preconditions ?? [])
         return shouldProduceState ? resolve(state, dependencies).execute(state, dependencies) : state
-    }
+    }) satisfies (state: S, dependencies: D) => S
 }
 
-export let executeSequence = <S, D>(operations: Operation<S, D>[]) => {
+export const executeSequence = <S, D>(operations: Operation<S, D>[]) => {
     return (state: S, dependencies: D) => {
         return operations.reduce((current, operation) => executeOperation(current, dependencies, operation), state)
     }
 }
 
-let executeOperation = <S, D>(state: S, dependencies: D, operation: Operation<S, D>): S => {
+const executeOperation = <S, D>(state: S, dependencies: D, operation: Operation<S, D>) => {
     switch (operation.classifier) {
         case Operation.Classifier.Resolver:
-            return operation.execute(state, dependencies)
+            return operation.execute(state, dependencies) satisfies S
         case Operation.Classifier.Drafter:
-            return operation.execute(state)
+            return operation.execute(state) satisfies S
     }
 }
 
-let checkPreconditions = <S>(operationName: string | null, state: S, preconditions: Operation.Precondition<S>[]): boolean => {
-    let initialErrors: string[] =  []
-    let errors = preconditions.reduce((accum, precondition) => {
+const checkPreconditions = <S>(operationName: string | null, state: S, preconditions: Operation.Precondition<S>[]) => {
+    const initialErrors: string[] =  []
+    const errors = preconditions.reduce((accum, precondition) => {
         if (!precondition.isValid(state)) {
             return[...accum, `Precondition for exported operation ${operationName ?? "-"} failed: ${precondition.rationale}`]
         } else {

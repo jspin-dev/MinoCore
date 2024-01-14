@@ -2,12 +2,7 @@ import Orientation from "../../../definitions/Orientation"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import RotationSystem from "./RotationSystem"
 
-interface KickTable { 
-    [Orientation.North]: KickTable.OffsetMap,
-    [Orientation.East]: KickTable.OffsetMap,
-    [Orientation.South]: KickTable.OffsetMap,
-    [Orientation.West]: KickTable.OffsetMap 
-}
+type KickTable = Record<Orientation, KickTable.OffsetMap>
 
 namespace KickTable {
 
@@ -18,12 +13,7 @@ namespace KickTable {
         }
     }
 
-    export interface OffsetMap {
-        [Orientation.North]: RotationSystem.Offset[]
-        [Orientation.East]: RotationSystem.Offset[]
-        [Orientation.South]: RotationSystem.Offset[]
-        [Orientation.West]: RotationSystem.Offset[]
-    }
+    export type OffsetMap = Record<Orientation, RotationSystem.Offset[]>
 
 }
 

@@ -4,9 +4,8 @@ interface SettingPresets {
     guideline: Settings
 }
 
-let settings: SettingPresets = {
+export default {
     guideline: {
-        ghostEnabled: true,
         softDropInterval: 10,
         dropInterval: 1000,
         das: {
@@ -17,5 +16,4 @@ let settings: SettingPresets = {
             delay: 130
         }
     }
-}
-export default settings
+} satisfies SettingPresets

@@ -22,19 +22,19 @@ namespace Outcome {
 // Convenience
 namespace Outcome {
 
-    export let Success = <T>(data: T): Outcome.SuccessType<T> => {
-        return { classifier: Classifier.Success, data }
+    export const Success = <T>(data: T) => {
+        return { classifier: Classifier.Success, data } satisfies Outcome.SuccessType<T>
     }
 
-    export let Failure = (error?: string): Outcome.FailureType => {
-        return { classifier: Classifier.Failure, error }
+    export const Failure = (error?: string) => {
+        return { classifier: Classifier.Failure, error } satisfies Outcome.FailureType
     }
 
-    export let isSuccess = <T>(outcome: Outcome<T>): outcome is Outcome.SuccessType<T> => {
+    export const isSuccess = <T>(outcome: Outcome<T>): outcome is Outcome.SuccessType<T> => {
         return outcome?.classifier == Outcome.Classifier.Success
     }
 
-    export let isFailure = <T>(outcome: Outcome<T>): outcome is Outcome.FailureType => {
+    export const isFailure = <T>(outcome: Outcome<T>): outcome is Outcome.FailureType => {
         return outcome?.classifier == Outcome.Classifier.Failure
     }
 

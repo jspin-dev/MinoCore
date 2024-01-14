@@ -12,7 +12,7 @@ enum TetroPiece {
 
 namespace TetroPiece {
 
-    export let identifiers: PieceIdentifier[] = [
+    export const identifiers = [
         TetroPiece.I,
         TetroPiece.J,
         TetroPiece.L,
@@ -20,7 +20,7 @@ namespace TetroPiece {
         TetroPiece.S,
         TetroPiece.T,
         TetroPiece.Z
-    ]
+    ] satisfies PieceIdentifier[]
 
 }
 

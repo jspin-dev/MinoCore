@@ -11,7 +11,7 @@ interface GridState {
 
 namespace GridState {
 
-    export let initial: GridState = {
+    export const initial: GridState = {
         nextPreview: [],
         holdPreview: [],
         previewGrids: {}

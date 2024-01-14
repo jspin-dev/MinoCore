@@ -3,7 +3,7 @@ import Operation from "../../../definitions/CoreOperation"
 import Input from "../../../../definitions/Input"
 import GameStatus from "../../../definitions/GameStatus"
 
-let resolveInputEndAction = (input: Input.ActiveGame) => Operation.Resolve((_, { operations }) => {
+const resolveInputEndAction = (input: Input.ActiveGame) => Operation.Resolve((_, { operations }) => {
     switch(input.classifier) {
         case Input.ActiveGame.Classifier.Shift:
             return operations.endShiftInput(input.direction)
@@ -14,12 +14,12 @@ let resolveInputEndAction = (input: Input.ActiveGame) => Operation.Resolve((_, {
     }
 })
 
-let draftInputEndRecord = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => {
+const draftInputEndRecord = (input: Input.ActiveGame) => Operation.Draft(({ state, events }) => {
     state.activeInputs = state.activeInputs.filter(i => !Input.ActiveGame.equal(i, input))
     events.push(GameEvent.InputEnd(input));
 })
 
-let rootOperation = (input: Input.ActiveGame) => Operation.Resolve(({ state }, { operations }) => {
+const rootOperation = (input: Input.ActiveGame) => Operation.Resolve(({ state }, { operations }) => {
     if (state.status != GameStatus.Active) {
         return Operation.None
     }

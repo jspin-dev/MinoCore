@@ -10,7 +10,7 @@ export type FinesseSettings = {
     }[]
 }[]
 
-let finesseSettings: FinesseSettings = [
+const finesseSettings = [
     {
         pieces: [Piece.J, Piece.L, Piece.T],
         info: [
@@ -156,4 +156,4 @@ let finesseSettings: FinesseSettings = [
     }
 ]
 
-export default finesseSettings;
+export default finesseSettings satisfies FinesseSettings

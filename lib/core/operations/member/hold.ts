@@ -34,5 +34,5 @@ let rootOperation = Operation.Resolve(({ state }) => {
 export default Operation.Export({
     operationName: "hold",
     preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ],
-    rootOperation: rootOperation
+    rootOperation
 })

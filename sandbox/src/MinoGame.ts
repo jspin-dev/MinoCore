@@ -10,9 +10,11 @@ import CoreState from "../../build/core/definitions/CoreState"
 import type OperationResult from "../../build/core/definitions/CoreOperationResult"
 import type PreviewGridState from "../../build/addons/definitions/GridState"
 import TimerName from "../../build/core/definitions/TimerName"
+import CoreOperation from "../../build/core/definitions/CoreOperation"
 // import syncPreviewGrids from "./addons/gridBuilder/gridBuilderAddon"
 import SideEffectRequest from "../../build/core/definitions/SideEffectRequest"
 import DropType from "../../build/definitions/DropType"
+import GhostProviders from "../../build/schema/featureProviders/ghostProviders"
 import defaultCoreOperations from "../../build/core/defaultCoreOperations"
 import recordTick from "../../build/core/operations/root/lifecycle/recordTick"
 import initialize from "../../build/core/operations/root/lifecycle/initialize"
@@ -22,6 +24,7 @@ import togglePause from "../../build/core/operations/root/lifecycle/togglePause"
 import triggerLockdown from "../../build/core/operations/root/triggerLockdown"
 import startAutoShift from "../../build/core/operations/member/movement/startAutoShift"
 import schemas from "../../build/presets/tetro/tetroSchemaPresets"
+import refresh from "../../build/core/operations/root/lifecycle/refresh"
 import updateStatistics from "../../build/addons/addons/guidelineStatistics/guidelineStatsAddon"
 import addRns from "../../build/core/operations/root/addRns"
 import startInput from "../../build/core/operations/root/lifecycle/startInput"
@@ -29,12 +32,11 @@ import endInput from "../../build/core/operations/root/lifecycle/endInput"
 import drop from "../../build/core/operations/member/movement/drop"
 import shift from "../../build/core/operations/member/movement/shift"
 
-type CoreOperation = Operation<OperationResult<CoreState>, CoreDependencies>
 type StatisticsOperation = Operation<Statistics, void>
 
 class MinoGame {
 
-    timers: { [key: string]: BasePausableTimer }
+    timers: Record<TimerName, BasePausableTimer>
     state: MinoGame.State
     defaultSettings: Settings
     onStateChanged: (state: MinoGame.State) => void
@@ -52,7 +54,7 @@ class MinoGame {
     init(): MinoGame.State {
         this.timers = {
             [TimerName.Clock]: new PausableInterval(1000, () => this.run(recordTick)),
-            [TimerName.DropLock]: new PausableTimeout(5000, () => this.run(triggerLockdown)),
+            [TimerName.DropLock]: new PausableTimeout(500, () => this.run(triggerLockdown)),
             [TimerName.DAS]: new PausableTimeout(this.defaultSettings.das.delay, () => this.run(startAutoShift)),
             [TimerName.Drop]: new PausableInterval(this.defaultSettings.dropInterval, () => this.run(drop(DropType.Soft, 1))),
             [TimerName.AutoShift]: new PausableInterval(this.defaultSettings.das.autoShiftInterval, () => this.run(shift(1)))
@@ -60,12 +62,11 @@ class MinoGame {
         return this.run(initialize)
     }
 
-    run(rootOperation: CoreOperation): MinoGame.State {
-        let coreState = this.state?.core ?? CoreState.initial
-        let initialResult: OperationResult<CoreState> = { state: coreState, sideEffectRequests: [], events: [] }
-        let coreResult = rootOperation.execute(initialResult, this.dependencies)
-        let statsOperation = updateStatistics(coreResult.events) as StatisticsOperation
-        let statistics = statsOperation.execute(this.state?.statistics ?? Statistics.initial)
+    run(rootOperation: Operation<OperationResult<CoreState>, CoreDependencies>): MinoGame.State {
+        const coreState = this.state?.core ?? CoreState.initial
+        const coreResult = CoreOperation.execute(rootOperation, coreState, this.dependencies)
+        const statsOperation = updateStatistics(coreResult.events) as StatisticsOperation
+        const statistics = statsOperation.execute(this.state?.statistics ?? Statistics.initial)
         // let previewGridsOperation = syncPreviewGrids(coreResult) as PreviewGridOperation
         // let previewGrids = previewGridsOperation.execute(this.state?.previewGrids ?? PreviewGridState.initial)
 
@@ -92,11 +93,15 @@ class MinoGame {
         return this.state
     }
 
+    displayGhost(show: boolean) {
+        this.dependencies.schema.ghostProvider = show ? GhostProviders.classic : GhostProviders.noGhost
+        this.run(refresh)
+    }
+
     executeSideEffect(request: SideEffectRequest) {
         switch (request.classifier) {
             case SideEffectRequest.Classifier.TimerInterval:
                 this.timers[request.timerName].setDelay(request.delay)
-                console.log("New delay"+request.timerName+","+request.delay)
                 break
             case SideEffectRequest.Classifier.TimerOperation:
                 this.timers[request.timerName][request.operation]()

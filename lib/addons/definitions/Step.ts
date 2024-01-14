@@ -50,29 +50,29 @@ namespace Step {
 // Convenience
 namespace Step {
 
-    let Shift = (step: ShiftStep): Types.Shift => {
-        return { type: StepType.Shift, step }
+    const Shift = (step: ShiftStep) => {
+        return { type: StepType.Shift, step } satisfies Types.Shift
     }
 
-    let Drop = (step: DropStep): Types.Drop => {
-        return { type: StepType.Drop, step }
+    const Drop = (step: DropStep) => {
+        return { type: StepType.Drop, step } satisfies Types.Drop
     }
 
-    let Rotate = (step: RotationStep): Types.Rotate => {
-        return { type: StepType.Rotate, step }
+    const Rotate = (step: RotationStep) => {
+        return { type: StepType.Rotate, step } satisfies Types.Rotate
     }
 
-    export let TapLeft = Shift(ShiftStep.TapLeft)
-    export let TapRight = Shift(ShiftStep.TapRight)
-    export let SoftDrop = Drop(DropStep.SoftDrop)
-    export let RotateCCW = Rotate(RotationStep.RotateCCW)
-    export let RotateCW = Rotate(RotationStep.RotateCW)
-    export let HardDrop = Drop(DropStep.HardDrop)
-    export let SoftDropToFloor = Drop(DropStep.SoftDropToFloor)
-    export let DasRight = Shift(ShiftStep.DasRight)
-    export let DasLeft = Shift(ShiftStep.DasLeft)
+    export const TapLeft = Shift(ShiftStep.TapLeft)
+    export const TapRight = Shift(ShiftStep.TapRight)
+    export const SoftDrop = Drop(DropStep.SoftDrop)
+    export const RotateCCW = Rotate(RotationStep.RotateCCW)
+    export const RotateCW = Rotate(RotationStep.RotateCW)
+    export const HardDrop = Drop(DropStep.HardDrop)
+    export const SoftDropToFloor = Drop(DropStep.SoftDropToFloor)
+    export const DasRight = Shift(ShiftStep.DasRight)
+    export const DasLeft = Shift(ShiftStep.DasLeft)
 
-    export let Hold: Types.Hold = { type: StepType.Hold }
+    export const Hold = { type: StepType.Hold }
 
 }
 

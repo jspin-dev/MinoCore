@@ -1,18 +1,11 @@
 import Orientation from "../../../definitions/Orientation"
 
-type Offset = [number, number]
-
-interface BoundingBoxOffsets {
-    [Orientation.North]: Offset
-    [Orientation.East]: Offset
-    [Orientation.South]: Offset
-    [Orientation.West]: Offset
-}
+type BoundingBoxOffsets = Record<Orientation, [number, number]>
 
 // Convenience
 namespace BoundingBoxOffsets {
 
-    export let None: BoundingBoxOffsets = {
+    export const None: BoundingBoxOffsets = {
         [Orientation.North]: [0, 0],
         [Orientation.East]: [0, 0],
         [Orientation.South]: [0, 0],

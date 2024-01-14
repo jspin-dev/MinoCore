@@ -41,29 +41,29 @@ namespace Cell {
 // Convenience
 namespace Cell {
 
-    export let Empty: Types.Empty = { classifier: Classifier.Empty }
+    export const Empty = { classifier: Classifier.Empty } satisfies Types.Empty
 
-    export let Active = (pieceId: PieceIdentifier): Types.Active => {
-        return { classifier: Classifier.Active, pieceId }
+    export const Active = (pieceId: PieceIdentifier) => {
+        return { classifier: Classifier.Active, pieceId } satisfies Types.Active
     }
 
-    export let Ghost = (pieceId: PieceIdentifier): Types.Ghost => {
-        return { classifier: Classifier.Ghost, pieceId }
+    export const Ghost = (pieceId: PieceIdentifier) => {
+        return { classifier: Classifier.Ghost, pieceId } satisfies Types.Ghost
     }
 
-    export let Locked = (pieceId: PieceIdentifier): Types.Locked => {
-        return { classifier: Classifier.Locked, pieceId }
+    export const Locked = (pieceId: PieceIdentifier) => {
+        return { classifier: Classifier.Locked, pieceId } satisfies Types.Locked
     }
 
-    export let isActive = (cell: Cell): cell is Cell.Types.Active => cell.classifier == Cell.Classifier.Active
+    export const isActive = (cell: Cell): cell is Cell.Types.Active => cell.classifier == Cell.Classifier.Active
 
-    export let isEmpty = (cell: Cell): cell is Cell.Types.Empty => cell.classifier == Cell.Classifier.Empty
+    export const isEmpty = (cell: Cell): cell is Cell.Types.Empty => cell.classifier == Cell.Classifier.Empty
 
-    export let isGhost = (cell: Cell): cell is Cell.Types.Ghost => cell.classifier == Cell.Classifier.Ghost
+    export const isGhost = (cell: Cell): cell is Cell.Types.Ghost => cell.classifier == Cell.Classifier.Ghost
 
-    export let isLocked = (cell: Cell): cell is Cell.Types.Locked => cell.classifier == Cell.Classifier.Locked
+    export const isLocked = (cell: Cell): cell is Cell.Types.Locked => cell.classifier == Cell.Classifier.Locked
 
-    export let equal = (cell1: Cell, cell2: Cell): boolean => {
+    export const equal = (cell1: Cell, cell2: Cell) => {
         if (!cell1 && !cell2) {
             return true
         }

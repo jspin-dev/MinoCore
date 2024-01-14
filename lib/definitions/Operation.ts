@@ -38,10 +38,10 @@ namespace Operation {
      * Logic here should be limited to only what is necessary to make the needed state changes. However, care should still
      * be taken regarding performance (see https://immerjs.github.io/immer/performance)
      */
-    export function Draft<S>(draft: (draft: Draft<S>) => void): Drafter<S> {
+    export const Draft = <S>(draft: (draft: Draft<S>) => void): Drafter<S> => {
         return { 
             classifier: Classifier.Drafter, 
-            applyIf: (condition) => { return  Draft(condition ? draft : () => {}) },
+            applyIf(condition) { return Draft(condition ? draft : () => {}) },
             execute: executeDrafter(draft)
         }
     }
@@ -50,13 +50,13 @@ namespace Operation {
      * Resolve operations form more complex logic by chaining together Drafters and other Resolvers.
      * They have access to a read-only copy of the state and return some other operation. To modify the state, use Draft instead 
      */
-    export function Resolve<S, D>(
+    export const Resolve = <S, D>(
         resolve: (state: S, dependencies: D) => Operation<S, D>,
         optionalParams?: OptionalParams<S>
-    ): Resolver<S, D> {
+    ): Resolver<S, D> => {
         return { 
             classifier: Classifier.Resolver, 
-            applyIf: (condition) => { return condition ? Resolve(resolve) : Operation.None() },
+            applyIf(condition) { return condition ? Resolve(resolve) : Operation.None() },
             execute: executeResolver(resolve, optionalParams)
         }
     }
@@ -64,10 +64,10 @@ namespace Operation {
     /**
      * A pseudo operation (technically a Resolver) which takes in a list of operations to be performed sequentially
      */
-    export function Sequence<S, D>(...operations: Operation<S, D>[]): Resolver<S, D> {
+    export const Sequence = <S, D>(...operations: Operation<S, D>[]): Resolver<S, D> => {
         return { 
             classifier: Classifier.Resolver, 
-            applyIf: (condition) => { return condition ? Sequence(...operations) : Operation.None() },
+            applyIf(condition) { return condition ? Sequence(...operations) : Operation.None() },
             execute: executeSequence(operations)
         }
     }
@@ -85,11 +85,11 @@ namespace Operation {
 
     }
 
-    export function Export <S, D>(params: Export.Params<S, D>): Operation<S, D> {
+    export const Export =  <S, D>(params: Export.Params<S, D>): Operation<S, D> => {
         return Resolve(() => params.rootOperation, params)
     }
 
-    export let None = <S, D>() => Sequence<S, D>()
+    export const None = <S, D>() => Sequence<S, D>()
 
 }
 

@@ -66,7 +66,7 @@
             }
         }
     ))
-    $: game.run(updateSettings({ ghostEnabled: userPrefs.ghostEnabled }))
+    $: game.displayGhost(userPrefs.ghostEnabled)
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

@@ -13,17 +13,18 @@ namespace ShiftPair {
         [ShiftDirection.Left]?: T
     }
 
-    export let diff = <T>(before: ShiftPair<T>, after: ShiftPair<T>): Diff<T> => {
+    export const diff = <T>(before: ShiftPair<T>, after: ShiftPair<T>) => {
         if (!before && !after) { return null }
         if (!before || !after) { return after }
-        let diff: Diff<T> = {}
+        const diff: Diff<T> = {}
         if (before[ShiftDirection.Left] != after[ShiftDirection.Left]) {
             diff[ShiftDirection.Left] = after[ShiftDirection.Left]
         }
         if (before[ShiftDirection.Right] != after[ShiftDirection.Right]) {
             diff[ShiftDirection.Right] = after[ShiftDirection.Right]
         }
-        return Object.keys(diff).length > 0 ? diff : null
+        const returnValue = Object.keys(diff).length > 0 ? diff : null
+        return returnValue satisfies Diff<T>
     }
 
 }

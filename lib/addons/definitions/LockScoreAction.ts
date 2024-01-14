@@ -31,23 +31,23 @@ namespace LockScoreAction {
 // Convenience
 namespace LockScoreAction {
 
-    export let LineClear = (lines: Lines.ForClear): LockScoreAction => {
-        return { type: Type.LineClear, lines, key: `lineClear${lines}` }
+    export const LineClear = (lines: Lines.ForClear) => {
+        return { type: Type.LineClear, lines, key: `lineClear${lines}` } satisfies LockScoreAction
     }
 
-    export let TSpin = (lines: Lines.ForTSpin): LockScoreAction => {
-        return { type: Type.TSpin, lines, key: `tspin${lines}` }
+    export const TSpin = (lines: Lines.ForTSpin) => {
+        return { type: Type.TSpin, lines, key: `tspin${lines}` } satisfies LockScoreAction
     }
 
-    export let TSpinMini = (lines: Lines.ForTSpinMini): LockScoreAction => {
-        return { type: Type.TSpinMini, lines, key: `tspin-mini${lines}` }
+    export const TSpinMini = (lines: Lines.ForTSpinMini) => {
+        return { type: Type.TSpinMini, lines, key: `tspin-mini${lines}` } satisfies LockScoreAction
     }
 
-    export let PC = (lines: Lines.ForPC): LockScoreAction => {
-        return { type: Type.PC, lines, key: `pc${lines}` }
+    export const PC = (lines: Lines.ForPC) => {
+        return { type: Type.PC, lines, key: `pc${lines}` } satisfies LockScoreAction
     }
 
-    export let defaultGuidelineScoringTable: LockScoreAction.Table = {
+    export const defaultGuidelineScoringTable = {
         [LineClear(Lines.Single).key]: { basePointValue: 100, breaksB2b: true, b2bMultiplyer: 1, difficult: false },
         [LineClear(Lines.Double).key]: { basePointValue: 300, breaksB2b: true, b2bMultiplyer: 1, difficult: false },
         [LineClear(Lines.Triple).key]: { basePointValue: 500, breaksB2b: true, b2bMultiplyer: 1, difficult: false },
@@ -66,7 +66,7 @@ namespace LockScoreAction {
         [PC(Lines.Double).key]: { basePointValue: 1200, breaksB2b: false, b2bMultiplyer: 1.5, difficult: true },
         [PC(Lines.Triple).key]: { basePointValue: 1800, breaksB2b: false, b2bMultiplyer: 1.5, difficult: true },
         [PC(Lines.Quad).key]: { basePointValue: 2000, breaksB2b: false, b2bMultiplyer: 1.6, difficult: true }
-    }
+    } satisfies LockScoreAction.Table
 
 }
 

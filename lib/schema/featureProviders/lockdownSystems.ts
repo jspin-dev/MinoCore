@@ -6,12 +6,12 @@ import LockdownResetPolicy from "../definitions/LockdownResetPolicy"
 
 namespace LockdownSystems {
 
-    export let standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number): LockdownSystem => {
+    export const standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number) => {
         return {
-            processMovement(params): Outcome<LockdownStatus> {
-                let { movement, lockdownStatus, activePiece } = params
-                let onFloor = activePiece.availableDropDistance == 0
-                let resetTimerStatus = LockdownStatus.TimerActive({ movesRemaining: moveLimit })
+            processMovement(params) {
+                const { movement, lockdownStatus, activePiece } = params
+                const onFloor = activePiece.availableDropDistance == 0
+                const resetTimerStatus = LockdownStatus.TimerActive({ movesRemaining: moveLimit })
 
                 if (lockdownStatus.classifier != LockdownStatus.Classifier.NoLockdown && activePiece.location.y > activePiece.maxDepth) {
                     return Outcome.Success(onFloor ? resetTimerStatus : LockdownStatus.NoLockdown)
@@ -28,15 +28,15 @@ namespace LockdownSystems {
                                 return Outcome.Success(LockdownStatus.Triggered)
                             }
                             if (resetPolicy == LockdownResetPolicy.Move) {
-                                let movesRemaining = moveLimit == null ? null : lockdownStatus.movesRemaining - 1
-                                let newLockStatus = LockdownStatus.TimerActive({ movesRemaining })
+                                const movesRemaining = moveLimit == null ? null : lockdownStatus.movesRemaining - 1
+                                const newLockStatus = LockdownStatus.TimerActive({ movesRemaining })
                                 return Outcome.Success(newLockStatus)
                             }
                         }
                 }
                 return Outcome.Failure()
             }
-        }
+        } satisfies LockdownSystem
     }
 
 }

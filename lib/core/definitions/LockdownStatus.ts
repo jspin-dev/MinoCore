@@ -26,22 +26,22 @@ namespace LockdownStatus {
 // Convenience
 namespace LockdownStatus {
 
-    export let Triggered: TriggeredType = {
+    export const Triggered = {
         classifier: Classifier.Triggered
-    }
+    } satisfies TriggeredType
 
-    export let NoLockdown: NoLockdownType = {
+    export const NoLockdown = {
         classifier: Classifier.NoLockdown
-    }
+    } satisfies NoLockdownType
 
-    export let TimerActive = (params: { movesRemaining: number }): TimerActiveType => {
+    export const TimerActive = (params: { movesRemaining: number }) => {
         return {
             classifier: Classifier.TimerActive,
             movesRemaining: params.movesRemaining
-        }
+        } satisfies TimerActiveType
     }
 
-    export let equal = (status1: LockdownStatus, status2: LockdownStatus): boolean => {
+    export const equal = (status1: LockdownStatus, status2: LockdownStatus) => {
         if (!status1 && !status2) {
             return true
         }

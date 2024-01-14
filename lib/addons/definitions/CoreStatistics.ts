@@ -11,7 +11,7 @@ interface CoreStatistics {
 
 namespace CoreStatistics {
 
-    export let initial: CoreStatistics = {
+    export const initial = {
         lines: 0,
         keysPressed: 0,
         piecesLocked: 0,
@@ -20,7 +20,7 @@ namespace CoreStatistics {
         time: 0,
         kpp: 0,
         pps: 0
-    }
+    } satisfies CoreStatistics
 
 }
 

@@ -3,19 +3,19 @@ import Operation from "../../../definitions/CoreOperation"
 import MovementType from "../../../../definitions/MovementType"
 import PendingMovement from "../../../definitions/PendingMovement"
 import ShiftDirection from "../../../../definitions/ShiftDirection"
-import CorePreconditions from "../../../utils/CorePreconditions"
+import CorePreconditions, { CorePrecondition } from "../../../utils/CorePreconditions"
 import { findAvailableDropDistance } from "../../../utils/coreOpStateUtils"
 
-let updateMaxDrop = Operation.Resolve(({ state }, { schema }) => {
-    let { activePiece, playfield } = state
-    let distanceCalculationInfo = { coordinates: activePiece.coordinates, playfield, playfieldSpec: schema.playfield }
-    let maxDropDistance = findAvailableDropDistance(distanceCalculationInfo)
+const updateMaxDrop = Operation.Resolve(({ state }, { schema }) => {
+    const { activePiece, playfield } = state
+    const distanceCalculationInfo = { coordinates: activePiece.coordinates, playfield, playfieldSpec: schema.playfield }
+    const maxDropDistance = findAvailableDropDistance(distanceCalculationInfo)
     return Operation.Draft(({ state }) => { state.activePiece.availableDropDistance = maxDropDistance })
 })
 
-let draftShift = (dx: number) => Operation.Draft(({ state }) => {
-    let netDx = dx * state.shiftDirection
-    let { activePiece, playfield, pendingMovement } = state
+const draftShift = (dx: number) => Operation.Draft(({ state }) => {
+    const netDx = dx * state.shiftDirection
+    const { activePiece, playfield, pendingMovement } = state
     activePiece.coordinates.forEach(c => playfield[c.y][c.x] = Cell.Empty)
     activePiece.location.x += netDx
     activePiece.coordinates = activePiece.coordinates.map(c => {
@@ -25,13 +25,13 @@ let draftShift = (dx: number) => Operation.Draft(({ state }) => {
     activePiece.availableShiftDistance[ShiftDirection.Left] += netDx
     activePiece.availableShiftDistance[ShiftDirection.Right] -= netDx
 
-    let distance = pendingMovement && PendingMovement.isShift(pendingMovement) && pendingMovement.direction == state.shiftDirection
+    const distance = pendingMovement && PendingMovement.isShift(pendingMovement) && pendingMovement.direction == state.shiftDirection
         ? pendingMovement.dx + dx
         : dx
     state.pendingMovement = PendingMovement.Shift({ direction: state.shiftDirection, dx: distance })
 })
 
-let rootOperation = (dx: number) => Operation.Resolve(({ state }, { operations }) => {
+const rootOperation = (dx: number) => Operation.Resolve(({ state }, { operations }) => {
     if (dx <= 0 || state.activePiece.availableShiftDistance[state.shiftDirection] < dx) {
         return Operation.None
     }
@@ -44,11 +44,11 @@ let rootOperation = (dx: number) => Operation.Resolve(({ state }, { operations }
     )
 })
 
-export let nonNegativePrecondition = (dx: number) => {
+export const nonNegativePrecondition = (dx: number) => {
     return {
         isValid: () => dx >= 0,
         rationale: `Dx (${dx}) is the magnitude/shift distance and therefore must be non-negative. Direction is handled by the shift operation itself.`
-    }
+    } as CorePrecondition
 }
 
 export default (dx: number) => Operation.Export({

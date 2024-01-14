@@ -16,37 +16,37 @@ import SideEffectRequest from "../../definitions/SideEffectRequest"
 import { findAvailableDropDistance, findAvailableShiftDistance } from "../../utils/coreOpStateUtils"
 import { gridToList } from "../../../util/sharedUtils"
 
-let resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
-    let { activePiece, settings, activeInputs } = state
-    let softDropActive = activeInputs.some(input => input.classifier == Input.ActiveGame.Classifier.SD)
+const resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
+    const { activePiece, settings, activeInputs } = state
+    const softDropActive = activeInputs.some(input => input.classifier == Input.ActiveGame.Classifier.SD)
     if (!softDropActive) {
         return Operation.None
     }
-    let draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
+    const draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffect.TimerOperation({
             timerName: TimerName.Drop,
             operation: TimerOperation.Start
         }))
     })
-    let shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
+    const shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
     return shouldInstantDrop ? operations.drop(DropType.Soft, activePiece.availableDropDistance) : draftTimerChange
 })
 
-let resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => {
+const resolveShiftContinuation = Operation.Resolve(({ state }, { operations }) => {
     if (state.dasCharged[state.shiftDirection]) {
         return operations.startAutoShift
     }
-    let activeShiftInput = state.activeInputs.some(input => {
+    const activeShiftInput = state.activeInputs.some(input => {
         return input.classifier == Input.ActiveGame.Classifier.Shift && input.direction == state.shiftDirection
     })
     return activeShiftInput ? operations.startDAS : Operation.None
 })
 
-let rootOperation = (pieceId: PieceIdentifier) => {
+const rootOperation = (pieceId: PieceIdentifier) => {
     return Operation.Resolve(({ state }, { operations, schema }) => {
-        let playfield = state.playfield
-        let { grid, orientation, location } = schema.rotationSystem.getSpawnInfo({ pieceId, state })
-        let coordinates = gridToList(grid, location.x, location.y, 1)
+        const playfield = state.playfield
+        const { grid, orientation, location } = schema.rotationSystem.getSpawnInfo({ pieceId, state })
+        const coordinates = gridToList(grid, location.x, location.y, 1)
 
         // Detect game over
         if (coordinates.some(c => Cell.isLocked(playfield[c.y][c.x]))) {
@@ -55,13 +55,13 @@ let rootOperation = (pieceId: PieceIdentifier) => {
                 sideEffectRequests.push(...SideEffectRequest.OnAllTimers(TimerOperation.Cancel))
             })
         }
-        let distanceCalculationInfo = { coordinates, playfield, playfieldSpec: schema.playfield }
-        let availableDropDistance = findAvailableDropDistance(distanceCalculationInfo)
-        let availableShiftDistance = {
+        const distanceCalculationInfo = { coordinates, playfield, playfieldSpec: schema.playfield }
+        const availableDropDistance = findAvailableDropDistance(distanceCalculationInfo)
+        const availableShiftDistance = {
             [ShiftDirection.Left]: findAvailableShiftDistance(ShiftDirection.Left, distanceCalculationInfo),
             [ShiftDirection.Right]: findAvailableShiftDistance(ShiftDirection.Right, distanceCalculationInfo)
         }
-        let newActivePiece: ActivePiece = {
+        const newActivePiece: ActivePiece = {
             id: pieceId,
             location,
             coordinates,
@@ -71,7 +71,7 @@ let rootOperation = (pieceId: PieceIdentifier) => {
             availableDropDistance,
             availableShiftDistance
         }
-        let draftNewActivePiece = Operation.Draft(({ state, events }) => {
+        const draftNewActivePiece = Operation.Draft(({ state, events }) => {
             state.lockdownStatus = LockdownStatus.NoLockdown
             state.activePiece = newActivePiece
             state.activePiece.coordinates.forEach(c => state.playfield[c.y][c.x] = Cell.Active(newActivePiece.id))

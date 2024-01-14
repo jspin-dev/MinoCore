@@ -5,11 +5,11 @@ import Cell from "../../../../definitions/Cell"
 import SideEffectRequest from "../../../definitions/SideEffectRequest"
 import { createEmptyGrid } from "../../../../util/sharedUtils"
 
-let rootOperation = Operation.Resolve((_, { defaultSettings, schema }) => {
-    let draftRnsRequest = Operation.Draft(({ sideEffectRequests }) => {
+const rootOperation = Operation.Resolve((_, { defaultSettings, schema }) => {
+    const draftRnsRequest = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.Rng({ quantity: schema.pieceGenerator.rnsRequirement }))
     })
-    let draftStateInitialization = Operation.Draft(({ state }) => {
+    const draftStateInitialization = Operation.Draft(({ state }) => {
         state.playfield = createEmptyGrid(schema.playfield.rows, schema.playfield.columns, Cell.Empty)
         state.settings = defaultSettings as WritableDraft<Settings>
     })

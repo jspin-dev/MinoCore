@@ -1,14 +1,15 @@
 import GameSchema from "../../schema/definitions/GameSchema"
-import PieceGenerators from "../universal/pieceGenerators"
+import PieceGenerators from "../../schema/featureProviders/pieceGenerators"
 import LockdownPresets from "../universal/lockdownPresets"
 import TetroPiece from "./TetroPiece"
 import PlayfieldReducers from "../../schema/featureProviders/playfieldReducers"
 import nrs from "./rotationSystems/nintendoRS"
 import segaRS from "./rotationSystems/segaRS"
 import superRS from "./rotationSystems/superRS"
+import GhostProviders from "../../schema/featureProviders/ghostProviders"
 
-let defaultPlayfieldSpec = { columns: 10, rows: 40, ceiling: 20 }
-let pieces = TetroPiece.identifiers.sort()
+export const defaultPlayfieldSpec = { columns: 10, rows: 40, ceiling: 20 }
+export const pieces = TetroPiece.identifiers.sort()
 
 interface SchemaPresets {
     guideline: GameSchema,
@@ -16,28 +17,29 @@ interface SchemaPresets {
     sega: GameSchema
 }
 
-let schemas: SchemaPresets = {
+export default {
     guideline: {
         playfield: defaultPlayfieldSpec,
         pieceGenerator: PieceGenerators.randomBag(5, pieces),
         playfieldReducer: PlayfieldReducers.standardCollapse,
         lockdownSystem: LockdownPresets.extendedPlacement,
-        rotationSystem: superRS
+        rotationSystem: superRS,
+        ghostProvider: GhostProviders.classic
     },
     nintendo: {
         playfield: defaultPlayfieldSpec,
-        pieceGenerator: PieceGenerators.random(5, pieces),
+        pieceGenerator: PieceGenerators.pureRandom(5, pieces),
         playfieldReducer: PlayfieldReducers.standardCollapse,
         lockdownSystem: LockdownPresets.classic,
-        rotationSystem: nrs
+        rotationSystem: nrs,
+        ghostProvider: GhostProviders.classic
     },
     sega: {
         playfield: defaultPlayfieldSpec,
-        pieceGenerator: PieceGenerators.random(5, pieces),
+        pieceGenerator: PieceGenerators.pureRandom(5, pieces),
         playfieldReducer: PlayfieldReducers.standardCollapse,
         lockdownSystem: LockdownPresets.classic,
-        rotationSystem: segaRS
+        rotationSystem: segaRS,
+        ghostProvider: GhostProviders.classic
     }
-}
-
-export default schemas
+} satisfies SchemaPresets

@@ -34,17 +34,17 @@ namespace Playfield {
     // Convenience
     export namespace Diff {
 
-        export let Grid = (grid: Playfield): Types.Grid => {
-            return { classifier: Classifier.Grid, grid }
+        export const Grid = (grid: Playfield) => {
+            return { classifier: Classifier.Grid, grid } satisfies Types.Grid
         }
 
-        export let Coordinates = (coordinates: { cell: Cell, x: number, y: number }[]): Types.Coordinates => {
-            return { classifier: Classifier.Coordinates, coordinates }
+        export const Coordinates = (coordinates: { cell: Cell, x: number, y: number }[]) => {
+            return { classifier: Classifier.Coordinates, coordinates } satisfies Types.Coordinates
         }
 
     }
 
-    export let diff = (before: Playfield, after: Playfield): Diff => {
+    export const diff = (before: Playfield, after: Playfield) => {
         if (!after) {
             return null
         }
@@ -52,13 +52,14 @@ namespace Playfield {
             return Diff.Grid(after)
         }
         let coordinateList = before.flatMap((row, y) => {
-            let initial: { cell: Cell, x: number, y: number }[] = []
+            const initial: { cell: Cell, x: number, y: number }[] = []
             return row.reduce((accum, cell, x) => {
                 let same = Cell.equal(after[y][x], cell)
                 return same ? accum : [...accum, { cell,  x, y }]
             }, initial)
         })
-        return coordinateList.length > 0 ? Diff.Coordinates(coordinateList) : null
+        const returnValue = coordinateList.length > 0 ? Diff.Coordinates(coordinateList) : null
+        return returnValue satisfies Diff
     }
 
 }

@@ -3,7 +3,7 @@ import CorePreconditions from "../../../utils/CorePreconditions"
 import TimerName from "../../../definitions/TimerName";
 import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
-let rootOperation = Operation.Draft(({ state, sideEffectRequests }) => {
+const rootOperation = Operation.Draft(({ state, sideEffectRequests }) => {
     sideEffectRequests.push(SideEffectRequest.TimerInterval({
         timerName: TimerName.Drop,
         delay: state.settings.dropInterval
@@ -13,5 +13,5 @@ let rootOperation = Operation.Draft(({ state, sideEffectRequests }) => {
 export default Operation.Export({
     operationName: "cancelSoftDrop",
     preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ],
-    rootOperation: rootOperation
+    rootOperation
 })

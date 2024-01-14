@@ -27,7 +27,6 @@ interface CoreOperations<S extends CoreState, D extends Dependencies, R extends 
     shift: CoreOperations.Shift<R, D>
     spawn: CoreOperations.Spawn<R, D>
     updateLockStatus: CoreOperations.UpdateLockStatus<R, D>
-    clearLines: CoreOperations.ClearLines<R, D>,
     startShiftInput: CoreOperations.StartShiftInput<R, D>,
     endShiftInput: CoreOperations.EndShiftInput<R, D>
 }    
@@ -40,7 +39,6 @@ namespace CoreOperations {
     export type Shift<R, D> = (dx: number) => Operation<R, D>
     export type Spawn<R, D> = (pieceId: PieceIdentity) => Operation<R, D>
     export type UpdateLockStatus<R, D> = (movementType: MovementType) => Operation<R, D>
-    export type ClearLines<R, D> = (lines: number[]) => Operation<R, D>
     export type StartShiftInput<R, D> = (direction: ShiftDirection) => Operation<R, D>
     export type EndShiftInput<R, D> = (direction: ShiftDirection) => Operation<R, D>
 

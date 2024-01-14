@@ -20,11 +20,10 @@ import rotate from "./operations/member/movement/rotate"
 import drop from "./operations/member/movement/drop"
 import shift from "./operations/member/movement/shift"
 import updateLockStatus from "./operations/member/updateLockStatus"
-import clearLines from "./operations/member/clearLines"
 import startShiftInput from "./operations/member/movement/startShiftInput"
 import endShiftInput from "./operations/member/movement/endShiftInput"
 
-let operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>> = {
+export default {
     startDAS,
     startAutoShift,
     hold,
@@ -43,9 +42,6 @@ let operations: CoreOperations<CoreState, CoreDependencies, OperationResult<Core
     drop,
     shift,
     updateLockStatus,
-    clearLines,
     startShiftInput,
     endShiftInput
-}
-
-export default operations
+} satisfies CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>

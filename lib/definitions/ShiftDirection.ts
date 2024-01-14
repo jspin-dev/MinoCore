@@ -6,9 +6,7 @@ enum ShiftDirection {
 // Convenience
 namespace ShiftDirection {
 
-    export let opposite = (direction: ShiftDirection): ShiftDirection => {
-        return -direction as ShiftDirection
-    }
+    export const opposite = (direction: ShiftDirection): ShiftDirection => -direction
 
 }
 export default ShiftDirection

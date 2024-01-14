@@ -10,42 +10,42 @@ import { gridToList } from "../../util/sharedUtils"
 
 namespace RotationMethods {
 
-    export let basic = (
-        validator: RotationSystem.Validator = RotationSystem.Validator.simpleCollision
-    ): RotationSystem.RotationBehavior => {
-        return ({ rotation, state}): Outcome<RotationSystem.RotateResult> => {
-            let baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
-            let shouldRotate = validator.isValid(state, baseInfo.unadjustedCoordinates, [0, 0])
-            let result: RotationSystem.RotateResult = { offset: [0, 0], ...baseInfo }
-            return shouldRotate ? Outcome.Success(result) : Outcome.Failure()
-        }
+    export const basic = (validator: RotationSystem.Validator = RotationSystem.Validator.simpleCollision) => {
+        return (({ rotation, state}) => {
+            const baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
+            const shouldRotate = validator.isValid(state, baseInfo.unadjustedCoordinates, [0, 0])
+            const result = { offset: [0, 0], ...baseInfo } satisfies RotationSystem.RotateResult
+            const returnValue = shouldRotate ? Outcome.Success(result) : Outcome.Failure()
+            return returnValue satisfies Outcome<RotationSystem.RotateResult>
+        }) satisfies RotationSystem.RotationBehavior
     }
 
-    export let kickTable = (tables: KickTable.FullInfo): RotationSystem.RotationBehavior => {
-        return ({ rotation, state }): Outcome<RotationSystem.RotateResult> => {
-            let baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
-            let activePiece = state.activePiece
-            let fullInfo = tables[activePiece.id]
-            let offsetList = fullInfo.table[activePiece.orientation][baseInfo.newOrientation]
-            let validator = fullInfo.validator ?? RotationSystem.Validator.simpleCollision
-            let matchingOffset = offsetList.find(offset => {
+    export const kickTable = (tables: KickTable.FullInfo) => {
+        return (({ rotation, state }) => {
+            const baseInfo = getBaseRotationInfo(rotation, state as CoreState & GeneratedGrids)
+            const activePiece = state.activePiece
+            const fullInfo = tables[activePiece.id]
+            const offsetList = fullInfo.table[activePiece.orientation][baseInfo.newOrientation]
+            const validator = fullInfo.validator ?? RotationSystem.Validator.simpleCollision
+            const matchingOffset = offsetList.find(offset => {
                 return validator.isValid(state, baseInfo.unadjustedCoordinates, offset)
             })
-            let result: RotationSystem.RotateResult = { offset: matchingOffset, ...baseInfo }
-            return matchingOffset != null ? Outcome.Success(result) : Outcome.Failure()
-        }
+            const result = { offset: matchingOffset, ...baseInfo }
+            const returnValue = matchingOffset != null ? Outcome.Success(result) : Outcome.Failure()
+            return returnValue satisfies Outcome<RotationSystem.RotateResult>
+        }) satisfies RotationSystem.RotationBehavior
     }
 
-    let getBaseRotationInfo = (
+    const getBaseRotationInfo = (
         rotation: Rotation,
         state: CoreState & GeneratedGrids
-    ): { newOrientation: Orientation, unadjustedCoordinates: Coordinate[] } => {
-        let { activePiece, generatedGrids } = state
-        let orientationCount = Object.keys(Orientation).length / 2
-        let newOrientation: Orientation = (rotation + activePiece.orientation + orientationCount) % orientationCount
-        let newMatrix = generatedGrids[activePiece.id][newOrientation].map(it => [...it])
-        let unadjustedCoordinates = gridToList(newMatrix, activePiece.location.x, activePiece.location.y, 1)
-        return { newOrientation, unadjustedCoordinates }
+    ) => {
+        const { activePiece, generatedGrids } = state
+        const orientationCount = Object.keys(Orientation).length / 2
+        const newOrientation: Orientation = (rotation + activePiece.orientation + orientationCount) % orientationCount
+        const newMatrix = generatedGrids[activePiece.id][newOrientation].map(it => [...it])
+        const unadjustedCoordinates = gridToList(newMatrix, activePiece.location.x, activePiece.location.y, 1)
+        return { newOrientation, unadjustedCoordinates } satisfies { newOrientation: Orientation, unadjustedCoordinates: Coordinate[] }
     }
 
 }

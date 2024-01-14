@@ -1,5 +1,4 @@
 interface Settings {
-    ghostEnabled: boolean
     softDropInterval: number
     dropInterval: number
     das: Settings.DasMechanics
@@ -28,7 +27,6 @@ namespace Settings {
     }
 
     export interface Diff {
-        ghostEnabled?: boolean
         softDropInterval?: number
         dropInterval?: number
         das?: Settings.DasMechanics.Diff

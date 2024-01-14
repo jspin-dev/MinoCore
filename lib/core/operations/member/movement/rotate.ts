@@ -3,18 +3,17 @@ import Operation from "../../../definitions/CoreOperation"
 import GameEvent from "../../../../definitions/GameEvent"
 import Rotation from "../../../../definitions/Rotation"
 import Cell from "../../../../definitions/Cell"
-import CoreDependencies from "../../../definitions/CoreDependencies"
 import RotationSystem from "../../../../schema/rotation/definitions/RotationSystem"
 import Outcome from "../../../../definitions/Outcome"
 import ShiftDirection from "../../../../definitions/ShiftDirection"
 import CorePreconditions from "../../../utils/CorePreconditions"
 import { findAvailableDropDistance, findAvailableShiftDistance } from "../../../utils/coreOpStateUtils"
 
-let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, dependencies: CoreDependencies) => {
-    let { operations, schema } = dependencies
-    let previousPlayfield = [...state.playfield.map(row => [...row])]
+const resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, dependencies) => {
+    const { operations, schema } = dependencies
+    const previousPlayfield = [...state.playfield.map(row => [...row])]
 
-    let rotationResult = schema.rotationSystem.rotate({ rotation, state })
+    const rotationResult = schema.rotationSystem.rotate({ rotation, state })
 
     switch (rotationResult.classifier) {
         case Outcome.Classifier.Failure:
@@ -37,12 +36,12 @@ let resolveRotation = (rotation: Rotation) => Operation.Resolve(({ state }, depe
     }
 })
 
-let resolveDistanceCalculations = Operation.Resolve(({ state }, { schema }) => {
-    let { activePiece, playfield } = state
-    let distanceCalculationInfo = { coordinates: activePiece.coordinates, playfield, playfieldSpec: schema.playfield }
-    let maxDropDistance = findAvailableDropDistance(distanceCalculationInfo)
-    let maxLeftShiftDistance = findAvailableShiftDistance(ShiftDirection.Left, distanceCalculationInfo)
-    let maxRightShiftDistance = findAvailableShiftDistance(ShiftDirection.Right,distanceCalculationInfo)
+const resolveDistanceCalculations = Operation.Resolve(({ state }, { schema }) => {
+    const { activePiece, playfield } = state
+    const distanceCalculationInfo = { coordinates: activePiece.coordinates, playfield, playfieldSpec: schema.playfield }
+    const maxDropDistance = findAvailableDropDistance(distanceCalculationInfo)
+    const maxLeftShiftDistance = findAvailableShiftDistance(ShiftDirection.Left, distanceCalculationInfo)
+    const maxRightShiftDistance = findAvailableShiftDistance(ShiftDirection.Right,distanceCalculationInfo)
     return Operation.Draft(({ state }) => { 
         state.activePiece.availableDropDistance = maxDropDistance
         state.activePiece.availableShiftDistance[ShiftDirection.Left] = maxLeftShiftDistance
@@ -50,10 +49,10 @@ let resolveDistanceCalculations = Operation.Resolve(({ state }, { schema }) => {
     })
 })
 
-let draftRotationResult = (result: RotationSystem.RotateResult) => {
+const draftRotationResult = (result: RotationSystem.RotateResult) => {
     return Operation.Draft(({ state }) => {
-        let { newOrientation, offset, unadjustedCoordinates } = result
-        let { coordinates, location, id } = state.activePiece
+        const { newOrientation, offset, unadjustedCoordinates } = result
+        const { coordinates, location, id } = state.activePiece
     
         if (newOrientation != undefined) {
             state.activePiece.orientation = newOrientation
@@ -71,7 +70,7 @@ let draftRotationResult = (result: RotationSystem.RotateResult) => {
     })
 }
 
-let rootOperation = (rotation: Rotation) => Operation.Resolve((_, { operations }) => {
+const rootOperation = (rotation: Rotation) => Operation.Resolve((_, { operations }) => {
     return Operation.Sequence(
         resolveRotation(rotation),
         operations.continueInstantDrop,

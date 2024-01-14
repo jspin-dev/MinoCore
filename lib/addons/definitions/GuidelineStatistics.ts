@@ -14,7 +14,7 @@ interface GuidelineStatistics extends CoreStatistics {
 
 namespace GuidelineStatistics {
 
-    export let initial: GuidelineStatistics = {
+    export const initial: GuidelineStatistics = {
         ...CoreStatistics.initial,
         level: 1,
         finesse: 0,

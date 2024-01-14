@@ -30,7 +30,7 @@ interface CoreState {
 
 namespace CoreState {
 
-    export let initial: CoreState = {
+    export const initial: CoreState = {
         previewQueue: [],
         activePiece: ActivePiece.initial,
         playfield: null,
@@ -70,7 +70,7 @@ namespace CoreState {
         randomNumbers?: number[]
     }
 
-    export let diff = (before: CoreState, after: CoreState): Diff => {
+    export const diff = (before: CoreState, after: CoreState) => {
         if (!after) {
             return null
         }
@@ -91,7 +91,7 @@ namespace CoreState {
                 randomNumbers: after.randomNumbers
             }
         }
-        let diff: Diff = {}
+        const diff: Diff = {}
         if (!arraysEqual(before.previewQueue, after.previewQueue)) {
             diff.previewQueue = after.previewQueue
         }
@@ -131,7 +131,9 @@ namespace CoreState {
         if (!arraysEqual(before.randomNumbers, after.randomNumbers)) {
             diff.randomNumbers = after.randomNumbers
         }
-        return Object.keys(diff).length > 0 ? diff : null
+
+        let returnValue = Object.keys(diff).length > 0 ? diff : null
+        return returnValue satisfies Diff
     }
 
 }

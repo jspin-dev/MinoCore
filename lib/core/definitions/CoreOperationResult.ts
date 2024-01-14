@@ -1,5 +1,5 @@
 import type GameEvent from "../../definitions/GameEvent"
-import SideEffectRequest from "./SideEffectRequest"
+import type SideEffectRequest from "./SideEffectRequest"
 
 export default interface CoreOperationResult<S> {
     state: S

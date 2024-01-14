@@ -10,18 +10,18 @@ export interface DistanceCalculationInfo {
     playfieldSpec: PlayfieldSpec
 }
 
-export let findAvailableDropDistance = (info: DistanceCalculationInfo): number => {
-    let { coordinates, playfield, playfieldSpec } = info
-    if (coordinates.length == 0) { return 0 } 
-    let dropPositions = Array.from({length: playfieldSpec.rows}, (_, i) => i + 1)
-    let collisionY = dropPositions.find(n => willCollide(playfield, coordinates, 0, n))
-    return Math.abs(collisionY - 1)
+export const findAvailableDropDistance = (info: DistanceCalculationInfo) => {
+    const { coordinates, playfield, playfieldSpec } = info
+    if (coordinates.length == 0) { return 0 }
+    const dropPositions = Array.from({length: playfieldSpec.rows}, (_, i) => i + 1)
+    const collisionY = dropPositions.find(n => willCollide(playfield, coordinates, 0, n))
+    return Math.abs(collisionY - 1) satisfies number
 }
 
-export let findAvailableShiftDistance = (direction: ShiftDirection, info: DistanceCalculationInfo): number => {
-    let { coordinates, playfield, playfieldSpec } = info
-    if (coordinates.length == 0) { return 0 } 
-    let shiftPositions = Array.from({ length: playfieldSpec.columns }, (_, i) => i + 1)
-    let collisionX = shiftPositions.find(n => willCollide(playfield, coordinates, n * direction, 0))
-    return Math.abs(direction * (collisionX - 1))
+export const findAvailableShiftDistance = (direction: ShiftDirection, info: DistanceCalculationInfo) => {
+    const { coordinates, playfield, playfieldSpec } = info
+    if (coordinates.length == 0) { return 0 }
+    const shiftPositions = Array.from({ length: playfieldSpec.columns }, (_, i) => i + 1)
+    const collisionX = shiftPositions.find(n => willCollide(playfield, coordinates, n * direction, 0))
+    return Math.abs(direction * (collisionX - 1)) satisfies number
 }

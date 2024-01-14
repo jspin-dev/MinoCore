@@ -109,96 +109,97 @@ namespace GameEvent {
 
 }
 
+// Convenience
 namespace GameEvent {
 
-    export let InputStart = (input: Input.ActiveGame): Types.InputStart => {
-        return { classifier: Classifier.InputStart, input }
+    export const InputStart = (input: Input.ActiveGame) => {
+        return { classifier: Classifier.InputStart, input } satisfies Types.InputStart
     }   
 
-    export let InputEnd = (input: Input.ActiveGame): Types.InputEnd => {
-        return { classifier: Classifier.InputEnd, input }
+    export const InputEnd = (input: Input.ActiveGame) => {
+        return { classifier: Classifier.InputEnd, input } satisfies Types.InputEnd
     }   
 
-    export let ClockTick = (): Types.ClockTick => {
-        return { classifier: Classifier.ClockTick }
+    export const ClockTick = () => {
+        return { classifier: Classifier.ClockTick } satisfies Types.ClockTick
     }   
 
-    export let Dequeue = (params: { dequeuedPiece: PieceIdentifier, preview: PieceIdentifier[] }): Types.Dequeue => {
+    export const Dequeue = (params: { dequeuedPiece: PieceIdentifier, preview: PieceIdentifier[] }) => {
         return {
             classifier: Classifier.Dequeue,
             dequeuedPiece: params.dequeuedPiece,
             preview: params.preview
-        }
+        } satisfies Types.Dequeue
     }   
     
-    export let Enqueue = (params: { preview: PieceIdentifier[] }): Types.Enqueue => {
-        return { classifier: Classifier.Enqueue, preview: params.preview }
+    export const Enqueue = (params: { preview: PieceIdentifier[] }) => {
+        return { classifier: Classifier.Enqueue, preview: params.preview } satisfies Types.Enqueue
     }   
 
-    export let Lock = (params: { activePiece: ActivePiece }): Types.Lock => {
-        return { classifier: Classifier.Lock, activePiece: params.activePiece }
+    export const Lock = (params: { activePiece: ActivePiece }) => {
+        return { classifier: Classifier.Lock, activePiece: params.activePiece } satisfies Types.Lock
     }
 
-    export let Clear = (
+    export const Clear = (
         params: {
             activePiece: ActivePiece,
             linesCleared: number[],
             playfield: Playfield
         }
-    ): Types.Clear => {
+    ) => {
         return {
             classifier: Classifier.Clear,
             activePiece: params.activePiece,
             linesCleared: params.linesCleared,
             playfield: params.playfield
-        }
+        } satisfies Types.Clear
     }
 
-    export let Shift = (params: { direction: ShiftDirection, dx: number, dasToWall: boolean }): Types.Shift => {
+    export const Shift = (params: { direction: ShiftDirection, dx: number, dasToWall: boolean }) => {
         return {
             classifier: Classifier.Shift,
             direction: params.direction,
             dx: params.dx,
             dasToWall: params.dasToWall
-        }
+        } satisfies Types.Shift
     }
 
-    export let Rotate = (
+    export const Rotate = (
         params: {
             rotation: Rotation,
             previousPlayfield:  Playfield,
             playfield: Playfield,
             activePiece: ActivePiece
         }
-    ): Types.Rotate => {
+    ) => {
         return {
             classifier: Classifier.Rotate,
             rotation: params.rotation,
             previousPlayfield: params.previousPlayfield,
             playfield: params.playfield,
             activePiece: params.activePiece
-        }
+        } satisfies Types.Rotate
     }
 
-    export let Drop = (params: { dy: number, dropType: DropType }): Types.Drop => {
+    export const Drop = (params: { dy: number, dropType: DropType }) => {
         return {
             classifier: Classifier.Drop,
             dy: params.dy,
             dropType: params.dropType
-        }
+        } satisfies Types.Drop
     }
 
-    export let Hold = (params: { previousHoldPiece: PieceIdentifier, holdPiece: PieceIdentifier }): Types.Hold => {
+    export const Hold = (params: { previousHoldPiece: PieceIdentifier, holdPiece: PieceIdentifier }) => {
         return {
             classifier: Classifier.Hold,
             previousHoldPiece: params.previousHoldPiece,
             holdPiece: params.holdPiece
-        }
+        } satisfies Types.Hold
     }   
     
-    export let Spawn = (params: { activePiece: ActivePiece }): Types.Spawn => {
-        return { classifier: Classifier.Spawn, activePiece: params.activePiece }
-    }    
+    export const Spawn = (params: { activePiece: ActivePiece }) => {
+        return { classifier: Classifier.Spawn, activePiece: params.activePiece } satisfies Types.Spawn
+    }
 
 }
 

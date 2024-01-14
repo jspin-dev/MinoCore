@@ -43,8 +43,8 @@ namespace RotationSystem {
     }
 
     export namespace Validator {
-        export let simpleCollision: RotationSystem.Validator = {
-            isValid: ({ playfield }: CoreState, coordinates: Readonly<Coordinate[]>, offset: Offset): boolean => {
+        export const simpleCollision: RotationSystem.Validator = {
+            isValid: ({ playfield }: CoreState, coordinates: Readonly<Coordinate[]>, offset: Offset) => {
                 return !willCollide(playfield, coordinates, offset[0], offset[1])
             }
         }

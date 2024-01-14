@@ -8,21 +8,21 @@ namespace CoreOperation {
 
     export function Draft<S extends CoreState, R extends OperationResult<S>>(
         draft: (draft: Draft<R>) => void
-    ): Operation.Drafter<R> {
-        return Operation.Draft(draft)
+    ) {
+        return Operation.Draft(draft) satisfies Operation.Drafter<R>
     }
 
     export function Resolve<S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
         resolve: (result: R, dependencies: D) => Operation<R, D>,
         optionalParams?: Operation.OptionalParams<R>
-    ): Operation.Resolver<R, D> {
-        return Operation.Resolve(resolve, optionalParams)
+    ) {
+        return Operation.Resolve(resolve, optionalParams) satisfies Operation.Resolver<R, D>
     }
 
     export function Sequence<S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
         ...operations: Operation<R, D>[]
-    ): Operation.Resolver<R, D> {
-        return Operation.Sequence(...operations)
+    ) {
+        return Operation.Sequence(...operations) satisfies Operation.Resolver<R, D>
     }
 
 }
@@ -32,8 +32,17 @@ namespace CoreOperation {
 
     export let Export = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
         params: Operation.Export.Params<R, D>
-    ): Operation<R, D> => {
-        return Operation.Export(params)
+    ) => {
+        return Operation.Export(params) satisfies Operation<R, D>
+    }
+
+    export let execute = <S extends CoreState, D extends CoreDependencies, R extends OperationResult<S>>(
+        operation: Operation<R, D>,
+        state: S,
+        dependencies: D
+    ) => {
+        const result = { state: state, sideEffectRequests: [], events: [] } as R
+        return operation.execute(result, dependencies) satisfies R
     }
 
     export let None = Sequence()
