@@ -20,7 +20,7 @@ The majority of MinoCore logic is handled through higher order pure functions (i
 Operations have an execute function which performs the operation and returns a result object which includes the new state
 ### Core operations
 
-| Category       | Common ops                                                                                                             | Notes                                                              |
+| Category       | Operations                                                                                                             | Notes                                                              |
 |----------------|------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
 | Movement       | startShiftInput, endShiftInput, hardDrop, drop, shift, rotate, startDAS, startSoftDrop, cancelSoftDrop, startAutoShift | -                                                                  |
 | Movement Misc  | continuePendingMovement, continueInstantDrop, continueInstantShift                                                     | Supporting movement ops not commonly used on their own             |
@@ -32,9 +32,8 @@ Operations have an execute function which performs the operation and returns a r
 ### Example operation usage
 
 ```ts
-import Operation from "../../../definitions/CoreOperation"
-import DropType from "../../../../definitions/DropType"
-import CorePreconditions from "../../../utils/CorePreconditions"
+import Operation from "build/definitions/CoreOperation"
+import DropType from "build/definitions/DropType"
 
 // Combines two other operations: drop and lock
 const hardDrop = Operation.Resolve(({ state }, { operations }) => Operation.Sequence(
