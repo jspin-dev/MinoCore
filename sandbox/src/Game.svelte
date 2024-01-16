@@ -2,7 +2,6 @@
     import { onMount } from 'svelte';
     
 	import MinoGame from "./MinoGame"
-	import type Settings from "../../build/core/definitions/Settings"
     import Input from "../../build/definitions/Input"
     import GameStatus from "../../build/core/definitions/GameStatus"
 
@@ -11,42 +10,67 @@
     import Grid from "./Grid.svelte"
     import prepareQueue from "../../build/core/operations/root/lifecycle/prepareQueue"
     import start from "../../build/core/operations/root/lifecycle/start"
+    import operations from "../../build/core/defaultCoreOperations"
+    import schemas from "../../build/presets/tetro/tetroSchemaPresets"
+    import type Settings from "../../build/settings/definitions/Settings"
     import updateSettings from "../../build/core/operations/root/updateSettings"
+    import edit from "../../build/core/operations/root/edit"
+    import TetroPiece from "../../build/presets/tetro/TetroPiece";
+    import Cell from "../../build/definitions/Cell";
 
-	export let uiSettings: UiSettings;
-    export let userPrefs: UserPreferences;
-    export let gameSettings: Settings;
-    export let state: MinoGame.State;
-    export let reportState: (state: MinoGame.State) => void;
+	export let uiSettings: UiSettings
+    export let userPrefs: UserPreferences
+    export let state: MinoGame.State
+    export let reportState: (state: MinoGame.State) => void
 
-	let game = new MinoGame(gameSettings);
-	game.onStateChanged = reportState;
-	state = game.init();
-    reportState(state);
-    game.run(prepareQueue);
-    game.run(start);
+    let buildSettings = (userPrefs: UserPreferences) => {
+        return {
+            dropMechanics: {
+                softInterval: userPrefs.sdf,
+                autoInterval: 1000
+            },
+            dasMechanics: {
+                delay: userPrefs.das,
+                autoShiftInterval: userPrefs.arr,
+                interruptionEnabled: userPrefs.dasInterruptionEnabled,
+                preservationEnabled: userPrefs.dasPreservationEnabled,
+                postDelayShiftEnabled: true
+            },
+            ghostEnabled: true
+        } satisfies Settings
+    }
 
-    let container: HTMLElement;
-    let containerInFocus = true;
+	let game = new MinoGame({ schema: schemas.guideline, operations }, buildSettings(userPrefs))
 
-    onMount(() => container.focus());
+    game.onStateChanged = reportState
+    state = game.init()
+    reportState(state)
+    game.run(prepareQueue)
+    game.run(start)
+
+    let container: HTMLElement
+    let containerInFocus = true
+
+    onMount(() => container.focus())
 
 	let onKeydownEvent = (e: KeyboardEvent) => {
         if (e.repeat) { return }
         let input = userPrefs.keybindings[e.code]
-        game.startInput(input);
+        game.startInput(input)
 	}
 
 	let onKeyupEvent = (e: KeyboardEvent) => {
 		if (e.repeat) { return }
-        game.endInput(userPrefs.keybindings[e.code]);
+        game.endInput(userPrefs.keybindings[e.code])
+
+        game.run(edit({ partial: { previewQueue: [TetroPiece.I] } }))
 	}
 
     let onFocus = () => containerInFocus = true
     let onBlur = () => containerInFocus = false
 
     let getDisplayValueForInput = (input: Input) => {
-        let keycode = Object.entries(userPrefs.keybindings).find(entry => entry[1] == input)[0];
+        let keycode = Object.entries(userPrefs.keybindings).find(entry => entry[1] == input)[0]
         return getKeycodeDisplayValue(keycode)
     }
 
@@ -54,19 +78,7 @@
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length)
 	$: inactiveGame = state.core.status != GameStatus.Active
     $: isPaused = state.core.status === GameStatus.Suspended
-    
-    $: game.run(updateSettings({ softDropInterval: userPrefs.sdf }))
-    $: game.run(updateSettings(
-        {
-            das: {
-                delay: userPrefs.das,
-                autoShiftInterval: userPrefs.arr,
-                interruptionEnabled: userPrefs.dasInterruptionEnabled,
-                preservationEnabled: userPrefs.dasPreservationEnabled
-            }
-        }
-    ))
-    $: game.displayGhost(userPrefs.ghostEnabled)
+    $: game.run(edit({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

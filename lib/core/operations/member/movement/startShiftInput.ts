@@ -2,11 +2,13 @@ import Operation from "../../../definitions/CoreOperation"
 import ShiftDirection from "../../../../definitions/ShiftDirection"
 import CorePreconditions from "../../../utils/CorePreconditions"
 
-const draftChanges = (direction: ShiftDirection) => Operation.Draft(({ state }) => {
-    state.shiftDirection = direction
-    if (!state.settings.das.interruptionEnabled) {
-        state.dasCharged[ShiftDirection.opposite(direction)] = false
-    }
+const draftChanges = (direction: ShiftDirection) => Operation.Resolve(({ state }) => {
+    return Operation.Draft(({ state }) => {
+        state.shiftDirection = direction
+        if (!state.settings.dasMechanics.interruptionEnabled) {
+            state.dasCharged[ShiftDirection.opposite(direction)] = false
+        }
+    })
 })
 
 const rootOperation = (direction: ShiftDirection) => Operation.Resolve((_, { operations }) => {

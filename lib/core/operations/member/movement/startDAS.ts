@@ -11,7 +11,7 @@ const resolveMovement = Operation.Resolve(({ state }, { operations }) => {
             operation: TimerOperation.Start
         }))
     })
-    return state.settings.das.delay === 0 ? operations.startAutoShift : draftTimerChange
+    return state.settings.dasMechanics.delay === 0 ? operations.startAutoShift : draftTimerChange
 })
 
 const draftAutoShiftCancellation = Operation.Draft(({ sideEffectRequests }) => {

@@ -1,11 +1,11 @@
 import Cell from "../../definitions/Cell"
 import GhostProvider from "../definitions/GhostProvider"
 
-namespace GhostProviders {
+export default {
 
-    export const noGhost = { calculateCoordinates: () => [] } satisfies GhostProvider
+    noGhost: { calculateCoordinates: () => [] } satisfies GhostProvider,
 
-    export const classic = {
+    classic: {
         calculateCoordinates({ state }) {
             const { activePiece, playfield } = state
             return activePiece.coordinates
@@ -18,4 +18,3 @@ namespace GhostProviders {
     } satisfies GhostProvider
 
 }
-export default GhostProviders

@@ -53,7 +53,7 @@ const resolveNextPiece = Operation.Resolve(({ state }, { operations, schema }) =
             timerName: TimerName.DAS,
             operation: TimerOperation.Cancel
         }))
-        if (!state.settings.das.preservationEnabled) {
+        if (!state.settings.dasMechanics.preservationEnabled) {
             state.dasCharged = {
                 [ShiftDirection.Right]: false,
                 [ShiftDirection.Left]: false

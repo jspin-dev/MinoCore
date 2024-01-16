@@ -18,26 +18,9 @@ interface ActivePiece {
 
 namespace ActivePiece {
 
-    export const initial: ActivePiece = {
-        id: null,
-        location: null,
-        coordinates: [],
-        ghostCoordinates: [],
-        orientation: null,
-        maxDepth: 0,
-        availableDropDistance: null,
-        availableShiftDistance: null
-    }
-
     export interface Diff {
-        id?: PieceIdentifier,
-        location?: Coordinate
-        coordinates?: Coordinate[]
-        ghostCoordinates?: Coordinate[]
-        orientation?: Orientation,
-        maxDepth?: number,
-        availableDropDistance?: number
-        availableShiftDistance?: ShiftPair.Diff<number>
+        partial?: Partial<ActivePiece>,
+        availableShiftDistance?: Partial<ShiftPair<number>>
     }
 
 }
@@ -50,29 +33,31 @@ namespace ActivePiece {
     }
 
     export const diff = (before: ActivePiece, after: ActivePiece) => {
-        let diff: Diff = {}
+        let partial: Partial<ActivePiece> = {}
         if (before.id != after.id) {
-            diff.id = after.id
+            partial.id = after.id
         }
         if (!Coordinate.equal(before.location, after.location)) {
-            diff.location = after.location
+            partial.location = after.location
         }
         if (before.coordinates.length != after.coordinates.length
             && before.coordinates.every((c, i) => Coordinate.equal(c, after.coordinates[i]))) {
-            diff.coordinates = after.coordinates
+            partial.coordinates = after.coordinates
         }
         if (!arraysEqual(before.ghostCoordinates, after.ghostCoordinates, Coordinate.equal)) {
-            diff.ghostCoordinates = after.ghostCoordinates
+            partial.ghostCoordinates = after.ghostCoordinates
         }
         if (before.orientation != after.orientation) {
-            diff.orientation = after.orientation
+            partial.orientation = after.orientation
         }
         if (before.maxDepth != after.maxDepth) {
-            diff.maxDepth = after.maxDepth
+            partial.maxDepth = after.maxDepth
         }
         if (before.availableDropDistance != after.availableDropDistance) {
-            diff.availableDropDistance = after.availableDropDistance
+            partial.availableDropDistance = after.availableDropDistance
         }
+
+        let diff: Diff = { partial }
         let availableShiftDistanceDiff = ShiftPair.diff(before.availableShiftDistance, after.availableShiftDistance)
         if (availableShiftDistanceDiff) {
             diff.availableShiftDistance = availableShiftDistanceDiff

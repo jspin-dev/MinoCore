@@ -1,9 +1,11 @@
 import type RotationSystem from "../rotation/definitions/RotationSystem"
 import type PieceGenerator from "./PieceGenerator"
-import LockdownSystem from "./LockdownSystem"
-import PlayfieldSpec from "./PlayfieldSpec"
-import PlayfieldReducer from "./PlayfieldReducer"
-import GhostProvider from "./GhostProvider"
+import type LockdownSystem from "./LockdownSystem"
+import type PlayfieldSpec from "./PlayfieldSpec"
+import type PlayfieldReducer from "./PlayfieldReducer"
+import type GhostProvider from "./GhostProvider"
+import type DasMechanics from "../../settings/definitions/DasMechanics"
+import DropMechanics from "../../settings/definitions/DropMechanics"
 
 export default interface GameSchema {
     playfield: PlayfieldSpec

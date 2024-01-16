@@ -5,15 +5,16 @@ import TimerName from "../../../definitions/TimerName"
 import SideEffectRequest from "../../../definitions/SideEffectRequest"
 
 const resolveMovement = Operation.Resolve (({ state }, { operations }) => {
-    const { activePiece, shiftDirection, settings } = state
+    const { activePiece, shiftDirection } = state
     const draftTimerChange = Operation.Draft(({ sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerOperation({
             timerName: TimerName.AutoShift,
             operation: TimerOperation.Start
         }))
     })
-    const applyDasPostIntervalShift = operations.shift(1).applyIf(settings.das.postDelayShiftEnabled)
-    return settings.das.autoShiftInterval == 0
+    const dasMechanics = state.settings.dasMechanics
+    const applyDasPostIntervalShift = operations.shift(1).applyIf(dasMechanics.postDelayShiftEnabled)
+    return dasMechanics.autoShiftInterval == 0
         ? operations.shift(activePiece.availableShiftDistance[shiftDirection])
         : Operation.Sequence(applyDasPostIntervalShift, draftTimerChange)
 })

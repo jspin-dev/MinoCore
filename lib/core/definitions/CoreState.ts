@@ -1,16 +1,15 @@
 import PendingMovement from "./PendingMovement"
 import Input from "../../definitions/Input"
-import type Settings from "./Settings"
 import ActivePiece from "../../definitions/ActivePiece"
 import GameStatus from "./GameStatus"
 import ShiftDirection from "../../definitions/ShiftDirection"
 import type PieceIdentifier from "../../definitions/PieceIdentifier"
 import Playfield from "../../definitions/Playfield"
 import LockdownStatus from "./LockdownStatus"
-import Coordinate from "../../definitions/Coordinate"
-import Cell from "../../definitions/Cell"
+import Settings from "../../settings/definitions/Settings"
 import ShiftPair from "../../definitions/ShiftPair"
 import { arraysEqual } from "../../util/sharedUtils"
+
 
 interface CoreState {
     previewQueue: PieceIdentifier[],
@@ -30,23 +29,25 @@ interface CoreState {
 
 namespace CoreState {
 
-    export const initial: CoreState = {
-        previewQueue: [],
-        activePiece: ActivePiece.initial,
-        playfield: null,
-        lockdownStatus: LockdownStatus.NoLockdown,
-        holdEnabled: true,
-        holdPiece: null,
-        settings: null,
-        status: GameStatus.Ready,
-        activeInputs: [],
-        pendingMovement: null,
-        dasCharged: {
-          [ShiftDirection.Left]: false,
-          [ShiftDirection.Right]: false
-        },
-        shiftDirection: null,
-        randomNumbers: []
+    export const initial = (settings: Settings): CoreState => {
+        return {
+            previewQueue: [],
+            activePiece: null,
+            playfield: null,
+            lockdownStatus: LockdownStatus.NoLockdown,
+            holdEnabled: true,
+            holdPiece: null,
+            settings,
+            status: GameStatus.Ready,
+            activeInputs: [],
+            pendingMovement: null,
+            dasCharged: {
+                [ShiftDirection.Left]: false,
+                [ShiftDirection.Right]: false
+            },
+            shiftDirection: null,
+            randomNumbers: []
+        }
     }
 
 }
@@ -55,19 +56,10 @@ namespace CoreState {
 namespace CoreState {
 
     export interface Diff {
-        previewQueue?: PieceIdentifier[],
+        partial?: Omit<Partial<CoreState>, "activePiece" | "playfield" | "settings">,
         activePiece?: ActivePiece.Diff,
         playfield?: Playfield.Diff,
-        lockdownStatus?: LockdownStatus,
-        holdEnabled?: boolean,
-        holdPiece?: PieceIdentifier,
-        settings?: Settings.Diff,
-        status?: GameStatus,
-        activeInputs?: Input.ActiveGame[],
-        pendingMovement?: PendingMovement,
-        dasCharged?: ShiftPair<boolean>,
-        shiftDirection?: ShiftDirection,
-        randomNumbers?: number[]
+        settings?: Settings.Diff
     }
 
     export const diff = (before: CoreState, after: CoreState) => {
@@ -75,26 +67,42 @@ namespace CoreState {
             return null
         }
         if (!before) {
-            return {
-                previewQueue: after.previewQueue,
-                activePiece: after.activePiece,
-                playfield: Playfield.Diff.Grid(after.playfield),
-                lockdownStatus: after.lockdownStatus,
-                holdEnabled: after.holdEnabled,
-                holdPiece: after.holdPiece,
-                //settings?: Settings.Update,
-                status: after.status,
-                activeInputs: after.activeInputs,
-                pendingMovement: after.pendingMovement,
-                dasCharged: after.dasCharged,
-                shiftDirection: after.shiftDirection,
-                randomNumbers: after.randomNumbers
-            }
+            return { partial: after } satisfies Diff
         }
-        const diff: Diff = {}
+        const partial: Partial<CoreState> = {}
         if (!arraysEqual(before.previewQueue, after.previewQueue)) {
-            diff.previewQueue = after.previewQueue
+            partial.previewQueue = after.previewQueue
         }
+        if (!LockdownStatus.equal(before.lockdownStatus, after.lockdownStatus)) {
+            partial.lockdownStatus = after.lockdownStatus
+        }
+        if (before.holdEnabled != after.holdEnabled) {
+            partial.holdEnabled = after.holdEnabled
+        }
+        if (before.holdPiece != after.holdPiece) {
+            partial.holdPiece = after.holdPiece
+        }
+        if (before.status != after.status) {
+            partial.status = after.status
+        }
+        if (!arraysEqual(before.activeInputs, after.activeInputs, Input.ActiveGame.equal)) {
+            partial.activeInputs = after.activeInputs
+        }
+        if (!PendingMovement.equal(before.pendingMovement, after.pendingMovement)) {
+            partial.pendingMovement = after.pendingMovement
+        }
+        if (before.dasCharged[ShiftDirection.Left] != after.dasCharged[ShiftDirection.Left]
+            || before.dasCharged[ShiftDirection.Right] != after.dasCharged[ShiftDirection.Right]) {
+            partial.dasCharged = after.dasCharged
+        }
+        if (before.shiftDirection != after.shiftDirection) {
+            partial.shiftDirection = after.shiftDirection
+        }
+        if (!arraysEqual(before.randomNumbers, after.randomNumbers)) {
+            partial.randomNumbers = after.randomNumbers
+        }
+
+        const diff: Diff = { partial }
         let activePieceDiff = ActivePiece.diff(before.activePiece, after.activePiece)
         if (activePieceDiff) {
             diff.activePiece = activePieceDiff
@@ -103,35 +111,6 @@ namespace CoreState {
         if (playfieldDiff) {
             diff.playfield = playfieldDiff
         }
-        if (!LockdownStatus.equal(before.lockdownStatus, after.lockdownStatus)) {
-            diff.lockdownStatus = after.lockdownStatus
-        }
-        if (before.holdEnabled != after.holdEnabled) {
-            diff.holdEnabled = after.holdEnabled
-        }
-        if (before.holdPiece != after.holdPiece) {
-            diff.holdPiece = after.holdPiece
-        }
-        if (before.status != after.status) {
-            diff.status = after.status
-        }
-        if (!arraysEqual(before.activeInputs, after.activeInputs, Input.ActiveGame.equal)) {
-            diff.activeInputs = after.activeInputs
-        }
-        if (!PendingMovement.equal(before.pendingMovement, after.pendingMovement)) {
-            diff.pendingMovement = after.pendingMovement
-        }
-        if (before.dasCharged[ShiftDirection.Left] != after.dasCharged[ShiftDirection.Left]
-            || before.dasCharged[ShiftDirection.Right] != after.dasCharged[ShiftDirection.Right]) {
-            diff.dasCharged = after.dasCharged
-        }
-        if (before.shiftDirection != after.shiftDirection) {
-            diff.shiftDirection = after.shiftDirection
-        }
-        if (!arraysEqual(before.randomNumbers, after.randomNumbers)) {
-            diff.randomNumbers = after.randomNumbers
-        }
-
         let returnValue = Object.keys(diff).length > 0 ? diff : null
         return returnValue satisfies Diff
     }

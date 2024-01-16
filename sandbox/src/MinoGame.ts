@@ -3,7 +3,6 @@ import type BasePausableTimer from "../../build/util/async/BasePausableTimer"
 import PausableInterval from "../../build/util/async/PausableInterval"
 import PausableTimeout from "../../build/util/async/PausableTimeout"
 import type Operation from "../../build/definitions/Operation"
-import type Settings from "../../build/core/definitions/Settings"
 import Statistics from "../../build/addons/definitions/GuidelineStatistics"
 import type CoreDependencies from "../../build/core/definitions/CoreDependencies"
 import CoreState from "../../build/core/definitions/CoreState"
@@ -11,11 +10,10 @@ import type OperationResult from "../../build/core/definitions/CoreOperationResu
 import type PreviewGridState from "../../build/addons/definitions/GridState"
 import TimerName from "../../build/core/definitions/TimerName"
 import CoreOperation from "../../build/core/definitions/CoreOperation"
+import type GameSchema from "../../build/schema/definitions/GameSchema"
 // import syncPreviewGrids from "./addons/gridBuilder/gridBuilderAddon"
 import SideEffectRequest from "../../build/core/definitions/SideEffectRequest"
 import DropType from "../../build/definitions/DropType"
-import GhostProviders from "../../build/schema/featureProviders/ghostProviders"
-import defaultCoreOperations from "../../build/core/defaultCoreOperations"
 import recordTick from "../../build/core/operations/root/lifecycle/recordTick"
 import initialize from "../../build/core/operations/root/lifecycle/initialize"
 import start from "../../build/core/operations/root/lifecycle/start"
@@ -23,7 +21,6 @@ import prepareQueue from "../../build/core/operations/root/lifecycle/prepareQueu
 import togglePause from "../../build/core/operations/root/lifecycle/togglePause"
 import triggerLockdown from "../../build/core/operations/root/triggerLockdown"
 import startAutoShift from "../../build/core/operations/member/movement/startAutoShift"
-import schemas from "../../build/presets/tetro/tetroSchemaPresets"
 import refresh from "../../build/core/operations/root/lifecycle/refresh"
 import updateStatistics from "../../build/addons/addons/guidelineStatistics/guidelineStatsAddon"
 import addRns from "../../build/core/operations/root/addRns"
@@ -31,6 +28,7 @@ import startInput from "../../build/core/operations/root/lifecycle/startInput"
 import endInput from "../../build/core/operations/root/lifecycle/endInput"
 import drop from "../../build/core/operations/member/movement/drop"
 import shift from "../../build/core/operations/member/movement/shift"
+import type Settings from "../../build/settings/definitions/Settings"
 
 type StatisticsOperation = Operation<Statistics, void>
 
@@ -38,35 +36,34 @@ class MinoGame {
 
     timers: Record<TimerName, BasePausableTimer>
     state: MinoGame.State
-    defaultSettings: Settings
     onStateChanged: (state: MinoGame.State) => void
     dependencies: CoreDependencies
 
-    constructor(defaultSettings: Settings) {
-        this.defaultSettings = defaultSettings
-        this.dependencies = {
-            defaultSettings: this.defaultSettings,
-            operations: defaultCoreOperations,
-            schema: schemas.guideline
+    constructor(dependencies: CoreDependencies, settings: Settings) {
+        this.dependencies = dependencies
+        this.state = {
+            core: CoreState.initial(settings),
+            statistics: Statistics.initial,
+            previewGrids: null
         }
     }
 
     init(): MinoGame.State {
+        let { dasMechanics, dropMechanics } = this.state.core.settings
         this.timers = {
             [TimerName.Clock]: new PausableInterval(1000, () => this.run(recordTick)),
             [TimerName.DropLock]: new PausableTimeout(500, () => this.run(triggerLockdown)),
-            [TimerName.DAS]: new PausableTimeout(this.defaultSettings.das.delay, () => this.run(startAutoShift)),
-            [TimerName.Drop]: new PausableInterval(this.defaultSettings.dropInterval, () => this.run(drop(DropType.Soft, 1))),
-            [TimerName.AutoShift]: new PausableInterval(this.defaultSettings.das.autoShiftInterval, () => this.run(shift(1)))
+            [TimerName.DAS]: new PausableTimeout(dasMechanics.delay, () => this.run(startAutoShift)),
+            [TimerName.Drop]: new PausableInterval(dropMechanics.autoInterval, () => this.run(drop(DropType.Soft, 1))), // TODO: Soft vs Auto type
+            [TimerName.AutoShift]: new PausableInterval(dasMechanics.autoShiftInterval, () => this.run(shift(1)))
         }
         return this.run(initialize)
     }
 
     run(rootOperation: Operation<OperationResult<CoreState>, CoreDependencies>): MinoGame.State {
-        const coreState = this.state?.core ?? CoreState.initial
-        const coreResult = CoreOperation.execute(rootOperation, coreState, this.dependencies)
+        const coreResult = CoreOperation.execute(rootOperation, this.state.core, this.dependencies)
         const statsOperation = updateStatistics(coreResult.events) as StatisticsOperation
-        const statistics = statsOperation.execute(this.state?.statistics ?? Statistics.initial)
+        const statistics = statsOperation.execute(this.state.statistics)
         // let previewGridsOperation = syncPreviewGrids(coreResult) as PreviewGridOperation
         // let previewGrids = previewGridsOperation.execute(this.state?.previewGrids ?? PreviewGridState.initial)
 
@@ -74,11 +71,6 @@ class MinoGame {
         // if (diff) {
         //     console.log(JSON.stringify(diff))
         // }
-        if (coreResult.sideEffectRequests.length > 0) {
-            console.log(coreResult.sideEffectRequests)
-        }
-
-        // console.log(JSON.stringify(coreResult.state))
 
         this.state = { core: coreResult.state, statistics, previewGrids: null }
         // if (coreResult.events.length > 0) {
@@ -91,11 +83,6 @@ class MinoGame {
             this.onStateChanged(this.state)
         }
         return this.state
-    }
-
-    displayGhost(show: boolean) {
-        this.dependencies.schema.ghostProvider = show ? GhostProviders.classic : GhostProviders.noGhost
-        this.run(refresh)
     }
 
     executeSideEffect(request: SideEffectRequest) {

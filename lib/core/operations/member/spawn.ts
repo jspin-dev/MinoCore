@@ -17,7 +17,7 @@ import { findAvailableDropDistance, findAvailableShiftDistance } from "../../uti
 import { gridToList } from "../../../util/sharedUtils"
 
 const resolveDropContinuation = Operation.Resolve(({ state }, { operations }) => {
-    const { activePiece, settings, activeInputs } = state
+    const { activePiece, activeInputs } = state
     const softDropActive = activeInputs.some(input => input.classifier == Input.ActiveGame.Classifier.SD)
     if (!softDropActive) {
         return Operation.None
@@ -28,7 +28,7 @@ const resolveDropContinuation = Operation.Resolve(({ state }, { operations }) =>
             operation: TimerOperation.Start
         }))
     })
-    const shouldInstantDrop = settings.softDropInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
+    const shouldInstantDrop = state.settings.dropMechanics.softInterval === 0 && activePiece.availableDropDistance > 0 && softDropActive
     return shouldInstantDrop ? operations.drop(DropType.Soft, activePiece.availableDropDistance) : draftTimerChange
 })
 

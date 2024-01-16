@@ -8,10 +8,10 @@ const resolveDrop = Operation.Resolve(({ state }, { operations }) => {
     const autoDrop = Operation.Draft(({ state, sideEffectRequests }) => {
         sideEffectRequests.push(SideEffectRequest.TimerInterval({
             timerName: TimerName.Drop,
-            delay: state.settings.softDropInterval
+            delay: state.settings.dropMechanics.softInterval
         }))
     })
-    return state.settings.softDropInterval == 0
+    return state.settings.dropMechanics.softInterval == 0
         ? operations.drop(DropType.Soft, state.activePiece.availableDropDistance)
         : autoDrop
 })
