@@ -20,12 +20,14 @@ The majority of MinoCore logic is handled through higher order pure functions (i
 Operations have an execute function which performs the operation and returns a result object which includes the new state
 ### Core operations
 
+Core operations affect primary game functionality, such as the state of the playfield, active piece, and piece queue. There are 30+ core operations.
+
 | Category         | Operations                                                                                                             | Notes                                                    |
 |------------------|------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
 | Movement         | startShiftInput, endShiftInput, hardDrop, drop, shift, rotate, startDAS, startSoftDrop, cancelSoftDrop, startAutoShift | -                                                        |
 | Movement Support | continuePendingMovement, continueInstantDrop, continueInstantShift                                                     | Supporting movement ops not commonly used on their own   |
 | Lifecycle        | start, initialize, prepareQueue, startInput, endInput, togglePause, recordTick                                         | Top level operations (not usually returned by other ops) |
-| Other            | refreshGhost, refillQueue, lock, spawn,  hold, addRns, triggerLockdown, edit                                           | -                                                        |
+| Other            | refreshGhost, refillQueue, lock, spawn,  hold, addRns, triggerLockdown, next, updateLockStatus, edit                   | -                                                        |
 
 
 ### Example operation usage
@@ -46,7 +48,7 @@ this.state = result.state
 
 ## Game Schemas
 
-A `GameSchema` is a collection of predetermined behaviors that impact core game functionality. 
+A `GameSchema` is a collection of predetermined behaviors that impact the core game state. 
 Schema elements commonly change between game variants, but do not typically change from a user's individual settings or during an individual game session. 
 You can use a preset schema (such as guideline, sega, and nintendo for tetromino-based games), or build your own using preset or custom behaviors. 
 
@@ -82,16 +84,16 @@ const schema = {
 `Settings` can change at any time during a game session without compromising the game's integrity, either through the game's ruleset or user settings. 
 Though `Settings` are not part of the `GameSchema`, game variants may still have typical settings associated with them.
 
-| Setting          | Field name                                      | Description                                                                                                                                          |
-|------------------|-------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| DAS              | `{settings}.dasMechanics.delay`                 | Delayed auto shift [[wiki]](https://harddrop.com/wiki/DAS)                                                                                           |
-| ARR              | `{settings}.dasMechanics.autoShiftInterval`     | Auto repeat rate [[wiki]](https://harddrop.com/wiki/DAS)                                                                                             |
-| Post-delay shift | `{settings}.dasMechanics.postDelayShiftEnabled` | Determines whether auto repeat begins immediately after the DAS delay or waits 1 auto repeat cycle [[tetr.io]](https://tetrio.team2xh.net/#handling) |
-| DAS preservation | `{settings}.dasMechanics.preservationEnabled`   | Determines whether DAS remains charged between pieces [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                                           |
-| DAS interruption | `{settings}.dasMechanics.interruptionEnabled`   | Determines whether DAS effects are temporarily suspended when shifting left/right [[wiki]](https://harddrop.com/wiki/DAS_Optimization)               |
-| Gravity          | `{settings}.dropMechanics.autoInterval`         | Regular rate of piece falling [[wiki]](https://harddrop.com/wiki/Drop)                                                                               |
-| Soft drop speed  | `{settings}.dropMechanics.softInterval`         | New rate of piece falling during soft drop [[wiki]](https://harddrop.com/wiki/Drop)                                                                  |
-| Ghost visibility | `{settings}.ghostEnabled`                       | Determines whether the ghost piece is visible [[wiki]](https://harddrop.com/wiki/Ghost_piece)                                                        |
+| Setting          | Field name                                      | Description                                                                                                                                                |
+|------------------|-------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DAS              | `{settings}.dasMechanics.delay`                 | Delayed auto shift in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                                 |
+| ARR              | `{settings}.dasMechanics.autoShiftInterval`     | Auto repeat rate in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                                   |
+| Post-delay shift | `{settings}.dasMechanics.postDelayShiftEnabled` | Determines whether auto repeat begins immediately after the DAS delay or waits 1 auto repeat cycle [[tetr.io]](https://tetrio.team2xh.net/?t=faq#handling) |
+| DAS preservation | `{settings}.dasMechanics.preservationEnabled`   | Determines whether DAS remains charged between pieces [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                                                 |
+| DAS interruption | `{settings}.dasMechanics.interruptionEnabled`   | Determines whether DAS effects are temporarily suspended when shifting left/right [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                     |
+| Gravity          | `{settings}.dropMechanics.autoInterval`         | Automatic drop rate in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                                |
+| Soft drop speed  | `{settings}.dropMechanics.softInterval`         | Drop rate during soft drop in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                         |
+| Ghost visibility | `{settings}.ghostEnabled`                       | Determines whether the ghost piece is visible [[wiki]](https://harddrop.com/wiki/Ghost_piece)                                                              |
 
 The `edit` operation allows modification of the state's settings.
 
