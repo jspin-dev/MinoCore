@@ -8,12 +8,13 @@ import Playfield from "../../definitions/Playfield"
 import LockdownStatus from "./LockdownStatus"
 import Settings from "../../settings/definitions/Settings"
 import ShiftPair from "../../definitions/ShiftPair"
-import { arraysEqual } from "../../util/sharedUtils"
-
+import {arraysEqual, createEmptyGrid} from "../../util/sharedUtils"
+import GameSchema from "../../schema/definitions/GameSchema"
+import Cell from "../../definitions/Cell"
 
 interface CoreState {
     previewQueue: PieceIdentifier[],
-    activePiece: ActivePiece,
+    activePiece?: ActivePiece | null,
     playfield: Playfield,
     lockdownStatus: LockdownStatus,
     holdEnabled: boolean,
@@ -21,7 +22,7 @@ interface CoreState {
     settings: Settings,
     status: GameStatus,
     activeInputs: Input.ActiveGame[],
-    pendingMovement?: PendingMovement,
+    pendingMovement?: PendingMovement | null,
     dasCharged: ShiftPair<boolean>,
     shiftDirection: ShiftDirection,
     randomNumbers: number[]
@@ -29,11 +30,11 @@ interface CoreState {
 
 namespace CoreState {
 
-    export const initial = (settings: Settings): CoreState => {
+    export const initial = (settings: Settings, schema: GameSchema): CoreState => {
         return {
             previewQueue: [],
             activePiece: null,
-            playfield: null,
+            playfield: createEmptyGrid(schema.playfield.rows, schema.playfield.columns, Cell.Empty),
             lockdownStatus: LockdownStatus.NoLockdown,
             holdEnabled: true,
             holdPiece: null,

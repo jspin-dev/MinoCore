@@ -44,4 +44,3 @@ export const getGridDiff = <T>(oldGrid: Grid<T>, newGrid: Grid<T>) => {
     }
     return diff
 }
-

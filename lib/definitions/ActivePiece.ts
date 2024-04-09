@@ -4,7 +4,6 @@ import type Orientation from "./Orientation"
 import ShiftPair from "./ShiftPair"
 import { arraysEqual } from "../util/sharedUtils"
 
-
 interface ActivePiece {
     id: PieceIdentifier
     location: Coordinate

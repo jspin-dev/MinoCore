@@ -7,10 +7,10 @@
     import { produce } from "immer";
     import StatsTable from "./stats/StatsTable.svelte";
     import { buildStatsSection } from "./stats/statsUtil";
-    import type MinoGame from "./MinoGame";
+    import type SandboxGame from "./game/SandboxGame";
 
 	let userPrefs = userPrefPresets.alternate;
-	let gameState: MinoGame.State;
+	let gameState: SandboxGame.State;
 
 	let onUserPrefsChanged = (
 		value: string | boolean | number, 

@@ -1,4 +1,4 @@
-import PatternDetector from "../definitions/PlayfieldReducer"
+import PlayfieldReducer from "../definitions/PlayfieldReducer"
 import Cell from "../../definitions/Cell"
 import Playfield from "../../definitions/Playfield";
 import { createEmptyGrid } from "../../util/sharedUtils"
@@ -15,7 +15,7 @@ namespace PlayfieldReducers {
                 linesCleared: rows
             }
         }
-    } satisfies PatternDetector
+    } satisfies PlayfieldReducer
 
     const clearAndCollapse = (playfield: Playfield, rows: number[], playfieldWidth: number) => {
         const reducedPlayfield = playfield.filter((_, y) => !rows.includes(y))

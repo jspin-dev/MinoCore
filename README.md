@@ -6,9 +6,9 @@ MinoCore is a state engine for polyonmino based block-stacking games written in 
 
 ## MinoCore Lifecycle
 1. An event is triggered, such as a keyboard input or timer callback
-2. The game state is passed into one of MinoCore's pure functions which returns a new state
-3. Additional instructions for pending side effects are executed (such as starting and stopping timers)
-4. Your UI listens for the state change and updates accordingly
+2. The game state is passed into a pure function (aka MinoCore operation) which returns a new state
+3. Additional instructions for pending side effects are executed, such as those for starting and stopping timers
+4. UI updates according to the new state
 5. Rinse and repeat
 
 ## Operations
@@ -48,54 +48,52 @@ this.state = result.state
 
 ## Game Schemas
 
-A `GameSchema` is a collection of predetermined behaviors that impact the core game state. 
-Schema elements commonly change between game variants, but do not typically change from a user's individual settings or during an individual game session. 
-You can use a preset schema (such as guideline, sega, and nintendo for tetromino-based games), or build your own using preset or custom behaviors. 
-
+A `GameSchema` is a collection of specifications and predetermined behaviors that impact the core game state. 
+Schema elements commonly change between game variants, but do not typically change during a game session or by a user's preference. 
+You can use a preset schema (such as guideline, sega, or nintendo for tetromino-based games), or build your own using preset or custom behaviors. 
 
 Note: Statistics and scoring are not part of the schema since they are side effects and do not directly impact what happens on the playfield.
 
-### Schema Behaviors
-| Behavior          | Description                                                            | Presets                                         |
-|-------------------|------------------------------------------------------------------------|-------------------------------------------------|
-| Playfield spec    | Playfield dimensions                                                   | Tetro default (10x20)                           |
-| Piece generator   | Randomization, ordering, and queuing of upcoming pieces                | Pure random, random bag (7-bag)                 |
-| Playfield reducer | Defines how the playfield changes when a piece is locked               | Standard collapse (i.e. clearing lines)         |
-| Lockdown system   | Ruleset for determining when and how pieces should lock                | Extended placement, Infinite placement, Classic |
-| Rotation system   | Shape, spawn positions/orientations, and rotation rules for each piece | SRS, Sega, Nintendo, TGM, Custom kick table     |
-| Ghost provider    | Ghost piece coordinate updates                                         | Classic, No ghost                               |
+### Schema Specs
+| Behavior           | Description                                                            | Presets                                         |
+|--------------------|------------------------------------------------------------------------|-------------------------------------------------|
+| Playfield spec     | Playfield dimensions                                                   | Tetro default (10x20)                           |
+| Piece generator    | Randomization, ordering, and queuing of upcoming pieces                | Pure random, Random bag (7-bag)                 |
+| Playfield reducer  | Defines how the playfield changes when a piece is locked               | Standard collapse (i.e. clearing lines)         |
+| Lockdown system    | Ruleset for determining when and how pieces should lock                | Extended placement, Infinite placement, Classic |
+| Rotation system    | Shape, spawn positions/orientations, and rotation rules for each piece | SRS, Sega, Nintendo, TGM, Custom kick table     |
+| Ghost provider     | Ghost piece coordinate updates                                         | Classic, No ghost                               |
+| Game over detector | Determines whether the game is over when pieces are locked or spawned  | Guideline, Lenient                              |
 
 ### Example schema declaration
 
 ```ts
 const schema = {
-  playfield: { columns: 10, rows: 40, ceiling: 20 },
-  pieceGenerator: PieceGenerators.randomBag(5, TetroPiece.identifiers.sort()),
-  playfieldReducer: PlayfieldReducers.standardCollapse,
-  lockdownSystem: LockdownPresets.infinitePlacement,
-  rotationSystem: RotationSystemPresets.srs,
-  ghostProvider: GhostProviders.classic
+    playfield: {columns: 10, rows: 40, ceiling: 20},
+    pieceGenerator: PieceGenerators.randomBag(5, TetroPiece.identifiers.sort()),
+    playfieldReducer: PlayfieldReducers.standardCollapse,
+    lockdownSystem: LockdownPresets.infinitePlacement,
+    rotationSystem: RotationSystemPresets.srs,
+    ghostProvider: GhostProviders.classic,
+    gameOverDetector: GameOverDetectors.guideline
 }
 ```
 
-
 ## Settings
 
-`Settings` can change at any time during a game session without compromising the game's integrity, either through the game's ruleset or user settings. 
+`Settings` can change at any time during a game session without compromising the game's integrity, using the `edit` operation.
 Though `Settings` are not part of the `GameSchema`, game variants may still have typical settings associated with them.
 
-| Setting          | Field name                                      | Description                                                                                                                                                |
-|------------------|-------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| DAS              | `{settings}.dasMechanics.delay`                 | Delayed auto shift in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                                 |
-| ARR              | `{settings}.dasMechanics.autoShiftInterval`     | Auto repeat rate in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                                   |
-| Post-delay shift | `{settings}.dasMechanics.postDelayShiftEnabled` | Determines whether auto repeat begins immediately after the DAS delay or waits 1 auto repeat cycle [[tetr.io]](https://tetrio.team2xh.net/?t=faq#handling) |
-| DAS preservation | `{settings}.dasMechanics.preservationEnabled`   | Determines whether DAS remains charged between pieces [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                                                 |
-| DAS interruption | `{settings}.dasMechanics.interruptionEnabled`   | Determines whether DAS effects are temporarily suspended when shifting left/right [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                     |
-| Gravity          | `{settings}.dropMechanics.autoInterval`         | Automatic drop rate in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                                |
-| Soft drop speed  | `{settings}.dropMechanics.softInterval`         | Drop rate during soft drop in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                         |
-| Ghost visibility | `{settings}.ghostEnabled`                       | Determines whether the ghost piece is visible [[wiki]](https://harddrop.com/wiki/Ghost_piece)                                                              |
-
-The `edit` operation allows modification of the state's settings.
+| Setting          | Field name                                      | Description                                                                                                                                              |
+|------------------|-------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DAS              | `{settings}.dasMechanics.delay`                 | Auto shift delay in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                                 |
+| ARR              | `{settings}.dasMechanics.autoShiftInterval`     | Auto shift repeat rate in milliseconds [[wiki]](https://harddrop.com/wiki/DAS)                                                                           |
+| Post-delay shift | `{settings}.dasMechanics.postDelayShiftEnabled` | Determines whether auto shift begins immediately after the DAS delay or waits 1 auto shift cycle [[tetr.io]](https://tetrio.team2xh.net/?t=faq#handling) |
+| DAS preservation | `{settings}.dasMechanics.preservationEnabled`   | Determines whether DAS remains charged between pieces [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                                               |
+| DAS interruption | `{settings}.dasMechanics.interruptionEnabled`   | Determines whether DAS effects are temporarily suspended when shifting left/right [[wiki]](https://harddrop.com/wiki/DAS_Optimization)                   |
+| Gravity          | `{settings}.dropMechanics.autoInterval`         | Automatic drop rate in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                              |
+| Soft drop speed  | `{settings}.dropMechanics.softInterval`         | Drop rate during soft drop in milliseconds[[wiki]](https://harddrop.com/wiki/Drop)                                                                       |
+| Ghost visibility | `{settings}.ghostEnabled`                       | Determines whether the ghost piece is visible [[wiki]](https://harddrop.com/wiki/Ghost_piece)                                                            |
 
 ## Sandbox
 

@@ -1,9 +1,9 @@
 import type CoreState from "./CoreState"
-import type CoreOperations from "./CoreOperations"
-import type OperationResult from "./CoreOperationResult"
+import type CoreReducerResult from "./CoreReducerResult"
 import type GameSchema from "../../schema/definitions/GameSchema"
+import CoreReducers from "./CoreReducers"
 
 export default interface CoreDependencies {
-    operations: CoreOperations<CoreState, CoreDependencies, OperationResult<CoreState>>
+    reducers: CoreReducers<CoreState, CoreDependencies, CoreReducerResult<CoreState>>
     schema: GameSchema
 }

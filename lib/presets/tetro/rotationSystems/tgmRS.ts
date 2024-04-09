@@ -8,7 +8,7 @@ import segaRS from "./segaRS"
 
 const defaultKickOffsets = [[0, 0], [1, 0], [-1, 0]] satisfies RotationSystem.Offset[]
 
-const simpleKickTable = (offsets: RotationSystem.Offset[]) => {
+const table = (offsets: RotationSystem.Offset[]) => {
     const blankOffsets: RotationSystem.Offset[] = []
     return {
         [Orientation.North]: {
@@ -39,14 +39,14 @@ const simpleKickTable = (offsets: RotationSystem.Offset[]) => {
 }
 
 const jltKickInfo = {
-    table: simpleKickTable(defaultKickOffsets),
+    table: table(defaultKickOffsets),
     validator: centralColumnValidator
 }
 const zsKickInfo = {
-    table: simpleKickTable(defaultKickOffsets)
+    table: table(defaultKickOffsets)
 }
 const ioKickInfo = {
-    table: simpleKickTable([[0, 0]])
+    table: table([[0, 0]])
 }
 
 const kickTables = {

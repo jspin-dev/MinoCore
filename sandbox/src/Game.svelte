@@ -1,27 +1,23 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     
-	import MinoGame from "./MinoGame"
+	import SandboxGame from "./game/SandboxGame"
     import Input from "../../build/definitions/Input"
     import GameStatus from "../../build/core/definitions/GameStatus"
 
     import { getKeycodeDisplayValue } from "./form/forms";
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
     import Grid from "./Grid.svelte"
-    import prepareQueue from "../../build/core/operations/root/lifecycle/prepareQueue"
-    import start from "../../build/core/operations/root/lifecycle/start"
-    import operations from "../../build/core/defaultCoreOperations"
-    import schemas from "../../build/presets/tetro/tetroSchemaPresets"
+    import start from "../../build/core/reducers/root/lifecycle/start"
+
     import type Settings from "../../build/settings/definitions/Settings"
-    import updateSettings from "../../build/core/operations/root/updateSettings"
-    import edit from "../../build/core/operations/root/edit"
-    import TetroPiece from "../../build/presets/tetro/TetroPiece";
-    import Cell from "../../build/definitions/Cell";
+    import type SandboxGameState from "./game/SandboxGameState"
+    import { updateState } from "../../build/core/utils/coreReducerUtils"
 
 	export let uiSettings: UiSettings
     export let userPrefs: UserPreferences
-    export let state: MinoGame.State
-    export let reportState: (state: MinoGame.State) => void
+    export let state: SandboxGameState
+    export let reportState: (state: SandboxGameState) => void
 
     let buildSettings = (userPrefs: UserPreferences) => {
         return {
@@ -40,13 +36,13 @@
         } satisfies Settings
     }
 
-	let game = new MinoGame({ schema: schemas.guideline, operations }, buildSettings(userPrefs))
-
+	let game = new SandboxGame(buildSettings(userPrefs))
+    game.initialize()
+    state = game.state
+    reportState(game.state)
     game.onStateChanged = reportState
-    state = game.init()
-    reportState(state)
-    game.run(prepareQueue)
     game.run(start)
+
 
     let container: HTMLElement
     let containerInFocus = true
@@ -62,8 +58,6 @@
 	let onKeyupEvent = (e: KeyboardEvent) => {
 		if (e.repeat) { return }
         game.endInput(userPrefs.keybindings[e.code])
-
-        game.run(edit({ partial: { previewQueue: [TetroPiece.I] } }))
 	}
 
     let onFocus = () => containerInFocus = true
@@ -78,7 +72,7 @@
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length)
 	$: inactiveGame = state.core.status != GameStatus.Active
     $: isPaused = state.core.status === GameStatus.Suspended
-    $: game.run(edit({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
+    $: game.run(updateState({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

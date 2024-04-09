@@ -1,5 +1,5 @@
 // import CoreState from "../../definitions/CoreState";
-// import OperationResult from "../../definitions/CoreOperationResult";
+// import OperationResult from "../../definitions/CoreReducerResult";
 // import Operation from "../../definitions/Operation";
 // import Orientation from "../../schema/definitions/Orientation";
 // import Grid from "../../definitions/Grid";

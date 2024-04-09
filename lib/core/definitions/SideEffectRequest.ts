@@ -1,29 +1,26 @@
 import TimerName from "./TimerName"
-import TimerOp from "./TimerOperation"
+import CoreReducer from "./CoreReducer"
 
-type SideEffectRequest = SideEffectRequest.Types.TimerInterval | SideEffectRequest.Types.TimerOperation
+type SideEffectRequest = SideEffectRequest.Types.StartTimer
+    | SideEffectRequest.Types.CancelTimer
     | SideEffectRequest.Types.Rng
 
 namespace SideEffectRequest {
 
     export enum Classifier {
-        TimerInterval,
-        TimerOperation,
+        StartTimer,
+        CancelTimer,
         Rng
     }
 
     export namespace Types {
 
-        export interface TimerInterval {
-            classifier: Classifier.TimerInterval
-            timerName: TimerName
-            delay: number
+        export interface StartTimer extends Params.StartTimer {
+            classifier: Classifier.StartTimer
         }
 
-        export interface TimerOperation {
-            classifier: Classifier.TimerOperation
-            timerName: TimerName
-            operation: TimerOp
+        export interface CancelTimer extends Params.CancelTimer {
+            classifier: Classifier.CancelTimer
         }
 
         export interface Rng {
@@ -33,38 +30,40 @@ namespace SideEffectRequest {
 
     }
 
+    export namespace Params {
+
+        export interface StartTimer {
+            timerName: TimerName,
+            delay: number,
+            postDelayOp: CoreReducer
+        }
+
+        export interface CancelTimer {
+            timerName: TimerName
+        }
+
+    }
+
 }
 
 // Convenience
 namespace SideEffectRequest {
 
-    export const TimerInterval = (params: { timerName: TimerName, delay: number }) => {
-        return {
-            classifier: Classifier.TimerInterval,
-            timerName: params.timerName,
-            delay: params.delay
-        } satisfies Types.TimerInterval
+    export const StartTimer = (params: {
+        delay: number;
+        timerName: TimerName;
+        postDelayOp: CoreReducer
+    }) => {
+        return { classifier: Classifier.StartTimer, ...params } satisfies Types.StartTimer
     }
 
-    export const TimerOperation = (params: { timerName: TimerName, operation: TimerOp }) => {
-        return {
-            classifier: Classifier.TimerOperation,
-            timerName: params.timerName,
-            operation: params.operation
-        } satisfies Types.TimerOperation
+    export const CancelTimer = (params: Params.CancelTimer) => {
+        return { classifier: Classifier.CancelTimer, ...params } satisfies Types.CancelTimer
     }
 
     export const Rng = (params: { quantity: number }) => {
         return { classifier: Classifier.Rng, quantity: params.quantity } satisfies Types.Rng
     }
-
-    export const OnAllTimers = (operation: TimerOp) => [
-        TimerOperation({ timerName: TimerName.Drop, operation }),
-        TimerOperation({ timerName: TimerName.AutoShift, operation }),
-        TimerOperation({ timerName: TimerName.Clock, operation }),
-        TimerOperation({ timerName: TimerName.DAS, operation }),
-        TimerOperation({ timerName: TimerName.DropLock, operation })
-    ]
 
 }
 

@@ -6,8 +6,8 @@ import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import BoundingBoxOffsets from "../../../schema/rotation/definitions/BoundingBoxOffsets"
 import PieceSpec from "../../../schema/definitions/PieceSpec"
 import shapes from "../tetroShapes";
-import initializeRs from "../../../schema/rotation/initializeRs"
 import getSpawnInfo from "../../../schema/rotation/getSpawnInfo"
+import initializeRsReducer from "../../../schema/rotation/initializeRsReducer";
 
 const buildSpec = (id: PieceIdentifier, optionalParams: PieceSpec.OptionalParams) => {
     return {
@@ -37,7 +37,7 @@ const pieces: { [id: PieceIdentifier]: PieceSpec } = {
 }
 
 export default {
-    initialize: initializeRs(pieces),
+    initialize: initializeRsReducer(pieces),
     rotate: RotationMethods.basic(),
     getSpawnInfo: getSpawnInfo(pieces)
 } satisfies RotationSystem
