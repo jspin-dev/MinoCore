@@ -12,5 +12,5 @@ const rootReducer = mapReducer(({ state }: CoreResult, { reducers }: CoreDepende
 export default withPreconditions({
     reducerName: "hardDrop",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

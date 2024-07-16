@@ -18,7 +18,7 @@ const updateTimer: CoreReducer = mapReducer(({ state }, { reducers }) => {
     )
 })
 
-const move: CoreReducer = mapReducer((previousResult: CoreResult, { reducers }: CoreDependencies) => {
+const move = mapReducer((previousResult: CoreResult, { reducers }: CoreDependencies) => {
     const { activePiece, shiftDirection, settings } = previousResult.state
     const dasMechanics = settings.dasMechanics
     const applyDasPostIntervalShift = withCondition(reducers.shift(1), dasMechanics.postDelayShiftEnabled)
@@ -38,5 +38,5 @@ const rootReducer = sequence(cancelTimer(TimerName.DAS), updateDasCharged, move)
 export default withPreconditions({
     reducerName: "startAutoShift",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

@@ -39,5 +39,5 @@ const hold = ({ state, events }: CoreResult) => {
 export default withPreconditions({
     reducerName: "hold",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

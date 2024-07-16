@@ -17,5 +17,5 @@ const rootReducer = mapReducer(({ state }: CoreResult, { reducers }: CoreDepende
 export default withPreconditions({
     reducerName: "continueInstantDrop",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame ]
+    preconditions: [CorePreconditions.activeGame]
 })

@@ -11,6 +11,7 @@ const conditionalLock = mapReducer((previousResult: CoreResult, { reducers }: Co
 
 const rootReducer = sequence(updateState({ lockdownStatus: LockdownStatus.Triggered }), conditionalLock)
 
+// noinspection JSUnusedGlobalSymbols
 export default withPreconditions({
     reducerName: "triggerLockdown",
     reduce: rootReducer,

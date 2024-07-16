@@ -17,5 +17,5 @@ const rootReducer: CoreReducer = mapReducer(({ state }, { reducers }) => addSide
 export default withPreconditions({
     reducerName: "cancelSoftDrop",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

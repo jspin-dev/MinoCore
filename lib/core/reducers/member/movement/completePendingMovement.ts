@@ -25,5 +25,5 @@ const rootReducer = ({ state, events }: CoreResult) => {
 export default withPreconditions({
     reducerName: "completePendingMovement",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame ]
+    preconditions: [CorePreconditions.activeGame]
 })

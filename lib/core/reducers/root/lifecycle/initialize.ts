@@ -12,6 +12,7 @@ const rootReducer = (rns: number[]) => mapReducer((_: CoreResult, { schema, redu
     )
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default (rns: number[]) => withPreconditions({
     reducerName: "initialize",
     reduce: rootReducer(rns),

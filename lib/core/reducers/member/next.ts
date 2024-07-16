@@ -19,5 +19,5 @@ const rootReducer = mapReducer((result: CoreResult, { reducers }: CoreDependenci
 export default withPreconditions({
     reducerName: "next",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame ]
+    preconditions: [CorePreconditions.activeGame]
 })

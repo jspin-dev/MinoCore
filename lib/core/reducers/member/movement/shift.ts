@@ -77,5 +77,5 @@ const nonNegativePrecondition = (dx: number) => {
 export default (dx: number) => withPreconditions({
     reducerName: "shift",
     reduce: rootReducer(dx),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece, nonNegativePrecondition(dx) ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece, nonNegativePrecondition(dx)]
 })

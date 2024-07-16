@@ -85,5 +85,5 @@ const rootReducer = sequence(lockPlayfield, cancelTimer(TimerName.DropLock), pos
 export default withPreconditions({
     reducerName: "lock",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

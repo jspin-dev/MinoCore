@@ -12,5 +12,5 @@ const rootReducer = createStateReducer((state: CoreState, { schema }: CoreDepend
 export default withPreconditions({
     reducerName: "refreshGhost",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

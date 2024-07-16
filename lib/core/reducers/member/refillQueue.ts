@@ -12,7 +12,7 @@ export default (initialResult: CoreResult, { schema }: CoreDependencies) => {
     const rnsDeficit = state.randomNumbers.length - rns.length
     return {
         state: { ...state, previewQueue: pieces, randomNumbers: rns },
-        events: [ ...events, GameEvent.Enqueue({ preview: state.previewQueue }) ],
-        sideEffectRequests: [ ...sideEffectRequests, SideEffectRequest.Rng({ quantity: rnsDeficit }) ]
+        events: [...events, GameEvent.Enqueue({ preview: state.previewQueue })],
+        sideEffectRequests: [...sideEffectRequests, SideEffectRequest.Rng({ quantity: rnsDeficit })]
     }
 }

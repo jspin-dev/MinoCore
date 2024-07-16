@@ -74,5 +74,5 @@ export const nonNegativePrecondition = (dy: number) => {
 export default (type: DropType, dy: number) => withPreconditions({
     reducerName: "drop",
     reduce: rootReducer(type, dy),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece, nonNegativePrecondition(dy) ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece, nonNegativePrecondition(dy)]
 })

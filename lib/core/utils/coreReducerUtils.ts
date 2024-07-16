@@ -54,7 +54,7 @@ export const cancelTimer = <R extends Readonly<CoreReducerResult<S>>, S extends 
 ): Reducer<R, D> => addSideEffectRequest(SideEffectRequest.CancelTimer({ timerName }))
 
 export const cancelTimers = <R extends Readonly<CoreReducerResult<S>>, S extends CoreState, D>(
-    ... timers: TimerName[]
+    ...timers: TimerName[]
 ): Reducer<R, D> => {
     const reducers: Reducer<R, D>[] = timers.map(timerName => cancelTimer(timerName))
     return sequence(...reducers)

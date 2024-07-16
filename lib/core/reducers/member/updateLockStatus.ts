@@ -43,7 +43,7 @@ const lockOnTrigger = mapReducer(({ state }: CoreResult, { reducers }: CoreDepen
 })
 
 const rootReducer = (movementType: MovementType) => {
-    return mapReducer(({ state }: CoreResult, { schema, reducers }: CoreDependencies) => {
+    return mapReducer(({ state }: CoreResult, { schema }: CoreDependencies) => {
         const outcome = schema.lockdownSystem.processMovement({
             movement: movementType,
             lockdownStatus: state.lockdownStatus,
@@ -61,5 +61,5 @@ const rootReducer = (movementType: MovementType) => {
 export default (movementType: MovementType) => withPreconditions({
     reducerName: "updateLockStatus",
     reduce: rootReducer(movementType),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

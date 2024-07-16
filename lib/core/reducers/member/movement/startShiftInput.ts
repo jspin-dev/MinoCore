@@ -22,6 +22,6 @@ const rootReducer = (direction: ShiftDirection) => provideReducers(reducers => {
 export default (direction: ShiftDirection) => withPreconditions({
     reducerName: "startShiftInput",
     reduce: rootReducer(direction),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })
 

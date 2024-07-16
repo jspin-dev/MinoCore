@@ -18,5 +18,5 @@ const rootReducer = mapReducer((previousResult: CoreResult, { reducers }: CoreDe
 export default withPreconditions({
     reducerName: "continueInstantShift",
     reduce: rootReducer,
-    preconditions: [ CorePreconditions.activeGame ]
+    preconditions: [CorePreconditions.activeGame]
 })

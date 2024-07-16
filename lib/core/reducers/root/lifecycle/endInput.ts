@@ -33,6 +33,7 @@ const rootReducer = (input: Input.ActiveGame) => provideReducers(reducers => {
     )
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default (input: Input.ActiveGame) => withPrecondition({
     reducerName: "initialize",
     reduce: rootReducer(input),

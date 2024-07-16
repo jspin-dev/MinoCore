@@ -13,6 +13,7 @@ const rootReducer = (numbers: number[]) => createStateReducer(state => {
     return { randomNumbers: [...state.randomNumbers, ...numbers] }
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default (numbers: number[]) => withPreconditions({
     reducerName: "addRns",
     reduce: rootReducer(numbers),

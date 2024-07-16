@@ -116,5 +116,5 @@ const resolveShiftContinuation = mapReducer(({ state }: CoreResult, { reducers }
 export default (pieceId: PieceIdentifier) => withPreconditions({
     reducerName: "spawn",
     reduce: rootReducer(pieceId),
-    preconditions: [ CorePreconditions.activeGame ]
+    preconditions: [CorePreconditions.activeGame]
 })

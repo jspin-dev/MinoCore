@@ -95,5 +95,5 @@ const updateDistanceCalc = createStateReducer((state: CoreState, { schema }: Cor
 export default (rotation: Rotation) => withPreconditions({
     reducerName: "rotate",
     reduce: rootReducer(rotation),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })

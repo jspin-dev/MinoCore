@@ -23,6 +23,7 @@ const routeStartInputAction = (input: Input.ActiveGame) => provideReducers(reduc
     }
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default (input: Input.ActiveGame) => mapReducer(
     ({ state }: CoreResult, { reducers }: CoreDependencies) => {
         if (state.activeInputs.includes(input) || state.status != GameStatus.Active) {

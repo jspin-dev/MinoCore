@@ -25,6 +25,7 @@ const startAutoDrop: CoreReducer = mapReducer(({ state }, { reducers }) => {
     )
 })
 
+// noinspection JSUnusedGlobalSymbols
 export default provideReducers(reducers => sequence(
     updateState({ status: GameStatus.Active }),
     startClock,

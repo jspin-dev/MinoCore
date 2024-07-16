@@ -36,5 +36,5 @@ const rootReducer = (direction: ShiftDirection) => sequence(unchargeDas(directio
 export default (direction: ShiftDirection) => withPreconditions({
     reducerName: "endShiftInput",
     reduce: rootReducer(direction),
-    preconditions: [ CorePreconditions.activeGame, CorePreconditions.activePiece ]
+    preconditions: [CorePreconditions.activeGame, CorePreconditions.activePiece]
 })
