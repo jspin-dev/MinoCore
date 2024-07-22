@@ -5,7 +5,7 @@ namespace PieceGenerators {
 
     export const pureRandom = (minQueueLength: number, schemaPieces: PieceIdentifier[]) => {
         return {
-            refill({ pieces, rns }): PieceGenerator.Result {
+            refill({ pieces, rns }) {
                 const pieceDeficit = minQueueLength - pieces.length
                 if (pieceDeficit <= 0) {
                     return { pieces, rns }
@@ -26,7 +26,7 @@ namespace PieceGenerators {
 
     export const randomBag = (minQueueLength: number, schemaPieces: PieceIdentifier[]) => {
         return {
-            refill({ pieces, rns }): PieceGenerator.Result {
+            refill({ pieces, rns }) {
                 if (minQueueLength - pieces.length <= 0) {
                     return { pieces, rns }
                 }
@@ -54,8 +54,8 @@ namespace PieceGenerators {
         const pieces = [
             ...params.cumulativeResult.pieces,
             ...randomNumbers.map(randomNum => {
-                let randomPieceIndex = Math.floor(randomNum * bag.length);
-                return bag.splice(randomPieceIndex, 1)[0];
+                let randomPieceIndex = Math.floor(randomNum * bag.length)
+                return bag.splice(randomPieceIndex, 1)[0]
             }),
             bag[0]
         ]

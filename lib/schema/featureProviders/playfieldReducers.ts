@@ -5,11 +5,12 @@ import { createEmptyGrid } from "../../util/sharedUtils"
 
 namespace PlayfieldReducers {
 
-    export const standardCollapse = {
-        reduce({ playfield, schema }) {
+    export const standardLineClear = {
+        reduce({ coreState, playfieldDimens }) {
+            const playfield = coreState.playfield
             const shouldClear = (row: Cell[]) => row.every(cell => cell.classifier == Cell.Classifier.Locked)
             const rows = playfield.reduce((accum, row, y) => shouldClear(row) ? [...accum, y] : accum, [] as number[])
-            const newPlayfield = clearAndCollapse(playfield, rows, schema.playfield.columns)
+            const newPlayfield = clearAndCollapse(playfield, rows, playfieldDimens.columns)
             return {
                 playfield: newPlayfield,
                 linesCleared: rows

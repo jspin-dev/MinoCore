@@ -6,10 +6,10 @@ namespace GameOverDetectors {
 
     export const guideline = (params: { ceiling: number }) => {
         return {
-            isGameOver({ checkType, coordinates, result }) {
+            isGameOver({ checkType, coordinates, coreState }) {
                 switch (checkType) {
                     case GameOverCheckType.BeforeSpawn:
-                        return coordinates.some(c => Cell.isLocked(result.state.playfield[c.y][c.x]))
+                        return coordinates.some(c => Cell.isLocked(coreState.playfield[c.y][c.x]))
                     case GameOverCheckType.OnLock:
                         return coordinates.every(c => c.y < params.ceiling)
                     case GameOverCheckType.BeforeNext:
@@ -21,8 +21,8 @@ namespace GameOverDetectors {
 
     export const guidelineLenient = (params: { ceiling: number }) => {
         return {
-            isGameOver({ checkType, coordinates, result }) {
-                const playfield = result.state.playfield
+            isGameOver({ checkType, coordinates, coreState }) {
+                const playfield = coreState.playfield
                 switch (checkType) {
                     case GameOverCheckType.BeforeSpawn:
                         return coordinates.some(c => Cell.isLocked(playfield[c.y][c.x]))

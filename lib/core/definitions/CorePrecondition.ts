@@ -1,6 +1,6 @@
 import Precondition from "../../definitions/Precondition"
-import CoreReducerResult from "./CoreReducerResult"
+import CoreOperationResult from "./CoreOperationResult"
 import CoreState from "./CoreState"
 
-type CorePrecondition = Precondition<CoreReducerResult<CoreState>>
+type CorePrecondition = Precondition<CoreOperationResult<CoreState>>
 export default CorePrecondition

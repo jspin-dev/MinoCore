@@ -1,26 +1,15 @@
 import Cell from "../../definitions/Cell"
 import GhostProvider from "../definitions/GhostProvider"
-import Playfield from "../../definitions/Playfield";
 import Coordinate from "../../definitions/Coordinate";
 import {mapPlayfield} from "../../util/stateUtils";
 
 export default {
 
     noGhost: {
-        calculateCoordinates: () => [],
         refresh: s => { return { playfield: s.playfield, ghostCoordinates: [] } }
     } satisfies GhostProvider,
 
     classic: {
-        calculateCoordinates({ state }) {
-            const { activePiece, playfield } = state
-            return activePiece.coordinates
-                .map(c => { return { x: c.x, y: c.y + activePiece.availableDropDistance } })
-                .filter(c => {
-                    let cell = playfield[c.y][c.x]
-                    return Cell.isEmpty(cell) || Cell.isGhost(cell)
-                })
-        },
         refresh: state => {
             let clearedPlayfield = mapPlayfield({
                 playfield: state.playfield,

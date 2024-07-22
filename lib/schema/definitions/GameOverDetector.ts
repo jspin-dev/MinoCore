@@ -1,5 +1,5 @@
 import CoreState from "../../core/definitions/CoreState"
-import CoreReducerResult from "../../core/definitions/CoreReducerResult"
+import CoreOperationResult from "../../core/definitions/CoreOperationResult"
 import Coordinate from "../../definitions/Coordinate"
 import GameOverCheckType from "./GameOverCheckType"
 
@@ -9,7 +9,7 @@ export default interface GameOverDetector {
         params: {
             checkType: GameOverCheckType,
             coordinates: Coordinate[],
-            result: CoreReducerResult<S>
+            coreState: S
         }
     ) => boolean
 

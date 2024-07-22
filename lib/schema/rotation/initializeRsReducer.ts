@@ -6,14 +6,14 @@ import type BinaryGrid from "../../definitions/BinaryGrid"
 import RotationSystem from "./definitions/RotationSystem"
 import Orientation from "../../definitions/Orientation"
 import type Grid from "../../definitions/Grid"
-import CoreReducer from "../../core/definitions/CoreReducer"
+import CoreOperation from "../../core/definitions/CoreOperation"
 
 import { createEmptyGrid, gridToList } from "../../util/sharedUtils"
-import { updateState } from "../../core/utils/coreReducerUtils"
+import { updateCoreState } from "../../core/utils/coreOperationUtils"
 
-export default (pieces: { [id: PieceIdentifier]: PieceSpec }): CoreReducer => {
+export default (pieces: { [id: PieceIdentifier]: PieceSpec }): CoreOperation => {
     const grids = generateRotationGrids(pieces)
-    return updateState<CoreState & GeneratedGrids>({ generatedGrids: grids }) as CoreReducer
+    return updateCoreState<CoreState & GeneratedGrids>({ generatedGrids: grids }) as CoreOperation
 }
 
 const generateRotationGrids = (pieces: { [id: PieceIdentifier]: PieceSpec }) => {

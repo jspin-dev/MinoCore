@@ -4,15 +4,15 @@ import Outcome from "../../../definitions/Outcome"
 import type Coordinate from "../../../definitions/Coordinate"
 import CoreState from "../../../core/definitions/CoreState"
 import CoreDependencies from "../../../core/definitions/CoreDependencies"
-import CoreReducerResult from "../../../core/definitions/CoreReducerResult"
+import CoreOperationResult from "../../../core/definitions/CoreOperationResult"
 import Rotation from "../../../definitions/Rotation"
 import PieceSpawnInfo from "../../definitions/PieceSpawnInfo"
 import { willCollide } from "../../../util/stateUtils"
-import Reducer from "../../../definitions/Reducer";
+import Operation from "../../../definitions/Operation";
 
 interface RotationSystem {
     rotate: RotationSystem.RotationBehavior,
-    initialize: Reducer<CoreReducerResult<CoreState>, CoreDependencies>,
+    initialize: Operation<CoreOperationResult<CoreState>, CoreDependencies>,
     getSpawnInfo: RotationSystem.SpawnInfoProvider,
 }
 

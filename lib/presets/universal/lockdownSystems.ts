@@ -5,11 +5,11 @@ namespace LockdownPresets {
 
     export const defaultMoveLimit = 15
 
-    export const extendedPlacement = LockdownSystems.standard(LockdownResetPolicy.Move, defaultMoveLimit)
+    export const extendedPlacement = LockdownSystems.byResetPolicy(LockdownResetPolicy.Move, defaultMoveLimit)
 
-    export const infinitePlacement = LockdownSystems.standard(LockdownResetPolicy.Move)
+    export const infinitePlacement = LockdownSystems.byResetPolicy(LockdownResetPolicy.Move)
 
-    export const classic = LockdownSystems.standard(LockdownResetPolicy.Step)
+    export const classic = LockdownSystems.byResetPolicy(LockdownResetPolicy.Step)
 
 }
 

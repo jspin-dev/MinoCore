@@ -9,17 +9,14 @@ import RotationSystemPresets from "./tetroRotationSystemPresets"
 
 const pieces = TetroPiece.identifiers.sort()
 
-// type defaultedParams = "playfield" | "playfieldReducer" | "ghostProvider" | "gameOverDetector"
-// type SchemaDefaults = Pick<GameSchema, defaultedParams>
-// type PartialGameSchema = Partial<GameSchema> & SchemaDefaults
-
 export const defaults = {
     playfield: { columns: 10, rows: 40 },
-    playfieldReducer: PlayfieldReducers.standardCollapse,
+    playfieldReducer: PlayfieldReducers.standardLineClear,
     ghostProvider: GhostProviders.classic,
     gameOverDetector: GameOverProviders.guideline({ ceiling: 20 })
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default {
     guideline: {
         ...defaults,

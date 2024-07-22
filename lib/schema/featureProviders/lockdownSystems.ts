@@ -6,10 +6,11 @@ import LockdownResetPolicy from "../definitions/LockdownResetPolicy"
 
 namespace LockdownSystems {
 
-    export const standard = (resetPolicy: LockdownResetPolicy, moveLimit?: number) => {
+    export const byResetPolicy = (resetPolicy: LockdownResetPolicy, moveLimit?: number) => {
         return {
             processMovement(params) {
-                const { movement, lockdownStatus, activePiece } = params
+                const { movement, coreState } = params
+                const { activePiece, lockdownStatus } = coreState
                 const onFloor = activePiece.availableDropDistance == 0
                 const resetTimerStatus = LockdownStatus.TimerActive({ movesRemaining: moveLimit })
 

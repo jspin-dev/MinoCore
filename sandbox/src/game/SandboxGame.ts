@@ -1,20 +1,18 @@
 import Input from "../../../build/definitions/Input"
-import SideEffectRequest from "../../../build/core/definitions/SideEffectRequest"
 import type Settings from "../../../build/settings/definitions/Settings"
 import SandboxGameUtils from "./SandboxGameUtils"
 import SandboxGameState from "./SandboxGameState"
-import type CoreReducer from "../../../build/core/definitions/CoreReducer"
-
-import defaultReducers from "../../../build/core/defaultCoreReducers"
+import DeferredAction from "../../../build/core/definitions/DeferredAction"
+import type CoreOperation from "../../../build/core/definitions/CoreOperation"
+import defaultOperations from "../../../build/core/defaultCoreOperations"
 import presetSchemas from "../../../build/presets/tetro/tetroSchemaPresets"
-import addRns from "../../../build/core/reducers/root/addRns"
-import startInput from "../../../build/core/reducers/root/lifecycle/startInput"
-import endInput from "../../../build/core/reducers/root/lifecycle/endInput"
-import initialize from "../../../build/core/reducers/root/lifecycle/initialize"
-import start from "../../../build/core/reducers/root/lifecycle/start"
-import { sequence } from "../../../build/util/reducerUtils"
+import startInput from "../../../build/core/operations/lifecycle/startInput"
+import endInput from "../../../build/core/operations/lifecycle/endInput"
+import initialize from "../../../build/core/operations/lifecycle/initialize"
+import start from "../../../build/core/operations/lifecycle/start"
+import { sequence } from "../../../build/util/operationUtils"
 
-const dependencies = { schema: presetSchemas.guideline, reducers: defaultReducers }
+const dependencies = { schema: presetSchemas.guideline, operations: defaultOperations }
 const initialRnsRequirement = dependencies.schema.pieceGenerator.rnsRequirement
 
 export default class SandboxGame {
@@ -27,26 +25,34 @@ export default class SandboxGame {
         this.state = SandboxGameState.initial(initialSettings, dependencies)
     }
 
-    run(rootReducer: CoreReducer) {
-        const initialResult = { state: this.state.core, sideEffectRequests: [], events: [], logs: [] }
-        const { state, sideEffectRequests } = rootReducer(initialResult, dependencies)
+    run(rootReducer: CoreOperation) {
+        const initialResult = {
+            state: this.state.core,
+            deferredActions: [],
+            events: [],
+            logs: []
+        }
+        const { state, deferredActions } = rootReducer(initialResult, dependencies)
         this.state.core = state
-        sideEffectRequests.forEach(request => this.executeSideEffect(request))
+        deferredActions.forEach(request => this.executeDeferredAction(request))
         this.onStateChanged?.(this.state)
-        console.log(state)
     }
 
-    executeSideEffect(request: SideEffectRequest) {
-        switch (request.classifier) {
-            case SideEffectRequest.Classifier.StartTimer:
-                clearTimeout(this.timers[request.timerName])
-                this.timers[request.timerName] = setTimeout(() => this.run(request.postDelayOp), request.delay)
+    executeDeferredAction(deferredAction: DeferredAction) {
+        switch (deferredAction.classifier) {
+            case DeferredAction.Classifier.DelayOperation:
+                clearTimeout(this.timers[deferredAction.timerName])
+                this.timers[deferredAction.timerName] = setTimeout(
+                    () => this.run(deferredAction.operation),
+                    deferredAction.delayInMillis
+                )
                 break
-            case SideEffectRequest.Classifier.CancelTimer:
-                clearTimeout(this.timers[request.timerName])
+            case DeferredAction.Classifier.CancelOperation:
+                clearTimeout(this.timers[deferredAction.timerName])
                 break
-            case SideEffectRequest.Classifier.Rng:
-                this.run(addRns(SandboxGameUtils.generateRns(request.quantity)))
+            case DeferredAction.Classifier.AddRns:
+                let rns = SandboxGameUtils.generateRns(deferredAction.quantity)
+                this.run(deferredAction.operation(rns))
         }
     }
 

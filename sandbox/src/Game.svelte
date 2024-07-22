@@ -8,11 +8,11 @@
     import { getKeycodeDisplayValue } from "./form/forms";
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
     import Grid from "./Grid.svelte"
-    import start from "../../build/core/reducers/root/lifecycle/start"
+    import start from "../../build/core/operations/lifecycle/start"
 
     import type Settings from "../../build/settings/definitions/Settings"
     import type SandboxGameState from "./game/SandboxGameState"
-    import { updateState } from "../../build/core/utils/coreReducerUtils"
+    import { updateCoreState } from "../../build/core/utils/coreOperationUtils"
 
 	export let uiSettings: UiSettings
     export let userPrefs: UserPreferences
@@ -72,7 +72,7 @@
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length)
 	$: inactiveGame = state.core.status != GameStatus.Active
     $: isPaused = state.core.status === GameStatus.Suspended
-    $: game.run(updateState({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
+    $: game.run(updateCoreState({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

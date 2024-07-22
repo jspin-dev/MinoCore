@@ -1,10 +1,10 @@
 import Playfield from "../../definitions/Playfield"
-import ActivePiece from "../../definitions/ActivePiece"
-import GameSchema from "./GameSchema";
+import type PlayfieldDimens from "./PlayfieldDimens"
+import CoreState from "../../core/definitions/CoreState"
 
 interface PlayfieldReducer {
 
-    reduce: (params: { playfield: Playfield, activePiece: ActivePiece, schema: GameSchema }) => PlayfieldReducer.Result
+    reduce: <S extends CoreState>(params: { coreState: S, playfieldDimens: PlayfieldDimens }) => PlayfieldReducer.Result
 
 }
 
