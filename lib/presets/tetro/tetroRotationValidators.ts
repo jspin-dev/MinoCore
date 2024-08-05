@@ -1,21 +1,22 @@
-import RotationSystem from "../../schema/rotation/definitions/RotationSystem"
+import RotationSystemBasis from "../../schema/rotation/definitions/RotationSystem"
 import CoreState from "../../core/definitions/CoreState"
-import GeneratedGrids from "../../schema/rotation/definitions/GeneratedGrids"
 import Coordinate from "../../definitions/Coordinate"
 import Orientation from "../../definitions/Orientation"
 import Cell from "../../definitions/Cell"
+import GameSchema from "../../schema/definitions/GameSchema"
 import { willCollide } from "../../util/stateUtils"
 
 export const centralColumnValidator = {
-    isValid: function (
-        { activePiece, playfield, generatedGrids }: CoreState & GeneratedGrids,
+    isValidRotation: function (
+        { activePiece, playfield }: CoreState,
         coordinates: readonly Coordinate[],
-        offset: RotationSystem.Offset
+        offset: RotationSystemBasis.Offset,
+        gameSchema: GameSchema
     ) {
         if (willCollide(playfield, coordinates, offset[0], offset[1])) {
             return false
         }
-        const pieceSize = generatedGrids[activePiece.id][Orientation.North].length
+        const pieceSize = gameSchema.rotationSystem.pieces[activePiece.id].grids[Orientation.North].length
         const location = activePiece.location
         const referenceGrid = playfield
             .slice(location.y, location.y + pieceSize)
@@ -31,4 +32,4 @@ export const centralColumnValidator = {
         }, initialResult)
         return result !== false
     }
-} satisfies RotationSystem.Validator
+} satisfies RotationSystemBasis.Validator

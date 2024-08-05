@@ -3,8 +3,8 @@ type Outcome<T> = Outcome.SuccessType<T> | Outcome.FailureType
 namespace Outcome {
 
     export enum Classifier {
-        Failure = "failure",
-        Success = "success"
+        Failure,
+        Success
     }
 
     export interface SuccessType<T> {

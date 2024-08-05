@@ -33,7 +33,7 @@ export default {
             { label: "PPS", value: BasicStat.Number("pps", 2) },
             { label: "Score", value: BasicStat.ScoreState("score") },
             { label: "Combo", value: BasicStat.ScoreState("combo") },
-            { label: "Keys Pressed", value: BasicStat.Number("keysPressed") },
+            { label: "Keys Pressed", value: BasicStat.Number("inputCount") },
             { label: "Pieces", value: BasicStat.Number("piecesLocked") }
         ]
     }  

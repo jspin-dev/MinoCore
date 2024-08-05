@@ -6,19 +6,19 @@ import Orientation from "../../definitions/Orientation"
 
 interface PieceSpec {
     id: PieceIdentifier
-    shape: BinaryGrid
+    grids: Record<Orientation, BinaryGrid>
     startLocation: Coordinate
     spawnOrientation: Orientation
-    offsets: BoundingBoxOffsets
 }
 
 namespace PieceSpec {
 
-    export interface OptionalParams {
-        shape?: BinaryGrid
-        startLocation?: Coordinate
-        spawnOrientation?: Orientation
-        offsets?: BoundingBoxOffsets
+    export interface Basis {
+        id: PieceIdentifier
+        shape: BinaryGrid
+        startLocation: Coordinate
+        spawnOrientation: Orientation
+        offsets: BoundingBoxOffsets
     }
 
 }

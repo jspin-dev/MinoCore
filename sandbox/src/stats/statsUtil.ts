@@ -1,12 +1,14 @@
-import { BasicStat } from "../types";
-import statsTableConfig from "../config/statsConfig";
-import type Statistics from "../../../build/addons/definitions/GuidelineStatistics";
+import { BasicStat } from "../types"
+import statsTableConfig from "../config/statsConfig"
+import type Statistics from "../../../build/addons/definitions/CoreStatistics"
+import type Input from "../../../build/definitions/Input";
+// import Pause = Input.Pause;
 
 export let buildStatsSection = (statistics: Statistics) => {
     return {
         sectionName: statsTableConfig.sectionName,
         tables: statistics ? [
-            buildActionTable(statistics.actionTally),
+            //buildActionTable(statistics.actionTally),
             buildBasicStatsTable(statistics)
         ] : []
     }
@@ -28,10 +30,15 @@ let buildBasicStatsTable = (statistics: Statistics): StatsEntry[] => {
                 value = statistics.time.toString();
                 break;
             case BasicStat.Classifier.Number:
-                value = String(statistics[entryValue.key].toFixed(entryValue.decimalPlaces));
+                if (entryValue.decimalPlaces == undefined) {
+                    value = String(statistics[entryValue.key])
+                } else {
+                    value = String(statistics[entryValue.key].toFixed(entryValue.decimalPlaces));
+                }
+
                 break;
             case BasicStat.Classifier.ScoreState:
-                value = String(statistics.scoreState[entryValue.key] || 0)
+                value = ""//String(statistics.scoreState[entryValue.key] || 0)
         }
         return { ...entry, value };
     });

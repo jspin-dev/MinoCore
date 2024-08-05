@@ -9,7 +9,7 @@ import type DropType from "./DropType"
 type GameEvent = GameEvent.Types.InputStart | GameEvent.Types.InputEnd | GameEvent.Types.ClockTick
     | GameEvent.Types.Dequeue | GameEvent.Types.Enqueue | GameEvent.Types.Lock | GameEvent.Types.Clear
     | GameEvent.Types.Shift | GameEvent.Types.Rotate | GameEvent.Types.Drop | GameEvent.Types.Hold
-    | GameEvent.Types.Spawn
+    | GameEvent.Types.Spawn | GameEvent.Types.Restart | GameEvent.Types.Initialized
 
 namespace GameEvent {
 
@@ -26,7 +26,9 @@ namespace GameEvent {
         Rotate = "rotate",
         Drop = "drop",
         Hold = "hold",
-        Spawn = "spawn"
+        Spawn = "spawn",
+        Restart = "restart",
+        Initialized = "initialize"
 
     }
 
@@ -105,6 +107,14 @@ namespace GameEvent {
             activePiece: ActivePiece
         }
 
+        export interface Restart {
+            classifier: Classifier.Restart
+        }
+
+        export interface Initialized {
+            classifier: Classifier.Initialized
+        }
+
     }
 
 }
@@ -112,17 +122,19 @@ namespace GameEvent {
 // Convenience
 namespace GameEvent {
 
+    export const ClockTick = { classifier: Classifier.ClockTick } satisfies Types.ClockTick
+
+    export const Restart = { classifier: Classifier.Restart } satisfies Types.Restart
+
+    export const Initialized = { classifier: Classifier.Initialized } satisfies Types.Initialized
+
     export const InputStart = (input: Input.ActiveGame) => {
         return { classifier: Classifier.InputStart, input } satisfies Types.InputStart
     }   
 
     export const InputEnd = (input: Input.ActiveGame) => {
         return { classifier: Classifier.InputEnd, input } satisfies Types.InputEnd
-    }   
-
-    export const ClockTick = () => {
-        return { classifier: Classifier.ClockTick } satisfies Types.ClockTick
-    }   
+    }
 
     export const Dequeue = (params: { dequeuedPiece: PieceIdentifier, preview: PieceIdentifier[] }) => {
         return {

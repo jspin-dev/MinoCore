@@ -1,16 +1,19 @@
 import CoreState from "../../core/definitions/CoreState"
-import CoreOperationResult from "../../core/definitions/CoreOperationResult"
 import Coordinate from "../../definitions/Coordinate"
 import GameOverCheckType from "./GameOverCheckType"
 
-export default interface GameOverDetector {
+interface GameOverDetector {
+    isGameOver: <S extends CoreState>(params: GameOverDetector.Params<S>) => boolean
+}
 
-    isGameOver: <S extends CoreState>(
-        params: {
-            checkType: GameOverCheckType,
-            coordinates: Coordinate[],
-            coreState: S
-        }
-    ) => boolean
+namespace GameOverDetector {
+
+    export interface Params<S extends CoreState> {
+        checkType: GameOverCheckType
+        coordinates: Coordinate[]
+        coreState: S
+    }
 
 }
+
+export default GameOverDetector

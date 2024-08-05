@@ -8,22 +8,20 @@
     import { getKeycodeDisplayValue } from "./form/forms";
     import { bannerFocusMessage, bannerPauseMessage, bannerGameOverMessage } from "./strings.json";
     import Grid from "./Grid.svelte"
-    import start from "../../build/core/operations/lifecycle/start"
-
     import type Settings from "../../build/settings/definitions/Settings"
-    import type SandboxGameState from "./game/SandboxGameState"
-    import { updateCoreState } from "../../build/core/utils/coreOperationUtils"
+    import settingsPresets from "../../build/presets/universal/settingsPresets"
+    import MinoGame from "../../build/core/MinoGame";
 
 	export let uiSettings: UiSettings
     export let userPrefs: UserPreferences
-    export let state: SandboxGameState
-    export let reportState: (state: SandboxGameState) => void
+    export let state: SandboxGame.State
+    export let reportState: (state: SandboxGame.State) => void
 
     let buildSettings = (userPrefs: UserPreferences) => {
         return {
             dropMechanics: {
                 softInterval: userPrefs.sdf,
-                autoInterval: 1000
+                autoInterval: settingsPresets.standard.dropMechanics.autoInterval
             },
             dasMechanics: {
                 delay: userPrefs.das,
@@ -36,13 +34,11 @@
         } satisfies Settings
     }
 
-	let game = new SandboxGame(buildSettings(userPrefs))
-    game.initialize()
-    state = game.state
-    reportState(game.state)
-    game.onStateChanged = reportState
-    game.run(start)
-
+    const game = new MinoGame(SandboxGame.config(buildSettings(userPrefs)), newState => {
+        state = newState
+        reportState(state)
+    })
+    game.start()
 
     let container: HTMLElement
     let containerInFocus = true
@@ -51,8 +47,7 @@
 
 	let onKeydownEvent = (e: KeyboardEvent) => {
         if (e.repeat) { return }
-        let input = userPrefs.keybindings[e.code]
-        game.startInput(input)
+        game.startInput(userPrefs.keybindings[e.code])
 	}
 
 	let onKeyupEvent = (e: KeyboardEvent) => {
@@ -72,7 +67,7 @@
 	$: visiblePlayfieldGrid = playfieldGrid.slice((uiSettings.startingRow || 0) - playfieldGrid.length)
 	$: inactiveGame = state.core.status != GameStatus.Active
     $: isPaused = state.core.status === GameStatus.Suspended
-    $: game.run(updateCoreState({ settings: buildSettings(userPrefs) })) // Updates settings whenever user prefs change
+    $: game.updateSettings(buildSettings(userPrefs)) // Updates settings whenever user prefs change
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->

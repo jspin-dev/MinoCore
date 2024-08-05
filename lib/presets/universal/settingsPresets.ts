@@ -1,11 +1,12 @@
 import Settings from "../../settings/definitions/Settings"
 
 interface SettingPresets {
-    steady: Settings
+    standard: Settings
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default {
-    steady: {
+    standard: {
         dasMechanics: {
             preservationEnabled: true,
             interruptionEnabled: true,

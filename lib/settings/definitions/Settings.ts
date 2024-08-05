@@ -15,7 +15,7 @@ namespace Settings {
         ghostEnabled?: boolean
     }
 
-    export const initial: Settings = {
+    export const initialDefaults: Settings = {
         dasMechanics: null,
         dropMechanics: null,
         ghostEnabled: true

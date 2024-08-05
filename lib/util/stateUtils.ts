@@ -17,7 +17,7 @@ export const willCollide = (playfield: Playfield, coordinates: Readonly<Coordina
 
 export const mapPlayfield = (params: { playfield: Playfield, map: (cell: Cell, coordinate: Coordinate) => Cell }) => {
     return params.playfield.reduce((accum, row, y) => {
-        let newRow = row.reduce((rowAccum, cell, x) => [ ...rowAccum, params.map(cell, { x, y }) ], [])
+        let newRow = row.reduce((rowAccum, cell, x) => [...rowAccum, params.map(cell, { x, y })], [])
         return [ ...accum, newRow ]
     }, [] as Playfield)
 }
@@ -26,16 +26,14 @@ export const updateActivePlayfield = (params: {
     playfield: Playfield,
     activePieceCoordinates: Coordinate[],
     pieceId: PieceIdentifier
-}) => {
-    return mapPlayfield({
-        playfield: params.playfield,
-        map: (cell: Cell, coordinate: Coordinate) => {
-            let shouldBeActive = params.activePieceCoordinates.some(c => Coordinate.equal(c, coordinate))
-            if (Cell.isActive(cell)) {
-                return shouldBeActive ? cell : Cell.Empty
-            } else {
-                return shouldBeActive ? Cell.Active(params.pieceId) : cell
-            }
+}) => mapPlayfield({
+    playfield: params.playfield,
+    map: (cell: Cell, coordinate: Coordinate) => {
+        let shouldBeActive = Coordinate.includes(params.activePieceCoordinates, coordinate)
+        if (Cell.isActive(cell)) {
+            return shouldBeActive ? cell : Cell.Empty
+        } else {
+            return shouldBeActive ? Cell.Active(params.pieceId) : cell
         }
-    })
-}
+    }
+})

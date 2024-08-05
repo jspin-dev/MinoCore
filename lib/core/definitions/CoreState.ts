@@ -16,7 +16,6 @@ interface CoreState {
     previewQueue: PieceIdentifier[],
     activePiece?: ActivePiece | null,
     playfield: Playfield,
-    lockdownStatus: LockdownStatus,
     holdEnabled: boolean,
     holdPiece?: PieceIdentifier,
     settings: Settings,
@@ -30,12 +29,11 @@ interface CoreState {
 
 namespace CoreState {
 
-    export const initial = (settings: Settings, schema: GameSchema): CoreState => {
+    export const initial = (settings: Settings, schema: GameSchema, randomNumbers: number[]): CoreState => {
         return {
             previewQueue: [],
             activePiece: null,
-            playfield: createEmptyGrid(schema.playfield.rows, schema.playfield.columns, Cell.Empty),
-            lockdownStatus: LockdownStatus.NoLockdown,
+            playfield: createEmptyGrid(schema.playfieldDimens.rows, schema.playfieldDimens.columns, Cell.Empty),
             holdEnabled: true,
             holdPiece: null,
             settings,
@@ -47,7 +45,7 @@ namespace CoreState {
                 [ShiftDirection.Right]: false
             },
             shiftDirection: null,
-            randomNumbers: []
+            randomNumbers: randomNumbers
         }
     }
 
@@ -73,9 +71,6 @@ namespace CoreState {
         const partial: Partial<CoreState> = {}
         if (!arraysEqual(before.previewQueue, after.previewQueue)) {
             partial.previewQueue = after.previewQueue
-        }
-        if (!LockdownStatus.equal(before.lockdownStatus, after.lockdownStatus)) {
-            partial.lockdownStatus = after.lockdownStatus
         }
         if (before.holdEnabled != after.holdEnabled) {
             partial.holdEnabled = after.holdEnabled

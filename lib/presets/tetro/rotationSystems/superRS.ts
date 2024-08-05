@@ -5,19 +5,16 @@ import KickTable from "../../../schema/rotation/definitions/KickTable"
 import RotationMethods from "../../../schema/rotation/rotationMethods"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import BoundingBoxOffsets from "../../../schema/rotation/definitions/BoundingBoxOffsets"
-import PieceSpec from "../../../schema/definitions/PieceSpec"
 import shapes from "../tetroShapes"
-import getSpawnInfo from "../../../schema/rotation/getSpawnInfo"
-import initializeRs from "../../../schema/rotation/initializeRsReducer"
 
-const buildSpec = (id: PieceIdentifier, optionalParams?: PieceSpec.OptionalParams) => {
+const defaults = (id: PieceIdentifier) => {
     return {
         id,
         shape: shapes[id],
-        startLocation: optionalParams?.startLocation ?? { x: 3, y: 18 },
-        spawnOrientation: optionalParams?.spawnOrientation ?? Orientation.North,
-        offsets: optionalParams?.offsets ?? BoundingBoxOffsets.None
-    } satisfies PieceSpec
+        startLocation: { x: 3, y: 18 },
+        spawnOrientation: Orientation.North,
+        offsets: BoundingBoxOffsets.None
+    }
 }
 
 const defaultTable: KickTable = {
@@ -84,18 +81,15 @@ const kickTables: KickTable.FullInfo = {
     [TetroPiece.I]: { table: iTable }
 }
 
-const pieces: { [id: PieceIdentifier]: PieceSpec } = {
-    [TetroPiece.J]: buildSpec(TetroPiece.J),
-    [TetroPiece.L]: buildSpec(TetroPiece.L),
-    [TetroPiece.S]: buildSpec(TetroPiece.S),
-    [TetroPiece.Z]: buildSpec(TetroPiece.Z),
-    [TetroPiece.T]: buildSpec(TetroPiece.T),
-    [TetroPiece.I]: buildSpec(TetroPiece.I),
-    [TetroPiece.O]: buildSpec(TetroPiece.O, { startLocation: { x: 4, y: 18 } })
-}
-
 export default {
-    initialize: initializeRs(pieces),
+    pieces: [
+        defaults(TetroPiece.J),
+        defaults(TetroPiece.L),
+        defaults(TetroPiece.S),
+        defaults(TetroPiece.Z),
+        defaults(TetroPiece.T),
+        defaults(TetroPiece.I),
+        { ...defaults(TetroPiece.O), startLocation: { x: 4, y: 18 } }
+    ],
     rotate: RotationMethods.kickTable(kickTables),
-    getSpawnInfo: getSpawnInfo(pieces)
-} satisfies RotationSystem
+} satisfies RotationSystem.Basis

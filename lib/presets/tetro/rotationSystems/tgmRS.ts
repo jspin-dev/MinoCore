@@ -2,7 +2,6 @@ import Orientation from "../../../definitions/Orientation"
 import RotationSystem from "../../../schema/rotation/definitions/RotationSystem"
 import TetroPiece from "../TetroPiece"
 import RotationMethods from "../../../schema/rotation/rotationMethods"
-import KickTable from "../../../schema/rotation/definitions/KickTable"
 import { centralColumnValidator } from "../tetroRotationValidators"
 import segaRS from "./segaRS"
 
@@ -35,32 +34,25 @@ const table = (offsets: RotationSystem.Offset[]) => {
             [Orientation.South]: offsets,
             [Orientation.West]: blankOffsets
         }
-    } satisfies KickTable
+    }
 }
 
 const jltKickInfo = {
     table: table(defaultKickOffsets),
     validator: centralColumnValidator
 }
-const zsKickInfo = {
-    table: table(defaultKickOffsets)
-}
-const ioKickInfo = {
-    table: table([[0, 0]])
-}
 
 const kickTables = {
     [TetroPiece.J]: jltKickInfo,
     [TetroPiece.L]: jltKickInfo,
-    [TetroPiece.S]: zsKickInfo,
-    [TetroPiece.Z]: zsKickInfo,
+    [TetroPiece.S]: { table: table(defaultKickOffsets) },
+    [TetroPiece.Z]: { table: table(defaultKickOffsets) },
     [TetroPiece.T]: jltKickInfo,
-    [TetroPiece.O]: ioKickInfo,
-    [TetroPiece.I]: ioKickInfo
-} satisfies KickTable.FullInfo
+    [TetroPiece.O]: { table: table([[0, 0]]) },
+    [TetroPiece.I]: { table: table([[0, 0]]) }
+}
 
 export default {
-    initialize: segaRS.initialize,
-    getSpawnInfo: segaRS.getSpawnInfo,
+    pieces: segaRS.pieces,
     rotate: RotationMethods.kickTable(kickTables),
-} satisfies RotationSystem
+} satisfies RotationSystem.Basis

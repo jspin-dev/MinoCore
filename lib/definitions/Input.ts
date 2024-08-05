@@ -1,9 +1,9 @@
 import ShiftDirection from "./ShiftDirection"
 import Rotation from "./Rotation"
 
-type Input = Input.Types.ActiveGame | Input.Types.Lifecycle
+type Input = Input.Types.ActiveGame | Input.Types.Pause | Input.Types.Restart
 
-// Active game inputs
+// Active games inputs
 namespace Input {
 
     export type ActiveGame = ActiveGame.Types.Shift | ActiveGame.Types.Rotate | ActiveGame.Types.HD
@@ -83,14 +83,10 @@ namespace Input {
 
 namespace Input {
 
-    export enum Lifecycle {
-        Pause,
-        Restart
-    }
-
     export enum Classifier {
         ActiveGame,
-        Lifecycle
+        Pause,
+        Restart
     }
 
     export namespace Types {
@@ -100,9 +96,12 @@ namespace Input {
             input: Input.ActiveGame
         }
 
-        export interface Lifecycle {
-            classifier: Classifier.Lifecycle
-            input: Input.Lifecycle
+        export interface Pause {
+            classifier: Classifier.Pause
+        }
+
+        export interface Restart {
+            classifier: Classifier.Restart
         }
 
     }
@@ -114,10 +113,6 @@ namespace Input {
 
     const activeGame = (input: ActiveGame) => {
         return { classifier: Classifier.ActiveGame, input } satisfies Types.ActiveGame
-    }
-
-    const lifecycle = (input: Lifecycle) => {
-        return { classifier: Classifier.Lifecycle, input } satisfies Types.Lifecycle
     }
 
     export const ShiftLeft = activeGame(Input.ActiveGame.Shift(ShiftDirection.Left))
@@ -133,9 +128,9 @@ namespace Input {
 
     export const Hold = activeGame(Input.ActiveGame.Hold)
 
-    export const Pause = lifecycle(Input.Lifecycle.Pause)
+    export const Pause: Input = { classifier: Classifier.Pause }
 
-    export const Restart = lifecycle(Input.Lifecycle.Restart)
+    export const Restart: Input = { classifier: Classifier.Restart }
 
 }
 

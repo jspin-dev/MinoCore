@@ -1,6 +1,6 @@
 import Orientation from "../../../definitions/Orientation"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
-import RotationSystem from "./RotationSystem"
+import RotationSystemBasis from "./RotationSystem"
 
 type KickTable = Record<Orientation, KickTable.OffsetMap>
 
@@ -9,11 +9,11 @@ namespace KickTable {
     export type FullInfo = {
         [id: PieceIdentifier]: {
             table: KickTable,
-            validator?: RotationSystem.Validator
+            validator?: RotationSystemBasis.Validator
         }
     }
 
-    export type OffsetMap = Record<Orientation, RotationSystem.Offset[]>
+    export type OffsetMap = Record<Orientation, RotationSystemBasis.Offset[]>
 
 }
 

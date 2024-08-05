@@ -1,4 +1,4 @@
-import LockdownSystems from "../../schema/featureProviders/lockdownSystems"
+import LockdownSystems from "../../schema/featurePresets/lockdownSystems"
 import LockdownResetPolicy from "../../schema/definitions/LockdownResetPolicy"
 
 namespace LockdownPresets {

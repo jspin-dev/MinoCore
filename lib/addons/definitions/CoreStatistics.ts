@@ -1,6 +1,6 @@
 interface CoreStatistics {
     lines: number
-    keysPressed: number
+    inputCount: number
     piecesLocked: number
     spawnCount: number
     holdCount: number
@@ -13,7 +13,7 @@ namespace CoreStatistics {
 
     export const initial = {
         lines: 0,
-        keysPressed: 0,
+        inputCount: 0,
         piecesLocked: 0,
         spawnCount: 0,
         holdCount: 0,

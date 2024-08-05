@@ -4,19 +4,16 @@ import TetroPiece from "../TetroPiece"
 import RotationMethods from "../../../schema/rotation/rotationMethods"
 import PieceIdentifier from "../../../definitions/PieceIdentifier"
 import BoundingBoxOffsets from "../../../schema/rotation/definitions/BoundingBoxOffsets"
-import PieceSpec from "../../../schema/definitions/PieceSpec"
 import shapes from "../tetroShapes"
-import getSpawnInfo from "../../../schema/rotation/getSpawnInfo"
-import initializeRs from "../../../schema/rotation/initializeRsReducer";
 
-const buildSpec = (id: PieceIdentifier, optionalParams?: PieceSpec.OptionalParams) => {
+const defaults = (id: PieceIdentifier) => {
     return {
         id,
         shape: shapes[id],
-        startLocation: optionalParams?.startLocation ?? { x: 3, y: 19 },
-        spawnOrientation: optionalParams?.spawnOrientation ?? Orientation.South,
-        offsets: optionalParams?.offsets ?? offsets[id]
-    } satisfies PieceSpec
+        startLocation: { x: 3, y: 19 },
+        spawnOrientation: Orientation.South,
+        offsets: offsets[id]
+    }
 }
 
 const offsets: { [id: PieceIdentifier]: BoundingBoxOffsets } = {
@@ -54,18 +51,15 @@ const offsets: { [id: PieceIdentifier]: BoundingBoxOffsets } = {
     }
 }
 
-const pieces: { [id: PieceIdentifier]: PieceSpec } = {
-    [TetroPiece.J]: buildSpec(TetroPiece.J),
-    [TetroPiece.L]: buildSpec(TetroPiece.L),
-    [TetroPiece.S]: buildSpec(TetroPiece.S),
-    [TetroPiece.Z]: buildSpec(TetroPiece.Z),
-    [TetroPiece.T]: buildSpec(TetroPiece.T),
-    [TetroPiece.I]: buildSpec(TetroPiece.I),
-    [TetroPiece.O]: buildSpec(TetroPiece.O, { startLocation: { x: 4, y: 20 } })
-}
-
 export default {
-    initialize: initializeRs(pieces),
+    pieces: [
+        defaults(TetroPiece.J),
+        defaults(TetroPiece.L),
+        defaults(TetroPiece.S),
+        defaults(TetroPiece.Z),
+        defaults(TetroPiece.T),
+        defaults(TetroPiece.I),
+        { ...defaults(TetroPiece.O), startLocation: { x: 4, y: 20 } }
+    ],
     rotate: RotationMethods.basic(),
-    getSpawnInfo: getSpawnInfo(pieces)
-} satisfies RotationSystem
+} satisfies RotationSystem.Basis

@@ -62,7 +62,7 @@ describe('Testing initialization', () => {
 
     let initializedState: State = execute(null, ...LifecycleProviders.Makers.init(settings));
 
-    //Validate meta, hold, and settings states
+    //Validate tertiary, hold, and settings states
     expect(initializedState.meta).toEqual(initialMetaState)
     expect(initializedState.hold).toEqual(initialHoldState)
     expect(initializedState.settings).toEqual(initialSettingsState)

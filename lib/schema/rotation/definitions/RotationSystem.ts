@@ -1,50 +1,50 @@
 import Orientation from "../../../definitions/Orientation"
-import type PieceIdentifier from "../../../definitions/PieceIdentifier"
 import Outcome from "../../../definitions/Outcome"
 import type Coordinate from "../../../definitions/Coordinate"
 import CoreState from "../../../core/definitions/CoreState"
-import CoreDependencies from "../../../core/definitions/CoreDependencies"
-import CoreOperationResult from "../../../core/definitions/CoreOperationResult"
 import Rotation from "../../../definitions/Rotation"
-import PieceSpawnInfo from "../../definitions/PieceSpawnInfo"
+import GameSchema from "../../definitions/GameSchema"
 import { willCollide } from "../../../util/stateUtils"
-import Operation from "../../../definitions/Operation";
+import PieceSpec from "../../definitions/PieceSpec"
+import type PieceIdentifier from "../../../definitions/PieceIdentifier";
 
-interface RotationSystem {
-    rotate: RotationSystem.RotationBehavior,
-    initialize: Operation<CoreOperationResult<CoreState>, CoreDependencies>,
-    getSpawnInfo: RotationSystem.SpawnInfoProvider,
+interface RotationSystem  {
+    pieces: Record<PieceIdentifier, PieceSpec>,
+    rotate: RotationSystem.RotationBehavior
 }
 
 namespace RotationSystem {
 
     export type Offset = [number, number]
 
-    export interface RotateResult {
+    export type RotationBehavior = (
+        params: { rotation: Rotation, state: CoreState, schema: GameSchema }
+    ) => Outcome<RotationResult>
+
+    export interface RotationResult {
         offset: Offset
         newOrientation: Orientation,
-        unadjustedCoordinates: Coordinate[]
+        newCoordinates: Coordinate[]
     }
 
-}
-
-namespace RotationSystem {
-
-    export type RotationBehavior = (params: { rotation: Rotation, state: CoreState }) => Outcome<RotateResult>
-
-    export type SpawnInfoProvider = (params: { pieceId: PieceIdentifier, state: CoreState }) => PieceSpawnInfo
-
-}
-
-namespace RotationSystem {
+    export interface Basis {
+        pieces: PieceSpec.Basis[],
+        rotate: RotationBehavior
+    }
 
     export interface Validator {
-        isValid: (state: CoreState, coordinates: readonly Coordinate[], offset: Offset) => boolean
+        isValidRotation: (
+            state: CoreState,
+            coordinates: readonly Coordinate[],
+            offset: Offset,
+            schema: GameSchema
+        ) => boolean
     }
 
     export namespace Validator {
-        export const simpleCollision: RotationSystem.Validator = {
-            isValid: ({ playfield }: CoreState, coordinates: Readonly<Coordinate[]>, offset: Offset) => {
+
+        export const overlapCollision: Validator = {
+            isValidRotation: ({ playfield }: CoreState, coordinates: Readonly<Coordinate[]>, offset: Offset) => {
                 return !willCollide(playfield, coordinates, offset[0], offset[1])
             }
         }

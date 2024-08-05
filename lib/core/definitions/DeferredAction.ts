@@ -41,7 +41,7 @@ namespace DeferredAction {
     export namespace AddRns {
 
         export interface Params {
-            operation: CoreOperations.AddRns<CoreOperationResult<CoreState>, CoreDependencies>,
+            operation: CoreOperations.Builders.AddRns<CoreOperationResult<CoreState>, CoreDependencies>,
             quantity: number
         }
 
