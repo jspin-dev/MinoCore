@@ -7,7 +7,7 @@ import type Playfield from "./Playfield"
 import type DropType from "./DropType"
 
 type GameEvent = GameEvent.Types.InputStart | GameEvent.Types.InputEnd | GameEvent.Types.ClockTick
-    | GameEvent.Types.Dequeue | GameEvent.Types.Enqueue | GameEvent.Types.Lock | GameEvent.Types.Clear
+    | GameEvent.Types.Dequeue | GameEvent.Types.Enqueue | GameEvent.Types.Lock | GameEvent.Types.PlayfieldReduction
     | GameEvent.Types.Shift | GameEvent.Types.Rotate | GameEvent.Types.Drop | GameEvent.Types.Hold
     | GameEvent.Types.Spawn | GameEvent.Types.Restart | GameEvent.Types.Initialized
 
@@ -21,7 +21,7 @@ namespace GameEvent {
         Dequeue = "dequeue",
         Enqueue = "enqueue",
         Lock = "lock",
-        Clear = "clear",
+        PlayfieldReduction = "clear",
         Shift = "shift",
         Rotate = "rotate",
         Drop = "drop",
@@ -68,8 +68,8 @@ namespace GameEvent {
             activePiece: ActivePiece
         }
 
-        export interface Clear {
-            classifier: Classifier.Clear
+        export interface PlayfieldReduction {
+            classifier: Classifier.PlayfieldReduction
             activePiece: ActivePiece
             linesCleared: number[]
             playfield: Playfield
@@ -152,7 +152,7 @@ namespace GameEvent {
         return { classifier: Classifier.Lock, activePiece: params.activePiece } satisfies Types.Lock
     }
 
-    export const Clear = (
+    export const PlayfieldReduction = (
         params: {
             activePiece: ActivePiece,
             linesCleared: number[],
@@ -160,11 +160,11 @@ namespace GameEvent {
         }
     ) => {
         return {
-            classifier: Classifier.Clear,
+            classifier: Classifier.PlayfieldReduction,
             activePiece: params.activePiece,
             linesCleared: params.linesCleared,
             playfield: params.playfield
-        } satisfies Types.Clear
+        } satisfies Types.PlayfieldReduction
     }
 
     export const Shift = (params: { direction: ShiftDirection, dx: number, dasToWall: boolean }) => {

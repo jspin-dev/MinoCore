@@ -1,18 +1,26 @@
-import CoreStatistics from "./CoreStatistics"
-import Grid from "../../definitions/Grid"
-import Cell from "../../definitions/Cell"
-import ScoreState from "./Score"
+import CoreStatistics from "../../definitions/CoreStatistics"
+import Grid from "../../../definitions/Grid"
+import Cell from "../../../definitions/Cell"
+import LockScoreAction from "./LockScoreAction"
 
 interface GuidelineStatistics extends CoreStatistics {
-    scoreState: ScoreState,
+    scoreState: GuidelineStatistics.ScoreState,
     level: number,
-    actionTally: {[key: string]: number},
+    actionTally: Record<string, number>,
     finesse: number,
     moveCount: number,
-    rotationReferenceGrid: Grid<Cell>
+    rotationReferenceGrid: Grid<Cell> | null
 }
 
 namespace GuidelineStatistics {
+
+    export interface ScoreState {
+
+        lastLockScoreAction: LockScoreAction
+        score: number
+        combo: number
+
+    }
 
     export const initial: GuidelineStatistics = {
         ...CoreStatistics.initial,

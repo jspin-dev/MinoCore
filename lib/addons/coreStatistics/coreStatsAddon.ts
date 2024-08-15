@@ -2,6 +2,9 @@ import GameEvent from "../../definitions/GameEvent"
 import { passthroughOperation, sequence } from "../../util/operationUtils"
 import CoreStatistics from "../definitions/CoreStatistics"
 import Operation from "../../definitions/Operation"
+import PieceIdentifier from "../../definitions/PieceIdentifier";
+
+type StatisticsOperation = Operation<CoreStatistics, void>
 
 // noinspection JSUnusedGlobalSymbols
 export default (statistics: CoreStatistics, gameEvents: GameEvent[]) => {
@@ -18,8 +21,8 @@ const updateStatisticsFromEvent = (event: GameEvent) => {
             return updateOnInputStart
         case GameEvent.Classifier.Lock:
             return updateOnLock
-        case GameEvent.Classifier.Clear:
-            return updateOnClear(event)
+        case GameEvent.Classifier.PlayfieldReduction:
+            return updateOnReduction(event)
         case GameEvent.Classifier.Hold:
             return updateOnHold
         case GameEvent.Classifier.Spawn:
@@ -31,7 +34,7 @@ const updateStatisticsFromEvent = (event: GameEvent) => {
     }
 }
 
-const updateOnTick: Operation<CoreStatistics, void> = statistics => {
+const updateOnTick: StatisticsOperation = statistics => {
     let time = statistics.time + 1
     return {
         ...statistics,
@@ -40,31 +43,30 @@ const updateOnTick: Operation<CoreStatistics, void> = statistics => {
     }
 }
 
-const updateOnHold: Operation<CoreStatistics, void> = statistics => {
+const updateOnHold: StatisticsOperation = statistics => {
     return { holdCount: statistics.holdCount + 1 }
 }
 
-const updateOnSpawn: Operation<CoreStatistics, void> = statistics => {
+const updateOnSpawn: StatisticsOperation = statistics => {
     return { spawnCount: statistics.spawnCount + 1 }
 }
 
-const updateOnInputStart: Operation<CoreStatistics, void> = statistics => {
+const updateOnInputStart: StatisticsOperation = statistics => {
     return {
         inputCount: statistics.inputCount + 1,
         kpp: statistics.piecesLocked ? statistics.inputCount / statistics.piecesLocked : 0
     }
 }
 
-const updateOnLock: Operation<CoreStatistics, void> = statistics => {
+const updateOnLock: StatisticsOperation = statistics => {
     return {
         pps: statistics.time ? statistics.piecesLocked / statistics.time : 0,
         piecesLocked: statistics.piecesLocked + 1
     }
 }
 
-const updateOnClear: (event: GameEvent.Types.Clear) => Operation<CoreStatistics, void> = event => {
-    return (statistics, _) => {
+const updateOnReduction: (event: GameEvent.Types.PlayfieldReduction) => StatisticsOperation = event => {
+    return statistics => {
         return { lines: statistics.lines += event.linesCleared.length }
     }
 }
-

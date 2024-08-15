@@ -2,7 +2,7 @@ import ActivePiece from "../../definitions/ActivePiece"
 import Cell from "../../definitions/Cell"
 import Grid from "../../definitions/Grid"
 import TetroPiece from "../../presets/tetro/TetroPiece"
-import LockScoreAction from "../definitions/LockScoreAction"
+import LockScoreAction from "./definitions/LockScoreAction"
 import Playfield from "../../definitions/Playfield"
 
 export const detectPC = (playfield: Playfield) => {
@@ -27,11 +27,11 @@ export const detectTspin = (
     const occupiedCornerCount = corners.reduce((sum, cornerOccupied) => cornerOccupied ? sum + 1 : sum, 0)
     // T-spin detected, still need to specify the type of t-spin
     if (occupiedCornerCount > 2) {
-        const orientation = activePiece.orientation;
+        const orientation = activePiece.orientation
         const tSpinFull = (orientation == 0 && corners[0] && corners[1]) ||
                 (orientation == 1 && corners[1] && corners[3]) ||
                 (orientation == 2 && corners[2] && corners[3]) ||
-                (orientation == 3 && corners[0] && corners[2]);
+                (orientation == 3 && corners[0] && corners[2])
         return tSpinFull ? LockScoreAction.Type.TSpin : LockScoreAction.Type.TSpinMini
     }
     return null

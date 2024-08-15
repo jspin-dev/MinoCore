@@ -11,6 +11,9 @@
     import type Settings from "../../build/settings/definitions/Settings"
     import settingsPresets from "../../build/presets/universal/settingsPresets"
     import MinoGame from "../../build/core/MinoGame";
+    import tetroSchemas from "../../build/presets/tetro/tetroSchemaPresets";
+    import buildSchema from "../../build/schema/buildSchema";
+    import PreviewGrid from "./PreviewGrid.svelte";
 
 	export let uiSettings: UiSettings
     export let userPrefs: UserPreferences
@@ -79,14 +82,13 @@
     on:focus={onFocus}
     on:blur={onBlur}>
     <div class='game-container'>
-        <!-- <Grid
-            gridData={state.previewGrids.holdPreview} 
-            colors={uiSettings.blockColors} 
-            borderlessHeight={state.previewGrids.holdPreview.length}
+        <PreviewGrid
+            gridData={state.grids.hold.grid}
+            colors={uiSettings.blockColors}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
-            concealBlocks={isPaused}/> -->
+            concealBlocks={isPaused}/>
         <Grid 
             gridData={visiblePlayfieldGrid} 
             colors={uiSettings.blockColors} 
@@ -95,14 +97,13 @@
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
             concealBlocks={isPaused}/>
-        <!-- <Grid
-            gridData={state.previewGrids.nextPreview} 
-            colors={uiSettings.blockColors} 
-            borderlessHeight={state.previewGrids.nextPreview.length}
+        <PreviewGrid
+            gridData={state.grids.nextPreview.grid}
+            colors={uiSettings.blockColors}
             blockSize={uiSettings.previewBlockSize}
             dimmed={inactiveGame}
             showBorders={userPrefs.showGrid}
-            concealBlocks={isPaused}/> -->
+            concealBlocks={isPaused}/>
     </div>  
     <div class='banner-container'>
         {#if !containerInFocus && userPrefs.showFocusBanner}

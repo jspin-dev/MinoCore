@@ -31,8 +31,8 @@ const lockPlayfield = ({ state, events }: CoreResult) => {
 }
 
 const executePlayfieldReduction = ({ state, events }: CoreResult, { schema }: CoreDependencies) => {
-    const result = schema.playfieldReducer.reduce({ coreState: state, playfieldDimens: schema.playfieldDimens })
-    const event = GameEvent.Clear({ // Uses playfield pre-reduction
+    const result = schema.playfieldReducer.reduce({ coreState: state, schema })
+    const event = GameEvent.PlayfieldReduction({ // Log pre-reduction playfield
         activePiece: state.activePiece,
         linesCleared: result.linesCleared,
         playfield: state.playfield

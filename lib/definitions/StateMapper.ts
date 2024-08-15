@@ -1,9 +1,10 @@
-import CoreState from "../core/definitions/CoreState";
-import CoreResult from "../core/definitions/CoreResult";
+import CoreState from "../core/definitions/CoreState"
+import CoreResult from "../core/definitions/CoreResult"
+import GameSchema from "../schema/definitions/GameSchema"
 
 interface StateMapper<S, R, T> {
-    mapFromResult: (previousState: T, result: R) => T
-    initialize: (state: S) => T
+    mapFromResult: (previousState: T, result: R, schema: GameSchema) => T
+    initialize: (state: S, schema: GameSchema) => T
 }
 
 namespace StateMapper {

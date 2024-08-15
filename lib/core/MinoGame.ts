@@ -11,6 +11,7 @@ import CoreResult from "./definitions/CoreResult"
 import { updateCoreState } from "./utils/coreOperationUtils"
 import buildSchema from "../schema/buildSchema"
 import StateMapper from "../definitions/StateMapper"
+import PieceIdentifier from "../definitions/PieceIdentifier";
 
 // noinspection JSUnusedGlobalSymbols
 class MinoGame<S extends { core: CoreState }> {
@@ -24,10 +25,10 @@ class MinoGame<S extends { core: CoreState }> {
 
     constructor(config: MinoGame.Config<S>, onStateChanged: (state: S) => void) {
         this.operations = config.operations
-        this.schema = buildSchema(config.schema)
+        this.schema = buildSchema(config.schemaBasis)
         this.stateMapper = config.stateMapper
         const initialCoreState = CoreState.initial(config.initialSettings, this.schema, this.generateRns())
-        this.state = config.stateMapper.initialize(initialCoreState)
+        this.state = config.stateMapper.initialize(initialCoreState, this.schema)
         this.onStateChanged = onStateChanged
         this.run(this.operations.initialize)
     }
@@ -68,7 +69,7 @@ class MinoGame<S extends { core: CoreState }> {
         const dependencies = { operations: this.operations, schema: this.schema }
         let initialResult = CoreResult.initFromCoreState(this.state.core)
         const result = { ...initialResult, ...operation(initialResult, dependencies) }
-        this.state = this.stateMapper.mapFromResult(this.state, result)
+        this.state = this.stateMapper.mapFromResult(this.state, result, this.schema)
         this.onStateChanged(this.state)
         result.deferredActions.forEach(request => this.executeDeferredAction(request))
     }
@@ -101,7 +102,7 @@ namespace MinoGame {
 
     export interface Config<S> {
         initialSettings: Settings,
-        schema: GameSchema.Basis,
+        schemaBasis: GameSchema.Basis,
         operations: CoreOperations<CoreState, CoreDependencies, CoreOperationResult<CoreState>>,
         stateMapper: StateMapper<CoreState, CoreResult, S>
     }

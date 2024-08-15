@@ -27,6 +27,13 @@ export const arraysEqual = <T>(
     return t1.length == t2.length && t1.every((value, i) => equal(t2[i], value))
 }
 
+export const mapRecordValues = <T, U>(obj: Record<string | number | symbol, T>, callback: (u: T) => U) => {
+    return Object.entries(obj).reduce((result, [id, value]) => {
+        result[id] = callback(value)
+        return result
+    }, {} as Record<string | number | symbol, U>)
+}
+
 export const copyGrid = <T>(grid: Readonly<Grid<T>>) => {
     return grid.map(row => [...row])
 }

@@ -1,4 +1,4 @@
-import Lines from "./Lines"
+import Lines from "../../definitions/Lines"
 
 interface LockScoreAction {
     type: LockScoreAction.Type

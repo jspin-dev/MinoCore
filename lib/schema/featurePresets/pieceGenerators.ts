@@ -20,6 +20,7 @@ namespace PieceGenerators {
                     rns: rns.slice(0, -pieceDeficit)
                 }
             },
+            minQueueLength,
             rnsRequirement: minQueueLength
         } satisfies PieceGenerator
     }
@@ -37,6 +38,7 @@ namespace PieceGenerators {
                     return generateRandomizedBag(result, schemaPieces, bagSize)
                 }, initialResult)
             },
+            minQueueLength,
             rnsRequirement: Math.ceil(minQueueLength / schemaPieces.length) * (schemaPieces.length - 1)
         } satisfies PieceGenerator
     }

@@ -1,14 +1,12 @@
 import { BasicStat } from "../types"
 import statsTableConfig from "../config/statsConfig"
-import type Statistics from "../../../build/addons/definitions/CoreStatistics"
-import type Input from "../../../build/definitions/Input";
-// import Pause = Input.Pause;
+import type Statistics from "../../../build/addons/guidelineStatistics/definitions/GuidelineStatistics"
 
 export let buildStatsSection = (statistics: Statistics) => {
     return {
         sectionName: statsTableConfig.sectionName,
         tables: statistics ? [
-            //buildActionTable(statistics.actionTally),
+            buildActionTable(statistics.actionTally),
             buildBasicStatsTable(statistics)
         ] : []
     }
@@ -38,7 +36,7 @@ let buildBasicStatsTable = (statistics: Statistics): StatsEntry[] => {
 
                 break;
             case BasicStat.Classifier.ScoreState:
-                value = ""//String(statistics.scoreState[entryValue.key] || 0)
+                value = String(statistics.scoreState[entryValue.key] || 0)
         }
         return { ...entry, value };
     });
